@@ -18,7 +18,7 @@ my_fresh_theme <- create_theme(
   )
 )
 
-spinner_color <- burnt_sienna <- "#EE6C4D"
+spinner_color <- burnt_sienna <- "#EE6C4D" 
 
 
 
