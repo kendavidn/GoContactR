@@ -14,6 +14,20 @@ contacts_df <-
   rename_with(.cols = any_of(raw_names), .fn = ~ clean_names[which(raw_names == .x)]) 
 
 
+contacts_df <- 
+  readxl::read_excel(here("data/Niger_Contacts_COVID-19_review_27_01_2021.xlsx"), sheet = 2, skip = 2) %>% 
+  ## add counter column. 1 for all records. Useful for counting later (where we use 0 for fake records)
+  mutate(counter = 1) %>% 
+  mutate(row_id = row_number()) %>% 
+  ## rename to new names
+  rename_with(.cols = any_of(raw_names), .fn = ~ clean_names[which(raw_names == .x)]) 
+
+         
+sample_contacts_df <- read_rds(here("data/sample_contacts_df.RDS"))       
+  
+preloaded_data <- 
+  list(`Niger contacts list` = contacts_df, 
+        `Sample contacts list`= sample_contacts_df)
 
 
 server <- function(input, output) {  
@@ -40,7 +54,27 @@ server <- function(input, output) {
     renderPlot(
       filtered_data_dyn() %>% 
         #slice_sample(n = 2000) %>% 
-        visdat::vis_dat() 
+        visdat::vis_dat() + 
+        scale_fill_paletteer_d(palette = "NineteenEightyR::sonny", drop = T) +
+        labs(title = "Column types and missingness for your dataset.",
+             subtitle = "Please ensure that your data has the needed variables (see manual)") +
+        my_theme+
+        theme(axis.text.x = element_text(angle = 60, hjust = 0)) +
+        scale_y_continuous(expand = c(0, 0), limits = c(0, NA))
+    )
+  
+  
+  output$data_completeness_plot2 <- 
+    renderPlot(
+      filtered_data_dyn() %>% 
+        #slice_sample(n = 2000) %>% 
+        visdat::vis_dat() + 
+        scale_fill_paletteer_d(palette = "NineteenEightyR::sonny", drop = T) +
+        labs(title = "Column types and missingness for your dataset.",
+             subtitle = "Please ensure that your data has the needed variables (see manual)") +
+        my_theme+
+        theme(axis.text.x = element_text(angle = 60, hjust = 0)) +
+        scale_y_continuous(expand = c(0, 0), limits = c(0, NA))
     )
   
   
@@ -48,17 +82,11 @@ server <- function(input, output) {
   
   
   readFile <- reactive({
-    if(input$data_to_use_id == "Use examples") {
+    if(input$data_to_use_id == "Use pre-loaded data") {
       
-      description <- input$example_data
+      df_name <- input$example_data
       
-      x <- valid_sets()
-      
-      y <- get(x[x$Title == description, ] %>% 
-                 unique() %>% 
-                 .[,"Item"] %>% 
-                 na.omit %>% 
-                 as.character())
+      y <- preloaded_data[[df_name]]
       
       y <- as.data.frame(y)
       
@@ -124,13 +152,22 @@ server <- function(input, output) {
     readFile()
   })
   
+  # Switch controlbar menu based on sidebar item value. Moreover
+  # if the sidebar menu item is 2, the controlbar opens
+  observeEvent(input$sidebarMenu, {
+    idx <- strsplit(input$sidebarMenu, "_")[[1]][2]
+    if (idx == 2) {
+      updateControlbarMenu("controlbarMenu", selected = idx)
+    }
+  })
+  
   
   #~~ Right sidebar controls ---------------------------
   
   output$data_to_use <- renderUI({
     radioButtons(inputId = "data_to_use_id", inline = T,
                  label = "Linelist to analyse", 
-                 choices = c("Use examples", 
+                 choices = c("Use pre-loaded data", 
                              "Upload"))
   })
   
@@ -144,16 +181,15 @@ server <- function(input, output) {
                            "text/comma-separated-values,text/plain", 
                            ".csv"))
     } else {
-      chs <- as.character(na.omit(unique(valid_sets()[,"Title"])))
+      
       selectInput("example_data", 
-                  label = "Use Example Dataset", 
-                  choices = chs,
-                  selected = "Motor Trend Car Road Tests",
+                  label = "Use pre-loaded dataset", 
+                  choices = c("Niger contacts list", "Sample contacts list"),
+                  selected = "Niger contacts list",
                   multiple = FALSE)
     }
     
   })
-  
   
   output$columns_to_analyze <- renderUI({
     
@@ -177,7 +213,10 @@ server <- function(input, output) {
   
   output$analyze_action_bttn <- renderUI({
     # req(input$file1 | input$example_data)
-    actionBttn("Analyze", "Build UI")
+    actionBttn(inputId = "Analyze", 
+               #style = "stretch",
+               #style = "minimal", 
+               label = "Create filters")
   })
   
   output$filters <- renderUI({

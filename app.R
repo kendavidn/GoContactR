@@ -10,12 +10,21 @@ library(shiny)
 library(shinyWidgets)
 library(styler)
 library(shinydashboard)
+library(shinydashboardPlus)
 library(here)
 library(shinycssloaders)
 library(DT)
 library(fresh)
-library(shinydashboardPlus)
 library(shinyr)
+library(ggtext)
+
+
+library(data.table)
+library(leaflet)
+library(leaflet.minicharts)
+library(echarts4r)
+library(sparkline)
+library(shinyBS)
 
 
 
@@ -29,6 +38,18 @@ library(waiter)
 library(tidyverse)
 library(paletteer)
 library(visdat)
+library(charlatan)
+library(randomNames)
+
+options(scipen=999) # turn off scientific notation
+
+set.seed(1) # fix seed
+
+options(tibble.print_max = 35, tibble.print_min = 35)
+
+
+
+
 
 
 
@@ -94,6 +115,23 @@ newtheme <- hc_theme_merge(
 options(highcharter.theme = newtheme)
 
 
+
+my_theme <- theme_classic() + 
+  theme(
+    plot.title = element_text(face = "bold"),
+    #plot.background = element_rect(fill = "gray93"),
+    panel.grid.major = element_line(color = "gray95", size = 0.2),
+    strip.background = element_blank(),
+    # element textbox is from ggtext
+    strip.text = ggtext::element_textbox(
+      size = 11, face = "bold",
+      color = "white", fill = "steelblue3", halign = 0.5, 
+      r = unit(5, "pt"), width = unit(1, "npc"),
+      padding = margin(2, 0, 1, 0), margin = margin(3, 3, 3, 3)
+    )
+  )
+
+theme_set(my_theme)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~  Server ----
