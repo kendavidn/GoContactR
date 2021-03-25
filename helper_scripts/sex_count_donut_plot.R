@@ -1,6 +1,8 @@
 
 sex_count_donut_plot <- function(contacts_df){
   
+  req(input$Analyze)
+  
   x <- c("Sex: ", "Count: ")
   y <- c("{point.sex_contact}", "{point.n}")
   
@@ -12,8 +14,7 @@ sex_count_donut_plot <- function(contacts_df){
     count(sex_contact) %>% 
     hchart("pie", hcaes(name = sex_contact, y = n ), 
            innerSize = "40%", 
-           showInLegend = TRUE, 
-           dataLabels = list(enabled = FALSE)) %>% 
+           dataLabels = list(enabled = TRUE)) %>% 
     hc_title(text= 'Breakdown of contacts by sex') %>% 
     hc_tooltip(useHTML = TRUE,
                headerFormat = "", 

@@ -1,295 +1,325 @@
-
-## read in clean names and replace
-raw_and_clean_names <- readxl::read_excel(here("data/Niger_Contacts_COVID-19_review_27_01_2021.xlsx"), sheet = 3) 
-raw_names <- raw_and_clean_names$raw_names
-clean_names <- raw_and_clean_names$clean_names
-
-# data in 
-contacts_df <- 
-  readxl::read_excel(here("data/Niger_Contacts_COVID-19_review_27_01_2021.xlsx"), sheet = 2, skip = 2) %>% 
-  ## add counter column. 1 for all records. Useful for counting later (where we use 0 for fake records)
-  mutate(counter = 1) %>% 
-  mutate(row_id = row_number()) %>% 
-  ## rename to new names
-  rename_with(.cols = any_of(raw_names), .fn = ~ clean_names[which(raw_names == .x)]) 
-
-
-contacts_df <- 
-  readxl::read_excel(here("data/Niger_Contacts_COVID-19_review_27_01_2021.xlsx"), sheet = 2, skip = 2) %>% 
-  ## add counter column. 1 for all records. Useful for counting later (where we use 0 for fake records)
-  mutate(counter = 1) %>% 
-  mutate(row_id = row_number()) %>% 
-  ## rename to new names
-  rename_with(.cols = any_of(raw_names), .fn = ~ clean_names[which(raw_names == .x)]) 
-
-         
-sample_contacts_df <- read_rds(here("data/sample_contacts_df.RDS"))       
-  
-preloaded_data <- 
-  list(`Niger contacts list` = contacts_df, 
-        `Sample contacts list`= sample_contacts_df)
-
-
 server <- function(input, output) {  
   
-  #~~ Data plots ---------------------------
+  
+  source(here("helper_scripts/server_functions.R"), local = T)
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # ~~  reactives ----
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # 
+  # observeEvent(input$Analyze, {
+  #   read_file()
+  #   })
+  # 
+  # observeEvent(input$Analyze, {
+  #   change_todays_date()
+  # })
 
-  #~~ Donut plots ---------------------------
-  source(here("helper_scripts/sex_count_donut_plot.R"))
-  output$sex_count_donut_plot1 <- renderHighchart(contacts_df %>% sex_count_donut_plot())
-  output$sex_count_donut_plot2 <- renderHighchart(contacts_df %>% sex_count_donut_plot())
-  output$sex_count_donut_plot3 <- renderHighchart(contacts_df %>% sex_count_donut_plot())
   
-  #~~ Sunburst and click capture ---------------------------
-  source(here("helper_scripts/region_count_sunburst_plot.R"))
-  output$region_count_sunburst_plot <- renderHighchart(contacts_df %>% region_count_sunburst_plot())
-  output$click_capture <- renderText(input$click_capture)
-  
-  #~~ DT Table ---------------------------
-  source(here("helper_scripts/contacts_df_table.R"))
-  output$contacts_df_table <- renderDataTable(contacts_df %>% contacts_df_table())
-  
-  #~~ Data completeness ---------------------------
-  output$data_completeness_plot <- 
-    renderPlot(
-      filtered_data_dyn() %>% 
-        #slice_sample(n = 2000) %>% 
-        visdat::vis_dat() + 
-        scale_fill_paletteer_d(palette = "NineteenEightyR::sonny", drop = T) +
-        labs(title = "Column types and missingness for your dataset.",
-             subtitle = "Please ensure that your data has the needed variables (see manual)") +
-        my_theme+
-        theme(axis.text.x = element_text(angle = 60, hjust = 0)) +
-        scale_y_continuous(expand = c(0, 0), limits = c(0, NA))
-    )
-  
-  
-  output$data_completeness_plot2 <- 
-    renderPlot(
-      filtered_data_dyn() %>% 
-        #slice_sample(n = 2000) %>% 
-        visdat::vis_dat() + 
-        scale_fill_paletteer_d(palette = "NineteenEightyR::sonny", drop = T) +
-        labs(title = "Column types and missingness for your dataset.",
-             subtitle = "Please ensure that your data has the needed variables (see manual)") +
-        my_theme+
-        theme(axis.text.x = element_text(angle = 60, hjust = 0)) +
-        scale_y_continuous(expand = c(0, 0), limits = c(0, NA))
-    )
-  
-  
-  #~~ Reactives ---------------------------
-  
-  
-  readFile <- reactive({
-    if(input$data_to_use_id == "Use pre-loaded data") {
-      
-      df_name <- input$example_data
-      
-      y <- preloaded_data[[df_name]]
-      
-      y <- as.data.frame(y)
-      
-      
-    } else {
-      
-      input_file <- input$file1
-      
-      input_file_path <- input_file$datapath
-      
-      x <- read.csv(input_file_path, header = TRUE)
-      
-      y <- as.data.frame(x)
-      
-    }
-    
-    return(y)
-    
-  })
-  
-  filtered_data <- reactive({
-    
-    req(input$Analyze)
-    
-    my_data <- readFile()
-    
-    my_inputs <- input$cols_to_analyze
-    
-    all_possible_inputs <- names(my_data)
-    
-    matching <- all_possible_inputs %in% my_inputs
-    
-    cols_to_filter <- all_possible_inputs[matching]
-    
-    temp <- my_data
-    
-    for(j in 1:length(cols_to_filter)) {
-      
-      col <- my_data[ ,my_inputs[j]]
-      
-      if(is.character(col)) {
-        temp <- temp[temp[,cols_to_filter[j]] %in% input[[cols_to_filter[j]]], ]
-      } else if(is.numeric(col)) {
-        temp <- temp[temp[,cols_to_filter[j]] >= input[[cols_to_filter[j]]][1], ]
-        temp <- temp[temp[,cols_to_filter[j]] <= input[[cols_to_filter[j]]][2], ]
-      }
-    }
-    
-    return(temp)
-  })
-  
-  filtered_data_dyn <- reactive({
-    filtered_data()
-  })
-  
-  
-  initial_analysis <- reactive({
-    temp <- readFile()
-    getDataInsight(temp)
-  })
-  
-  observeEvent(input$Analyze,{
-    readFile()
-  })
-  
-  # Switch controlbar menu based on sidebar item value. Moreover
-  # if the sidebar menu item is 2, the controlbar opens
-  observeEvent(input$sidebarMenu, {
-    idx <- strsplit(input$sidebarMenu, "_")[[1]][2]
-    if (idx == 2) {
-      updateControlbarMenu("controlbarMenu", selected = idx)
-    }
-  })
-  
-  
-  #~~ Right sidebar controls ---------------------------
-  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # ~~  load_data_tab ----
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  # ~~~ Choose data to use UI element----
   output$data_to_use <- renderUI({
-    radioButtons(inputId = "data_to_use_id", inline = T,
-                 label = "Linelist to analyse", 
-                 choices = c("Use pre-loaded data", 
-                             "Upload"))
+    radioButtons(inputId = "data_to_use_id", 
+                 label = "Input Data", 
+                 choices = c("Use preloaded data", 
+                             "Use uploaded data"))
   })
   
+  # ~~~ Load data UI element----
   output$input_data <- renderUI({
     
-    if(input$data_to_use_id == "Upload") {
-      fileInput(inputId = "file1",
-                label = "Upload a csv file", 
+    if(input$data_to_use_id == "Use uploaded data") {
+      fileInput(inputId = "uploaded_data",
+                label = "Upload an xlsx or csv file", 
                 multiple = FALSE,
                 accept = c("text/csv",
                            "text/comma-separated-values,text/plain", 
-                           ".csv"))
-    } else {
+                           ".csv", 
+                           ".xlsx",
+                           ".xls"))
+    } else if (input$data_to_use_id == "Use preloaded data") {
       
-      selectInput("example_data", 
-                  label = "Use pre-loaded dataset", 
-                  choices = c("Niger contacts list", "Sample contacts list"),
-                  selected = "Niger contacts list",
+      selectInput("preloaded_data", 
+                  label = "Use preloaded data", 
+                  choices = c("Guinea list 03_14"
+                              #, 
+                              #"Sample contacts list"
+                              ),
+                  selected = NULL,
                   multiple = FALSE)
     }
     
   })
   
-  output$columns_to_analyze <- renderUI({
-    
-    if(input$data_to_use_id == "Upload" & 
-       is.null(input$file1)) {
-      return(NULL)
-    }
-    
-    my_data <- readFile()
-    
-    pickerInput(inputId = "cols_to_analyze",
-                label = "Columns to create filter",
-                choices = names(my_data),
-                multiple = TRUE,
-                selected = names(my_data),
-                
-    )
-    # }
-    
-  })
-  
+  # ~~~ Analyze action button UI element----
   output$analyze_action_bttn <- renderUI({
-    # req(input$file1 | input$example_data)
-    actionBttn(inputId = "Analyze", 
-               #style = "stretch",
-               #style = "minimal", 
-               label = "Create filters")
+    actionBttn(inputId = "Analyze", label = "Analyze", 
+               style = "jelly", color = "primary",
+               )
   })
   
-  output$filters <- renderUI({
+  
+  
+  # ~~~ select_date_of_review UI element----
+  
+  output$select_date_of_review <- renderUI({
+
+      dateInput("select_date_of_review", 
+                label = "Select date of review", 
+                value = todays_date)
     
-    req(input$Analyze)
-    my_data <- readFile() %>% type_convert()
-    selected_cols <- input$cols_to_analyze
-    
-    labels <- lapply(1:length(selected_cols), FUN = function(x){
-      selected_cols[x]
-    })
-    
-    ids <- lapply(1:length(selected_cols), FUN = function(x){
-      paste0(selected_cols[x])
-    })
-    
-    choices <- lapply(1:length(selected_cols), FUN = function(x){
-      unique(my_data[ ,selected_cols[x]]) 
-    })
-    
-    lapply(1:length(labels), function(i) {
-      output[[labels[[i]]]] <- renderUI({
-        col <- my_data[ ,selected_cols[i]]
-        if(is.character(col) | is.factor(col)) {
-          if(is.factor(col)){
-            ch <- choices[[i]] %>% levels()
-          } else {
-            ch <- choices[[i]]
-          }
-          pickerInput(ids[[i]],
-                      label = labels[[i]],
-                      choices = ch,
-                      selected = ch,
-                      multiple = TRUE)
-        } else if(is.numeric(col)) {
-          sliderInput(ids[[i]],
-                      label = labels[[i]],
-                      min = min(col, na.rm = TRUE),
-                      max = max(col, na.rm = TRUE),
-                      value = c(min(col, na.rm = TRUE), max(col, na.rm = TRUE)),
-                      ticks = FALSE
-                      )
-        }
-        
-      })
+  })
+
+   #~~ data_completeness_plot ---------------------------
+  output$data_completeness_plot <- 
+    renderPlot({
+      read_file()$contacts_df_raw %>% 
+      data_completeness_plot()
+    }) 
+
+  #~~ data_cardinality_plot ---------------------------
+  output$data_cardinality_plot <- 
+    renderPlot({
+      read_file()$contacts_df_raw %>% 
+      data_cardinality_plot()})
+  
+  #~~ reactable_table ---------------------------
+  output$reactable_table <- 
+    renderReactable({
+      read_file()$contacts_df_raw %>% 
+        reactable_table()})
+  
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # ~~  all_contacts_tab ----
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+  # ~~~ all_contacts_tab_row_0 ----
+  
+  
+  output$contacts_registered_per_day_value_box <-
+    renderValueBox({
+      read_file()$contacts_df_long %>% 
+      contacts_registered_per_day_value_box()
       
     })
-    
-    lapply(1:length(labels), function(i) {
-      uiOutput(labels[[i]])
+  
+  
+  output$cumulative_contacts_registered_value_box <-
+    renderValueBox({
+      read_file()$contacts_df_long %>% 
+        cumulative_contacts_registered_value_box()
+      
     })
+  
+  
+  output$contacts_under_surveillance_value_box <-
+    renderValueBox({
+      read_file()$contacts_df_long %>% 
+        contacts_under_surveillance_value_box()
+      
+    })
+  
+  output$pct_contacts_followed_value_box <-
+    renderValueBox({
+      read_file()$contacts_df_long %>% 
+        pct_contacts_followed_value_box()
+      
+    })
+  
+  # ~~~ all_contacts_tab_row_1 ----
+  
+  output$all_contacts_per_region_table <- 
+    renderReactable({
+      read_file()$contacts_df_long %>% 
+        all_contacts_per_region_table()
+      })
+  
+  
+  output$all_contacts_per_region_sunburst_plot <- 
+    renderHighchart({
+      read_file()$contacts_df_long %>% 
+        all_contacts_per_region_sunburst_plot()
+      })
+  
+  output$all_contacts_per_region_text <- 
+    renderUI({
+      read_file()$contacts_df_long %>% 
+        all_contacts_per_region_text()
+      })
+  
+  # ~~~ all_contacts_tab_row_2 ----
+  
+  output$contacts_under_surveillance_per_region_over_time_bar_chart <- 
+    renderHighchart({
+      read_file()$contacts_df_long %>% 
+        contacts_under_surveillance_per_region_over_time_bar_chart()
+    })
+  
+  output$contacts_under_surveillance_per_region_over_time_bar_chart_relative <- 
+    renderHighchart({
+      read_file()$contacts_df_long %>% 
+        contacts_under_surveillance_per_region_over_time_bar_chart_relative()
+    })
+  
+  output$contacts_under_surveillance_per_region_over_time_text <- 
+    renderUI({
+      read_file()$contacts_df_long %>% 
+        contacts_under_surveillance_per_region_over_time_text()
+    })
+  
+  
+  
+  # ~~~ all_contacts_tab_row_3 ----
+  
+  output$total_contacts_per_case_donut_plot <- 
+    renderHighchart({
+      read_file()$contacts_df_long %>% 
+        total_contacts_per_case_donut_plot()
+    })
+  
+  output$total_contacts_per_case_table <- 
+    renderReactable({
+      read_file()$contacts_df_long %>% 
+        total_contacts_per_case_table()
+    })
+  
+  
+  output$total_contacts_per_case_text <- 
+    renderUI({
+      read_file()$contacts_df_long %>% 
+        total_contacts_per_case_text()
+    })
+  
+  
+  # ~~~ all_contacts_tab_row_4 ----
+  
+  output$total_contacts_per_link_type_donut_plot <- 
+    renderHighchart({
+      read_file()$contacts_df_long %>% 
+        total_contacts_per_link_type_donut_plot()
+    })
+    
+  
+  
+  output$total_contacts_per_link_type_text <- 
+    renderUI({
+      read_file()$contacts_df_long %>% 
+        total_contacts_per_link_type_text()
+    })
+  
+  
+  # ~~~ all_contacts_tab_row_5 ----
+  
+  output$total_contacts_vaccinated_bar_plot <- 
+    renderHighchart({
+      read_file()$contacts_df_long %>% 
+        total_contacts_vaccinated_bar_plot()
+    })
+  
+  
+  
+  output$total_contacts_vaccinated_text <- 
+    renderUI({
+      read_file()$contacts_df_long %>% 
+        total_contacts_vaccinated_text()
+    })
+  
+  # ~~~ all_contacts_tab_row_6 ----
+  
+  
+  # ~~~ Generate snake plot UI element----
+  
+  output$snake_plot_slider <- renderUI({
+    
+    contacts_df <- read_file()$contacts_df
+    contacts_df_min_row_id <- min(contacts_df$row_id)
+    contacts_df_max_row_id <- max(contacts_df$row_id)
+    
+    
+    
+    sliderInput("snake_plot_slider", 
+                label = h4("Select row IDs"), 
+                min = contacts_df_min_row_id, 
+                max = contacts_df_max_row_id, 
+                dragRange = 50,
+                value = c(contacts_df_min_row_id, 
+                          contacts_df_min_row_id + 49))
     
   })
   
   
+  output$generate_snake_plot_bttn <- renderUI({
+    actionBttn(inputId = "generate_snake_plot_bttn", 
+               label = "Generate snake plot", 
+               style = "jelly", color = "primary",  size = "xs"
+    )
+  })
+  
+  
+  
+  output$contacts_timeline_snake_plot <- 
+    renderHighchart({
+      
+      req(input$generate_snake_plot_bttn)
+      
+      read_file()$contacts_df_long %>% 
+        active_contacts_timeline_snake_plot()
+    })
+
   
 
-
-
-
-
-
+  # ~~~ all_contacts_tab_row_7 ----
   
-  # output$avg_msg_length_barplot <- renderHighchart(messages_df() %>% avg_msg_length_barplot())
-  # 
-  # output$msg_freq_over_time_lineplot <- renderHighchart(messages_df() %>% msg_freq_over_time_lineplot())
-  # 
-  # output$msg_freq_weekly_radialplot <- renderHighchart(messages_df() %>% msg_freq_weekly_radialplot())
-  # 
-  # output$top_words_barplot <- renderHighchart(messages_df() %>% top_words_barplot(max_nb = 30)) 
-  # 
-  # output$top_ngrams_barplot <- renderHighchart(messages_df() %>% top_ngrams_barplot(max_nb = 30)) 
-  # 
-  # 
-  # 
+  output$contacts_lost_24_to_72_hours <- 
+    render_gt({
+      read_file()$contacts_df_long %>% 
+        contacts_lost_24_to_72_hours()
+    })
+  
+  
+  output$lost_contacts_linelist <- 
+    renderReactable({
+      read_file()$contacts_df_long %>% 
+        lost_contacts_linelist()
+    })
+  
+  
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # ~~  regional_contacts_tab ----
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+  
+  output$regional_contacts_tab_select <- 
+  
+    renderUI({
+
+  selectInput("regional_contacts_tab_select", 
+              label = "Choose region",
+              choices = unique(read_file()$contacts_df_long$prefecture),
+              multiple = FALSE)
+      
+    })
+  
+  
+  # ~~~ regional_select_date_of_review----
+  output$regional_select_date_of_review <- renderUI({
+    
+    dateInput("regional_select_date_of_review", 
+              label = "Select date of review", 
+              value = todays_date)
+    
+  })
+  
+  
+
 }
+
+#polished::secure_server(server)
+
+
+
