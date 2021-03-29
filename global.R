@@ -77,19 +77,6 @@ contacts_df_raw <-
   clean_names() %>%
   type_convert()
 
-# # 
-# # todays_date <- 
-# #   contacts_df_raw %>% 
-# #   select(date_enreg, date_du_dernier_contact) %>% 
-# #   mutate(date_enreg = anytime(date_enreg), 
-# #          date_du_dernier_contact = anytime(date_du_dernier_contact)) %>% 
-# #   pull() %>% 
-# #   str_remove_all(" UTC") %>% 
-# #   max()
-#   
-todays_date <- as.Date("2021-03-14")
-# 
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  cleaning rules ----
@@ -106,6 +93,7 @@ cleaning_rules <-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 
+#! Not used at the moment March 26
 sample_contacts_df_raw <-
   rio::import(here("data/sample_contacts_df_raw.xlsx"))
 
@@ -119,147 +107,148 @@ sample_contacts_df_raw <-
 
 # called by data_input UI element on page 1 of app
 preloaded_data_options <-
-  list(`Guinea list 03_14` = contacts_df_raw,
-       `Sample contacts list` = sample_contacts_df_raw)
+  list(`Guinea list 03_14` = contacts_df_raw)
 
-
-
-app_mode <- "manual"
-
-if (app_mode == "manual"){
-  
-  todays_date_reactive <- function(){
-    
-    max(contacts_df_raw$date_enreg, na.rm = T)
-    
-  }
-
-
-  # data in
-  contacts_df <-
-    contacts_df_raw %>%
-    # clean vaccination column, type_de_contact, unite_age, prefecture, lien_avec_las_cas.
-    # No etat_suivi column to clean yet because I have not created it
-    linelist::clean_variable_spelling(wordlists = cleaning_rules) %>%
-    # add counter column. 1 for all records
-    mutate(counter = 1) %>%
-    # row numbers to match Excel spreadsheet
-    mutate(row_id = row_number() + 3) %>%
-    # convert dates to dates
-    mutate(across(.cols = matches("date_"),
-                  .fns = ~ as.Date(.x))) %>%
-    # rename the follow_up_day columns
-    rename_with(.cols = paste0("j", 1:21),
-                .fn = ~ paste("follow_up_day", str_remove_all(.x, "j"), sep = "_")) %>%
-    # duplicate the follow_up_day columns, change name to follow_up_date
-    mutate(across(.cols = paste("follow_up_day", 1:21, sep = "_"),
-                  .fns = ~ .,
-                  .names = "follow_up_date_{str_remove_all(.col, 'follow_up_day_')}")) %>%
-    # now, we convert the numbers in the follow up day columns
-    # to reflect the nth day of follow up
-    mutate(across(.cols = starts_with("follow_up_date_"),
-                  .fn = ~ str_extract(cur_column(), paste(21:1, collapse = "|")) %>% as.numeric() )) %>% # start from 21 otherwise you'll remove the tens unit before you get to the teens
-    # clean vaccination column
-    mutate(across(vaccination,
-                  ~ .x %>%
-                    stri_trans_general("Latin-ASCII") %>%
-                    str_to_lower() %>%
-                    str_to_sentence())) %>%
-    # clean admin levels
-    mutate(across(prefecture,
-                  ~ .x %>%
-                    str_to_sentence()))
-
-
-  pivot_day <-
-    contacts_df %>%
-    select(row_id, paste0("follow_up_day_", 1:21)) %>%
-    pivot_longer(cols = c(paste0("follow_up_day_", 1:21)),
-                 names_to = "follow_up_day",
-                 values_to = "etat_suivi") %>%
-    # clean "etat de suivi" column
-    linelist::clean_variable_spelling(wordlists = cleaning_rules)
-
-
-  legend_df <-
-    tribble(
-      ~breaks ,                  ~colors,
-      "Non vu",                  col2hex("orangered"),
-      "Vu",                      col2hex("lightseagreen"),
-      "Cas confirmé",            col2hex("purple3"),
-      "Cas suspect",             col2hex("yellow"),
-      "Manquant",                col2hex("pink4"),
-      "Deplacé",                 col2hex("wheat3"),
-      "Recyclé",                 col2hex("yellow4"),
-      "Fin de suivi",            col2hex("dodgerblue3"),
-      "Suivi futur",             col2hex("goldenrod"),
-      "Données manquantes",      col2hex("black"),
-      "Doublon",                 col2hex("slategray3"),
-    ) %>%
-    arrange(breaks) %>%
-    mutate(breaks = fct_inorder(breaks)) %>%
-    mutate(legend_index = row_number())
-
-
-  contacts_df_long <-
-    contacts_df %>%
-    # slice_sample(n = 50) %>%
-    inner_join(pivot_day, by = "row_id") %>%
-    # paste the day of followup
-    mutate(follow_up_day = str_extract(follow_up_day, paste(21:1, collapse = "|"))) %>%
-    mutate(follow_up_day = as.numeric(follow_up_day)) %>%
-    # assume that follow up begins from date of last interaction
-    mutate(follow_up_date = follow_up_day + date_du_dernier_contact) %>%
-    mutate(etat_suivi = as.character(etat_suivi)) %>%
-    # change status of records that should be still active
-    mutate(etat_suivi = if_else(follow_up_date > todays_date,
-                                "Suivi futur",
-                                etat_suivi
-    )) %>%
-    mutate(etat_suivi = replace_na(etat_suivi, "Données manquantes")) %>%
-    # - if follow-up lasted the full 21 days,
-    # - change last follow_up state to "Fin de suivi"
-    mutate(etat_suivi = if_else(follow_up_day == 21 & etat_suivi == "Vu",
-                                "Fin de suivi",
-                                etat_suivi)) %>%
-    # add legend colors
-    left_join(legend_df, by = c("etat_suivi" = "breaks")) %>%
-    # drop records that should not exist based on faux date
-    group_by(row_id) %>%
-    filter(min(follow_up_date) <= todays_date) %>%
-    ungroup() %>%
-    # change records to "Suivi Futur" if ahead of today's date
-    mutate(etat_suivi = if_else(follow_up_date > todays_date,
-                                "Suivi futur",
-                                etat_suivi
-    ))  %>%
-    mutate(etat_suivi_simple = etat_suivi) %>%
-    mutate(etat_suivi_simple = recode(etat_suivi_simple,
-                                      "Vu" = "Vu",
-                                      "Non vu" = "Non vu",
-                                      "Cas suspect" = "Vu",
-                                      "Decedé" = "Vu",
-                                      "Deplacé" = "Non vu",
-                                      "Cas confirmé" = "Vu",
-                                      "Transferé" = "Vu",
-                                      "Refus" = "Non vu",
-                                      "Reco. pas passé" = "Non vu",
-                                      "Doublon" = "Doublon",
-                                      "Recyclé" = "Vu",
-                                      "Fin de suivi" = "Vu",
-                                      "Données manquantes" = "Non vu")
-    ) %>% 
-    filter(etat_suivi != "Doublon")
-  
-
-  # send function of output to global environment.
-  # All data-plotting reactives wait for this object to appear in the global environment before executing
-  read_file_out <- list(contacts_df_raw = contacts_df_raw,
-                         contacts_df = contacts_df,
-                         contacts_df_long = contacts_df_long)
-
-
-}
+# 
+# todays_date <- as.Date("2021-03-14")
+# 
+# app_mode <- "manual"
+# 
+# if (app_mode == "manual"){
+#   
+#   todays_date_reactive <- function(){
+#     
+#     as.Date("2021-03-14")
+#     
+#   }
+# 
+# 
+#   # data in
+#   contacts_df <-
+#     contacts_df_raw %>%
+#     # clean vaccination column, type_de_contact, unite_age, prefecture, lien_avec_las_cas. 
+#     # No etat_suivi column to clean yet because I have not created it
+#     linelist::clean_variable_spelling(wordlists = cleaning_rules) %>%
+#     # drop records that should not exist based on faux date
+#     filter(date_du_dernier_contact <= todays_date_reactive()) %>%
+#     # add counter column. 1 for all records
+#     mutate(counter = 1) %>%
+#     # row numbers to match Excel spreadsheet
+#     mutate(row_id = row_number() + 3) %>%
+#     # convert dates to dates
+#     mutate(across(.cols = matches("date_"),
+#                   .fns = ~ as.Date(.x))) %>%
+#     # rename the follow_up_day columns
+#     rename_with(.cols = paste0("j", 1:21),
+#                 .fn = ~ paste("follow_up_day", str_remove_all(.x, "j"), sep = "_")) %>%
+#     # duplicate the follow_up_day columns, change name to follow_up_date
+#     mutate(across(.cols = paste("follow_up_day", 1:21, sep = "_"),
+#                   .fns = ~ .,
+#                   .names = "follow_up_date_{str_remove_all(.col, 'follow_up_day_')}")) %>%
+#     # now, we convert the numbers in the follow up day columns
+#     # to reflect the nth day of follow up
+#     mutate(across(.cols = starts_with("follow_up_date_"),
+#                   .fn = ~ str_extract(cur_column(), paste(21:1, collapse = "|")) %>% as.numeric() )) %>% # start from 21 otherwise you'll remove the tens unit before you get to the teens
+#     # clean vaccination column
+#     mutate(across(vaccination,
+#                   ~ .x %>%
+#                     stri_trans_general("Latin-ASCII") %>%
+#                     str_to_lower() %>%
+#                     str_to_sentence())) %>%
+#     # clean admin levels
+#     mutate(across(c(prefecture, sous_prefecture, quartier), 
+#                   ~ .x %>%
+#                     str_to_sentence() %>% 
+#                     str_trim() %>% 
+#                     str_replace_all("  ", " ")))
+# 
+# 
+#   
+#   pivot_day <- 
+#     contacts_df %>% 
+#     select(row_id, paste0("follow_up_day_", 1:21)) %>% 
+#     pivot_longer(cols = c(paste0("follow_up_day_", 1:21)), 
+#                  names_to = "follow_up_day", 
+#                  values_to = "etat_suivi") %>% 
+#     # clean "etat de suivi" column
+#     linelist::clean_variable_spelling(wordlists = cleaning_rules)
+#   
+#   
+#   legend_df <- 
+#     tribble(    
+#       ~breaks ,                  ~colors,                   
+#       "Non vu",                  col2hex("orangered"),                  
+#       "Vu",                      col2hex("lightseagreen"),  
+#       "Cas confirmé",            col2hex("purple3"),     
+#       "Cas suspect",             col2hex("yellow"),       
+#       "Manquant",                col2hex("pink4"),          
+#       "Deplacé",                 col2hex("wheat3"),  
+#       "Recyclé",                 col2hex("yellow4"),          
+#       "Fin de suivi",            col2hex("dodgerblue3"),    
+#       "Suivi futur",             col2hex("goldenrod"),      
+#       "Données manquantes",      col2hex("black"),          
+#       "Doublon",                 col2hex("slategray3"),          
+#     ) %>% 
+#     arrange(breaks) %>% 
+#     mutate(breaks = fct_inorder(breaks)) %>% 
+#     mutate(legend_index = row_number())
+# 
+# 
+#   
+#   contacts_df_long <- 
+#     contacts_df %>%
+#     inner_join(pivot_day, by = "row_id") %>%
+#     # paste the day of followup
+#     mutate(follow_up_day = str_extract(follow_up_day, paste(21:1, collapse = "|"))) %>%
+#     mutate(follow_up_day = as.numeric(follow_up_day)) %>%
+#     # assume that follow up begins from date of last interaction
+#     mutate(follow_up_date = follow_up_day + date_du_dernier_contact) %>%
+#     mutate(etat_suivi = as.character(etat_suivi)) %>%
+#     # change status of records that should be still active
+#     mutate(etat_suivi = if_else(follow_up_date > todays_date_reactive(),
+#                                 "Suivi futur",
+#                                 etat_suivi
+#     )) %>%
+#     mutate(etat_suivi = replace_na(etat_suivi, "Données manquantes")) %>% 
+#     # - if follow-up lasted the full 21 days,
+#     # - change last follow_up state to "Fin de suivi"
+#     mutate(etat_suivi = if_else(follow_up_day == 21 & etat_suivi == "Vu",
+#                                 "Fin de suivi",
+#                                 etat_suivi)) %>% 
+#     # add legend colors
+#     left_join(legend_df, by = c("etat_suivi" = "breaks")) %>% 
+#     # change records to "Suivi Futur" if ahead of today's date
+#     mutate(etat_suivi = if_else(follow_up_date > todays_date_reactive(),
+#                                 "Suivi futur",
+#                                 etat_suivi
+#     ))  %>% 
+#     mutate(etat_suivi_simple = etat_suivi) %>% 
+#     mutate(etat_suivi_simple = recode(etat_suivi_simple,
+#                                       "Vu" = "Vu",
+#                                       "Non vu" = "Non vu",
+#                                       "Cas suspect" = "Vu",
+#                                       "Decedé" = "Vu",
+#                                       "Deplacé" = "Non vu",
+#                                       "Cas confirmé" = "Vu",
+#                                       "Transferé" = "Vu",
+#                                       "Refus" = "Non vu",
+#                                       "Reco. pas passé" = "Non vu",
+#                                       "Doublon" = "Doublon",
+#                                       "Recyclé" = "Vu", 
+#                                       "Fin de suivi" = "Vu", 
+#                                       "Données manquantes" = "Non vu"
+#     )) %>% 
+#     filter(etat_suivi != "Doublon")
+#   
+# 
+#   # send function of output to global environment.
+#   # All data-plotting reactives wait for this object to appear in the global environment before executing
+#   read_file_out <- list(contacts_df_raw = contacts_df_raw,
+#                          contacts_df = contacts_df,
+#                          contacts_df_long = contacts_df_long)
+# 
+# 
+# }
 
 
 
