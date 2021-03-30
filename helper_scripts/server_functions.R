@@ -12,7 +12,7 @@ todays_date_reactive <- reactive({
   input$select_date_of_review
 })
 
-# ~~~~ read_file_raw ----
+# ~~~~ read_file ----
 read_file_raw <- reactive({
   
   req(input$data_to_use_id)
@@ -39,6 +39,9 @@ read_file_raw <- reactive({
 
 read_file_unfiltered <- reactive({
   
+  req(input$data_to_use_id)
+  
+  
   contacts_df_raw <- read_file_raw() 
   # data in
   contacts_df_unfiltered <-
@@ -63,7 +66,7 @@ read_file_unfiltered <- reactive({
                     str_to_lower() %>%
                     str_to_sentence())) %>%
     # clean admin levels
-    mutate(across(c(sous_prefecture, quartier),  # don't change prefecture spelling as we used the raw spellings to populate the dropdown select on the regional tab
+    mutate(across(c(prefecture, sous_prefecture, quartier),  # EDIT 2021-03-04 I changed it.  don't change prefecture spelling as we used the raw spellings to populate the dropdown select on the regional tab
                   ~ .x %>%
                     str_to_sentence() %>% 
                     str_trim() %>% 
@@ -121,9 +124,37 @@ read_file_unfiltered <- reactive({
 })
 
 
-
+read_file_unfiltered_regional <- reactive({
+  ##  why do we need read_file_unfiltered_regional AND read_file_unfiltered?
+  ##  Because need to pass the version of the data that is filtered on REGION to the date picker for the region tab
+  ##  we want to only show dates that are relevant for each region
+  
+  req(input$contacts_tab_select_regional)
+  
+  
+  contacts_df_unfiltered <- read_file_unfiltered()$contacts_df_unfiltered
+  contacts_df_long_unfiltered <- read_file_unfiltered()$contacts_df_long_unfiltered
+  
+  
+  contacts_df_unfiltered_regional <- 
+    contacts_df_unfiltered %>% 
+    filter(prefecture == input$contacts_tab_select_regional)
+  ## still unfiltered in the sense that it is not filtered for date of review
+  
+    
+  contacts_df_long_unfiltered_regional <- 
+    contacts_df_long_unfiltered %>% 
+    filter(prefecture == input$contacts_tab_select_regional)
+  
+  return(list(contacts_df_unfiltered_regional = contacts_df_unfiltered_regional, 
+              contacts_df_long_unfiltered_regional = contacts_df_long_unfiltered_regional ))
+    
+  })
 
 read_file <- reactive({
+  
+  req(input$data_to_use_id)
+  
   
   contacts_df_long_unfiltered <- read_file_unfiltered()$contacts_df_long_unfiltered
   
@@ -236,26 +267,37 @@ reactable_table <-
 # ~~~ all_contacts_tab_row_0 ----
 
 contacts_per_day_value_box <- 
-  function(contacts_df_long){
+  function(contacts_df_long, todays_date, region = NULL){
     
+    ## regional subset
+    if(!is.null(region)){
+      contacts_df_long <- 
+        contacts_df_long %>% 
+        filter(prefecture == region) 
+    }
 
+    ## not sure why this is not working from the first time I created the follow_up_date_1 column
+    contacts_df_long <- 
+      contacts_df_long %>% 
+      mutate(follow_up_date_1 = if_else(follow_up_day == 1, follow_up_date, NA_Date_))
+      
+    
       data_to_plot <- 
         contacts_df_long %>%
         filter(!is.na(follow_up_date_1)) %>% 
         count(follow_up_date_1) %>% 
         complete(follow_up_date_1 = seq.Date(from = min(.$follow_up_date_1), 
-                                       to = todays_date_reactive(), 
+                                       to = todays_date, 
                                        by = "day"), 
                  fill = list(n = 0))
-        
       
       cases_last_day <- 
         data_to_plot %>% 
-        filter(follow_up_date_1 == todays_date_reactive()) %>% 
+        filter(follow_up_date_1 == todays_date) %>% 
         .$n
       
       date_last_day <- 
-        todays_date_reactive() %>% 
+        todays_date %>% 
         format.Date("%b %d")
       
       
@@ -282,7 +324,19 @@ contacts_per_day_value_box <-
 
 
 cumulative_contacts_value_box <- 
-  function(contacts_df_long){
+  function(contacts_df_long, todays_date, region = NULL){
+    
+    ## regional subset
+    if(!is.null(region)){
+      contacts_df_long <- 
+        contacts_df_long %>% 
+        filter(prefecture == region) 
+    }
+    
+    ## not sure why this is not working from the first time I created the follow_up_date_1 column
+    contacts_df_long <- 
+      contacts_df_long %>% 
+      mutate(follow_up_date_1 = if_else(follow_up_day == 1, follow_up_date, NA_Date_))
     
     
     data_to_plot <- 
@@ -290,7 +344,7 @@ cumulative_contacts_value_box <-
       filter(!is.na(follow_up_date_1)) %>% 
       count(follow_up_date_1) %>% 
       complete(follow_up_date_1 = seq.Date(from = min(.$follow_up_date_1), 
-                                           to = todays_date_reactive(), 
+                                           to = todays_date, 
                                            by = "day"), 
                fill = list(n = 0)) %>% 
       mutate(cum_n = cumsum(n))
@@ -298,11 +352,11 @@ cumulative_contacts_value_box <-
     
     cases_last_day <- 
       data_to_plot %>% 
-      filter(follow_up_date_1 == todays_date_reactive()) %>% 
+      filter(follow_up_date_1 == todays_date) %>% 
       .$cum_n
     
     date_last_day <- 
-      todays_date_reactive() %>% 
+      todays_date %>% 
       format.Date("%b %d")
     
     
@@ -328,38 +382,37 @@ cumulative_contacts_value_box <-
 
 
 contacts_under_surveillance_value_box <- 
-  function(contacts_df_long){
+  function(contacts_df_long, todays_date, region = NULL){
     
+    ## regional subset
+    if(!is.null(region)){
+      contacts_df_long <- 
+        contacts_df_long %>% 
+        filter(prefecture == region) 
+    }
     
-    active_cases <- 
-      contacts_df_long %>% 
-      group_by(row_id) %>%
-      # drop inactive cases
-      filter(!(max(follow_up_date) <= todays_date)) %>%
-      ungroup()
-    
-    
+      
     data_to_plot <- 
-      active_cases %>%
+      contacts_df_long %>%
       count(follow_up_date) %>% 
       # drop follow'ups past today's date
-      filter(follow_up_date <= todays_date_reactive()) %>% 
-      ungroup() %>% 
+      filter(follow_up_date <= todays_date) %>% 
       complete(follow_up_date = seq.Date(from = min(contacts_df_long$follow_up_date), 
-                                     to = todays_date_reactive(), 
+                                     to = todays_date, 
                                      by = "day"), 
-               fill = list(n = 0)
-      )
+               fill = list(n = 0))
+    
     
     cases_last_day <- 
       data_to_plot %>% 
-      filter(follow_up_date == todays_date_reactive()) %>% 
+      filter(follow_up_date == todays_date) %>% 
       .$n
     
     date_last_day <- 
-      todays_date_reactive()%>% 
+      todays_date %>% 
       format.Date("%b %d")
     
+
     highchart_to_plot <- 
       data_to_plot %>% 
       hchart("column", hcaes(x = follow_up_date, y = n), name = "No. under surveillance") %>% 
@@ -384,19 +437,26 @@ contacts_under_surveillance_value_box <-
 
 
 pct_contacts_followed_value_box <- 
-  function(contacts_df_long){
+  function(contacts_df_long, todays_date, region = NULL){
+    
+    ## regional subset
+    if(!is.null(region)){
+      contacts_df_long <- 
+        contacts_df_long %>% 
+        filter(prefecture == region) 
+    }
     
 
       data_to_plot <- 
       contacts_df_long %>%
-      filter(follow_up_date <= todays_date_reactive()) %>% 
+      filter(follow_up_date <= todays_date) %>% 
       count(follow_up_date, etat_suivi_simple) %>% 
       bind_rows(data.frame(etat_suivi_simple = c("Vu", "Non vu"), 
                 n = 0,
                 follow_up_date = as.Date("2100-01-01")
                 )) %>% 
       complete(follow_up_date = seq.Date(from = min(contacts_df_long$follow_up_date), 
-                                         to = todays_date_reactive(), 
+                                         to = todays_date, 
                                          by = "day"), 
                etat_suivi_simple,
                fill = list(n = 0)) %>% 
@@ -414,11 +474,11 @@ pct_contacts_followed_value_box <-
     
     pct_last_day <- 
       data_to_plot %>% 
-      filter(follow_up_date == todays_date_reactive()) %>% 
+      filter(follow_up_date == todays_date) %>% 
       .$pct_paste
     
     date_last_day <- 
-      todays_date_reactive()%>% 
+      todays_date %>% 
       format.Date("%b %d")
     
     highchart_to_plot <- 
@@ -498,7 +558,6 @@ all_contacts_per_region_table <-
                 highlight = TRUE,
                 theme = reactableTheme(stripedColor = "#f0f1fc70",
                                        backgroundColor = "#FFFFFF00",
-                                       #style = "  z-index: 1000000;",
                                        highlightColor = "#DADEFB"),
                 defaultPageSize = 15)
     
@@ -1117,14 +1176,21 @@ total_contacts_per_link_type_text <-
             The plots show the number of contacts per type of type of link. The categories have been cleaned and condensed.
             Access the data in tabular form by clicking on the top-right button.
             </font>"
+    # 
+    # str1 <-
+    #   glue(
+    #     "<br>The most common link category is <b>'{link_type_with_most_contacts}'</b>,
+    #              with <b>{number_of_contacts_link_type_with_most_contacts}</b> contacts (<b>{percent_link_type_with_most_contacts}</b>),
+    #              followed by <b>'{second_link_type_with_most_contacts}'</b>
+    #              with <b>{second_number_of_contacts_link_type_with_most_contacts}</b> contacts (<b>{second_percent_link_type_with_most_contacts}</b>)
+    #              "
+    #   )
+    
     
     str1 <-
       glue(
         "<br>The most common link category is <b>'{link_type_with_most_contacts}'</b>,
-                 with <b>{number_of_contacts_link_type_with_most_contacts}</b> contacts (<b>{percent_link_type_with_most_contacts}</b>),
-                 followed by <b>'{second_link_type_with_most_contacts}'</b>
-                 with <b>{second_number_of_contacts_link_type_with_most_contacts}</b> contacts (<b>{second_percent_link_type_with_most_contacts}</b>)
-                 "
+                 with <b>{number_of_contacts_link_type_with_most_contacts}</b> contacts (<b>{percent_link_type_with_most_contacts}</b>)."
       )
     
     HTML(paste(info, str1, sep = '<br/>'))
@@ -1249,16 +1315,16 @@ total_contacts_vaccinated_text <-
       .[1] %>% 
       percent()
     
-    prefecture_2<- 
-      data_to_plot %>% 
-      .$sous_prefecture %>% 
-      .[2]
-    
-    prefecture_2_vaccination_coverage<- 
-      data_to_plot %>% 
-      .$prop_Vacciné %>% 
-      .[2] %>% 
-      percent()
+    # prefecture_2<- 
+    #   data_to_plot %>% 
+    #   .$sous_prefecture %>% 
+    #   .[2]
+    # 
+    # prefecture_2_vaccination_coverage<- 
+    #   data_to_plot %>% 
+    #   .$prop_Vacciné %>% 
+    #   .[2] %>% 
+    #   percent()
 
     info <- "<br>
             <span style='color: rgb(97, 189, 109);'>ℹ:</span>
@@ -1266,11 +1332,18 @@ total_contacts_vaccinated_text <-
             The plot shows the number and percentage of contacts vaccinated in each region.
             Access the data in tabular form by clicking on the top-right button.
             </font>"
-
+# 
+#     str1 <-
+#       glue(
+#         "<br><b>{prefecture_1_vaccination_coverage}</b> of all contacts have been vaccinated in <b>{prefecture_1}</b>, 
+#         and <b>{prefecture_2_vaccination_coverage}</b> have been vaccinated in <b>{prefecture_2}</b>
+#         "
+#       )
+#     
+    
     str1 <-
       glue(
-        "<br><b>{prefecture_1_vaccination_coverage}</b> of all contacts have been vaccinated in <b>{prefecture_1}</b>, 
-        and <b>{prefecture_2_vaccination_coverage}</b> have been vaccinated in <b>{prefecture_2}</b>
+        "<br><b>{prefecture_1_vaccination_coverage}</b> of all contacts have been vaccinated in <b>{prefecture_1}</b>
         "
       )
 
@@ -1283,31 +1356,90 @@ total_contacts_vaccinated_text <-
 # ~~~ all_contacts_tab_row_6 ----
 
 
+contacts_timeline_snake_plot <- 
+  function(contacts_df_long, todays_date){
+    
+    # number_to_sample <- 50
+    
+    ## - if sampling dropdown has not been generated nor clicked yet, do not sample
+    if(is.null(input$snake_plot_sample_or_not)){
+      snake_plot_sample_or_not <- c("Do not sample")
+    } else {
+      snake_plot_sample_or_not <- input$snake_plot_sample_or_not
+    }
+    
+    
+    
+    active_contacts <-
+      contacts_df_long %>%
+      group_by(row_id) %>% 
+      ## keep active cases. 
+      ## active cases whose last day of follow-up is today any day past today
+      filter(max(follow_up_date) >= todays_date_reactive()) %>%
+      ungroup()
+    
+    data_to_plot <-
+      active_contacts %>%
+      group_by(row_id) %>% 
+      mutate(hc_ttip = glue("<b>ID: </b> {id_contact} <br>
+                         <b>Sous-prefecture: </b> {sous_prefecture}<br>
+                         <b>Date: </b> {format.Date(follow_up_date, format = '%b %d')} (Jour de suivi {follow_up_day}) <br>
+                         <b>Status:</b> {etat_suivi}
+                         ")) %>%
+      mutate(hc_ttip = glue("<b>ID: </b> {id_contact} <br>
+                         <b>Date: </b> {format.Date(follow_up_date, format = '%b %d')} (Jour de suivi {follow_up_day}) <br>
+                         ")) %>% 
+      ungroup() %>% 
+      arrange(etat_suivi) %>%   # arranging is necessary so that that colors are pulled in the right order for highcharter
+      mutate(follow_up_date_timestamp = datetime_to_timestamp(follow_up_date))
+    
+    if (nrow(data_to_plot) == 0) {
+      return(e_charts() %>% e_title(text  = "No data to plot"))
+    }
+    
+    data_to_plot %>% 
+      group_by(etat_suivi) %>%
+      e_charts(follow_up_date, height = "900px") %>%
+      e_scatter(row_id, bind = hc_ttip, symbol_size = 5,  itemStyle = list(opacity = 0.9)) %>%
+      e_tooltip(trigger = "item") %>% 
+      e_tooltip(formatter = htmlwidgets::JS("
+                                        function(params){
+                                        return(params.name) }")) %>% 
+      e_toolbox_feature("dataZoom", title = list(zoom = "zoom", back = "back")) %>%
+      e_toolbox_feature("saveAsImage", type = "png", pixelRatio = 4) %>%
+      e_color(unique(data_to_plot$colors)) %>% 
+      e_legend(show = FALSE) %>% 
+      e_axis_labels(x = "Date", y = "Row ID") %>% 
+      e_y_axis(max = round(max(data_to_plot$row_id)), 
+               min = round(max(data_to_plot$row_id))
+               )
+    
+    
+  }
+
+
 active_contacts_breakdown_bar_chart <- 
   function(contacts_df_long){
     
     
-    active_cases <-
+    active_contacts <-
       contacts_df_long %>%
       group_by(row_id) %>% 
-      # drop inactive cases
-      filter(!(max(follow_up_date) <= todays_date_reactive())) %>% 
+      ## keep active cases. 
+      ## active cases whose last day of follow-up is today any day past today
+      filter(max(follow_up_date) >= todays_date_reactive()) %>%
       ungroup()
-    
-    
+ 
     # to be fed to highcharter
     colors <- 
-      active_cases %>% 
+      active_contacts %>% 
       select(etat_suivi, colors) %>% 
       unique.data.frame()
     
     
     
     data_to_plot <-
-      contacts_df_long %>%
-      group_by(row_id) %>% 
-      # drop inactive cases
-      filter(!(max(follow_up_date) <= todays_date_reactive())) %>% 
+      active_contacts %>%
       group_by(follow_up_date) %>% 
       count(etat_suivi) %>% 
       complete(follow_up_date, etat_suivi, fill = list(n = 0)) %>% 
@@ -1332,36 +1464,56 @@ active_contacts_breakdown_bar_chart <-
                                         function(params){
                                         return(params.name) }")) %>% 
       e_color(unique(data_to_plot$colors)) %>% 
-      e_legend(y = "bottom") %>% 
+      e_legend(y = "top") %>% 
       e_axis_labels(x = "Date", y = "n") %>% 
-      e_y_axis(max = max(data_to_plot$total) * 1.1)
+      e_y_axis(max = max(data_to_plot$total))
 
     
   }
+
+
+contacts_timeline_snake_text <- function(contacts_df_long, todays_date){
+  
+  
+  
+  
+  n_active_contacts <-
+    contacts_df_long %>%
+    group_by(row_id) %>% 
+    ## keep active cases. 
+    ## active cases whose last day of follow-up is today any day past today
+    filter(max(follow_up_date) >= todays_date_reactive()) %>%
+    ungroup() %>% 
+    .$row_id %>%
+    unique() %>%
+    length()
+  
+  HTML(glue("There are <b>{n_active_contacts}</b> active contacts"))
+  
+}
+
+
 
 active_contacts_breakdown_table <- 
   function(contacts_df_long){
     
     
-    active_cases <-
+    active_contacts <-
       contacts_df_long %>%
       group_by(row_id) %>% 
-      # drop inactive cases
-      filter(!(max(follow_up_date) <= todays_date_reactive())) %>% 
+      ## keep active cases. 
+      ## active cases whose last day of follow-up is today any day past today
+      filter(max(follow_up_date) >= todays_date_reactive()) %>%
       ungroup()
     
-    
     colors <- 
-      active_cases %>% 
+      active_contacts %>% 
       select(etat_suivi, colors) %>% 
       unique.data.frame()
     
     
     data_to_plot <-
-      active_cases %>%
-      group_by(row_id) %>% 
-      # drop inactive cases
-      filter(max(follow_up_date) >= todays_date_reactive()) %>% 
+      active_contacts %>%
       group_by(follow_up_date) %>% 
       count(etat_suivi) %>% 
       ungroup() %>% 
@@ -1399,190 +1551,8 @@ active_contacts_breakdown_table <-
 
 
 
+
 # ~~~ all_contacts_tab_row_7 ----
-
-contacts_timeline_snake_plot <- 
-  function(contacts_df_long, todays_date){
-    
-    # number_to_sample <- 50
-    
-    ## - if sampling dropdown has not been generated nor clicked yet, do not sample
-    if(is.null(input$snake_plot_sample_or_not)){
-      snake_plot_sample_or_not <- c("Do not sample")
-    } else {
-      snake_plot_sample_or_not <- input$snake_plot_sample_or_not
-    }
-    
-    
-    active_cases <-
-      contacts_df_long %>%
-      group_by(row_id) %>%
-      # drop inactive cases
-      filter(!(max(follow_up_date) <= todays_date)) %>%
-      ungroup()
-    
-    data_to_plot <-
-      active_cases %>%
-      ## section for filtering based on a date slider
-      # mutate(date_first_follow_up_internal = date_du_dernier_contact + days(1)) %>%
-      # # filter(date_first_follow_up_internal %in% seq.Date(input$snake_plot_date_slider[1], input$snake_plot_date_slider[2],
-      # #                                                    by = "1 days")) %>%
-      group_by(row_id) %>% 
-      ## section for sampling
-      # {if (length(unique(.$row_id)) > number_to_sample & snake_plot_sample_or_not == "Sample") {
-      #   filter(., row_id %in% sample(unique(.$row_id), number_to_sample, replace = F))
-      # } else .} %>%
-      mutate(hc_ttip = glue("<b>ID: </b> {id_contact} <br>
-                         <b>Sous-prefecture: </b> {sous_prefecture}<br>
-                         <b>Date: </b> {format.Date(follow_up_date, format = '%b %d')} (Jour de suivi {follow_up_day}) <br>
-                         <b>Status:</b> {etat_suivi}
-                         ")) %>%
-      mutate(hc_ttip = glue("<b>ID: </b> {id_contact} <br>
-                         <b>Date: </b> {format.Date(follow_up_date, format = '%b %d')} (Jour de suivi {follow_up_day}) <br>
-                         ")) %>% 
-      ungroup() %>% 
-      arrange(etat_suivi) %>%   # arranging is necessary so that that colors are pulled in the right order for highcharter
-      mutate(follow_up_date_timestamp = datetime_to_timestamp(follow_up_date))
-    
-    if (nrow(data_to_plot) == 0) {
-      return(e_charts() %>% e_title(text  = "No data to plot"))
-    }
-    
-    # data_to_plot %>% 
-    #   hchart("scatter", 
-    #          hcaes(x = follow_up_date, y = row_id, 
-    #                color = colors, group = etat_suivi)) %>% 
-    #   hc_colors(unique(data_to_plot$colors)) %>% 
-    #   hc_plotOptions(series = list(marker = list(radius = 3, 
-    #                                              symbol = "circle"))) %>% 
-    #   # hc_xAxis(title = list(text = "Date"),
-    #   #          min = min(data_to_plot$follow_up_date, na.rm = T)  %>% datetime_to_timestamp(), 
-    #   #          max = max(data_to_plot$follow_up_date, na.rm = T) %>% datetime_to_timestamp()
-    #   # ) %>% 
-    #   # hc_yAxis(title = list(text = "Row ID"),
-    #   #          min = min(data_to_plot$row_id, na.rm = T), 
-    #   #          max = max(data_to_plot$row_id, na.rm = T)) %>% 
-    #   hc_tooltip(formatter = JS("function(){return(this.point.hc_ttip)}")) %>% 
-    #   hc_plotOptions(scatter = list(stickyTracking = F)) %>% 
-    #   hc_exporting(enabled = TRUE) %>% 
-    #   #hc_boost(enabled = TRUE) %>% 
-    #   hc_size(height = 600)
-    # 
-    data_to_plot %>% 
-      group_by(etat_suivi) %>%
-      e_charts(follow_up_date, height = "900px") %>%
-      e_scatter(row_id, bind = hc_ttip, symbol_size = 5,  itemStyle = list(opacity = 0.9)) %>%
-      e_tooltip(trigger = "item") %>% 
-      e_tooltip(formatter = htmlwidgets::JS("
-                                        function(params){
-                                        return(params.name) }")) %>% 
-      e_toolbox_feature("dataZoom", title = list(zoom = "zoom", back = "back")) %>%
-      e_toolbox_feature("saveAsImage", type = "png", pixelRatio = 4) %>%
-      e_color(unique(data_to_plot$colors)) %>% 
-      e_legend(y = "bottom") %>% 
-      e_axis_labels(x = "Date", y = "Row ID") %>% 
-      e_y_axis(max = round(max(data_to_plot$row_id) * 1.05))
-    
-    
-  }
-
-
-# snake_plot_date_slider <- function(contacts_df){
-#   
-#   
-#   contacts_df_min_row_date <- min(contacts_df$date_du_dernier_contact, na.rm = T)
-#   contacts_df_max_row_date <- max(contacts_df$date_du_dernier_contact, na.rm = T)
-#   contacts_df_50th_row_date <- (contacts_df$date_du_dernier_contact %>% sort() %>% .[50]) %>% - days(1) %>% as.Date()
-#   
-#   if(is.null(contacts_df_50th_row_date) | is.na(contacts_df_50th_row_date)){
-#     contacts_df_50th_row_date <- contacts_df_max_row_date
-#   }
-#   
-#   dateRangeInput("snake_plot_date_slider",
-#                  label = "Filter by follow-up start date", 
-#                  start = contacts_df_min_row_date, 
-#                  end = contacts_df_50th_row_date,
-#                  min = contacts_df_min_row_date, 
-#                  max = contacts_df_max_row_date,
-#                  format = "M dd")
-#   
-#   
-# }
-
-
-contacts_timeline_snake_text <- function(contacts_df_long, todays_date){
-  
-  n_active_cases <-
-    contacts_df_long %>%
-    group_by(row_id) %>%
-    # drop inactive cases
-    filter(!(max(follow_up_date) <= todays_date)) %>%
-    ungroup() %>% 
-    .$row_id %>% 
-    unique() %>% 
-    length()
-  
-  
-  # too_many_rows_message <- ifelse(n_active_cases > 50, 
-  #                                 (c("<br><br><span style='color: rgb(242, 96, 39);'> ℹ:</span>
-  #                            Visualising this many contacts is likely to be slow. Do be patient.
-  #                            <br><br>")),c(""))
-    
-  HTML(glue("There are <b>{n_active_cases}</b> active contacts"))
-  
-}
-
-# 
-# snake_plot_nrows_selected_text <- function(contacts_df, snake_plot_date_slider){
-#   
-#   
-#   date_range <-  seq.Date(snake_plot_date_slider[1], 
-#                           snake_plot_date_slider[2],
-#                           by = "1 days")
-#   
-#   nrows <- 
-#     contacts_df %>% 
-#     mutate(date_first_follow_up_internal = date_du_dernier_contact + days(1)) %>% 
-#     filter(date_first_follow_up_internal %in% date_range) %>% nrow()
-#   
-#   too_many_rows_message <- ifelse(nrows > 50, 
-#                                   (c("<br><br><span style='color: rgb(242, 96, 39);'> ℹ:</span>
-#                              Visualising more than 50 contacts at a time may result in slow rendering speeds
-#                              <br><br>")),c(""))
-#   
-#   HTML(glue("<b>{nrows}</b> contacts are selected.{too_many_rows_message}"))
-#   
-#   
-#   
-# }
-
-# snake_plot_sample_or_not <- function(contacts_df, snake_plot_date_slider){
-#   
-#   date_range <-  seq.Date(snake_plot_date_slider[1], snake_plot_date_slider[2],by = "1 days")
-#   
-#   nrows <- 
-#     contacts_df %>% 
-#     mutate(date_first_follow_up_internal = date_du_dernier_contact + days(1)) %>% 
-#     filter(date_du_dernier_contact %in% date_range) %>% nrow()
-#   
-#   if (nrows > 50) {
-#     selectInput(
-#       inputId = "snake_plot_sample_or_not",
-#       label = "Take a sample of 50 records?",
-#       choices = c("Do not sample", "Sample")
-#     )
-#   } else {
-#     return(NULL)
-#   }
-#   
-# }
-#   
-
-
-
-
-
-# ~~~ all_contacts_tab_row_8 ----
 
 
 contacts_lost_24_to_72_hours <- 
@@ -1687,12 +1657,24 @@ contacts_lost_24_to_72_hours <-
                   .fn = ~ paste0("Past 3d.", .x))
     
     
-    # the table
+    ## Number of days covered. At certain points, there is only one date covered 
+     number_of_days_covered <- contacts_df_long %>%
+      filter(follow_up_date >= todays_date_reactive() - 1) %>% 
+      count(follow_up_date) %>% 
+       nrow()
+    
+    
+    # only show "not seen in past day" if there was only one day. etc.
     data_to_plot <- 
       vu_non_vu_today %>% 
-      left_join(vu_non_vu_past_two_days) %>% 
-      left_join(vu_non_vu_past_three_days) 
-    
+      {if (number_of_days_covered > 1){
+        left_join(., vu_non_vu_past_two_days)}
+        else {.}
+         } %>% 
+      {if (number_of_days_covered > 2){
+        left_join(., vu_non_vu_past_three_days)}
+        else {.}
+      }
     
     if(is.null(data_to_plot) | nrow(data_to_plot) == 0){
       return(
@@ -1763,11 +1745,9 @@ lost_contacts_linelist <-
                 searchable = TRUE,
                 striped = TRUE,
                 highlight = TRUE,
-                theme = reactableTheme(stripedColor = "#f0f1fc",
-                                       highlightColor = "#DADEFB",
-                                       cellPadding = "8px 12px",
-                                       style = list(fontFamily = "-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif")
-                )
+                theme = reactableTheme(stripedColor = "#f0f1fc70",
+                                       backgroundColor = "#FFFFFF00",
+                                       highlightColor = "#DADEFB")
       )
   
     
@@ -1780,11 +1760,14 @@ lost_contacts_linelist <-
 
 # ~~~ todays_date_reactive_regional ----
 
+## does not need to be inside of a reactive atm. But it was put there initially so I can trigger it with ObserveEvent
 todays_date_reactive_regional <- reactive({
+  req(input$contacts_tab_select_regional)
   input$select_date_of_review_regional
 })
 
 
+# ~~~ read_file_regional ----
 
 read_file_regional <- reactive({
   
@@ -1913,254 +1896,6 @@ read_file_regional <- reactive({
   
   return(read_file_out)
 })
-
-# ~~~ all_contacts_tab_row_0_regional ----
-
-contacts_per_day_value_box_regional <- 
-  function(contacts_df_long){
-    
-    
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(prefecture == input$contacts_tab_select_regional) 
-    
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date_reactive_regional())
-    
-    
-    data_to_plot <- 
-      contacts_df_long %>%
-      group_by(row_id) %>% 
-      # slice long frame
-      slice_head() %>% 
-      ungroup() %>% 
-      count(date_enreg) %>% 
-      complete(date_enreg = seq.Date(from = min(contacts_df_long$follow_up_date), 
-                                     to = todays_date_reactive_regional(), 
-                                     by = "day"), 
-               fill = list(n = 0)
-      )
-    
-    
-    cases_last_day <- 
-      data_to_plot %>% 
-      filter(date_enreg == todays_date_reactive_regional()) %>% 
-      .$n
-    
-    date_last_day <- 
-      todays_date_reactive_regional() %>% 
-      format.Date("%b %d")
-    
-    
-    highchart_to_plot <- 
-      data_to_plot %>% 
-      hchart("column", hcaes(x = date_enreg, y = n), name = "No. new contacts") %>% 
-      hc_size(height = 85) %>% 
-      hc_credits(enabled = FALSE) %>% 
-      hc_add_theme(hc_theme_sparkline_vb()) 
-    
-    valueBoxSpark(
-      value = HTML(glue("{cases_last_day} <font size='1'> in past day ({date_last_day}) </font>")),
-      title = toupper(glue("Contacts reported")),
-      sparkobj = highchart_to_plot,
-      info = "Bars show the no. of contacts reported per day. ",
-      subtitle = HTML(" <font size='1'> </font>"),
-      #icon = icon("calendar-day"),
-      width = 2,
-      color = "aqua",
-      href = NULL)
-    
-    
-  }
-
-
-cumulative_contacts_value_box_regional <- 
-  function(contacts_df_long){
-    
-    
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(prefecture == input$contacts_tab_select_regional)
-    
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date_reactive_regional())
-    
-    
-    data_to_plot <- 
-      contacts_df_long %>%
-      group_by(row_id) %>% 
-      # slice long frame
-      slice_head() %>% 
-      ungroup() %>% 
-      count(date_enreg) %>% 
-      complete(date_enreg = seq.Date(from = min(contacts_df_long$follow_up_date), 
-                                     to = todays_date_reactive_regional(), 
-                                     by = "day"), 
-               fill = list(n = 0)
-      ) %>% 
-      mutate(cum_n = cumsum(n))
-    
-    
-    cases_last_day <- 
-      data_to_plot %>% 
-      filter(date_enreg == todays_date_reactive_regional()) %>% 
-      .$cum_n
-    
-    date_last_day <- 
-      todays_date_reactive_regional()%>% 
-      format.Date("%b %d")
-    
-    highchart_to_plot <- 
-      data_to_plot %>% 
-      hchart("column", hcaes(x = date_enreg, y = cum_n), name = "Cumul. contacts") %>% 
-      hc_size(height = 85) %>% 
-      hc_credits(enabled = FALSE) %>% 
-      hc_add_theme(hc_theme_sparkline_vb()) 
-    
-    valueBoxSpark(
-      value = HTML(glue("{cases_last_day} <font size='1'> by {date_last_day} </font>")),
-      title = toupper(glue("Cumul. contacts")),
-      sparkobj = highchart_to_plot,
-      info = "Bars show the cumulative contacts as at each day.",
-      subtitle = HTML(" <font size='1'> </font>"),
-      #icon = icon("calendar-alt"),
-      width = 2,
-      color = "teal",
-      href = NULL)
-    
-  }
-
-
-contacts_under_surveillance_value_box_regional <- 
-  function(contacts_df_long){
-    
-    
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(prefecture == input$contacts_tab_select_regional)
-    
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date_reactive_regional())
-    
-    data_to_plot <- 
-      contacts_df_long %>%
-      count(follow_up_date) %>% 
-      # drop follow'ups past today's date
-      filter(follow_up_date <= todays_date_reactive_regional()) %>% 
-      ungroup() %>% 
-      complete(follow_up_date = seq.Date(from = min(contacts_df_long$follow_up_date), 
-                                         to = todays_date_reactive_regional(), 
-                                         by = "day"), 
-               fill = list(n = 0)
-      )
-    
-    cases_last_day <- 
-      data_to_plot %>% 
-      filter(follow_up_date == todays_date_reactive_regional()) %>% 
-      .$n
-    
-    date_last_day <- 
-      todays_date_reactive_regional()%>% 
-      format.Date("%b %d")
-    
-    highchart_to_plot <- 
-      data_to_plot %>% 
-      hchart("column", hcaes(x = follow_up_date, y = n), name = "No. under surveillance") %>% 
-      hc_size(height = 85) %>% 
-      hc_credits(enabled = FALSE) %>% 
-      hc_add_theme(hc_theme_sparkline_vb()) 
-    
-    valueBoxSpark(
-      value = HTML(glue("{cases_last_day} <font size='1'> as at {date_last_day} </font>")),
-      title = toupper(glue("No. under surveillance")),
-      sparkobj = highchart_to_plot,
-      info = " Bars show the number that should be under surveillance on each day, based on date of last contact with a case",
-      subtitle = HTML(" <font size='1'> </font>"),
-      #icon = icon("binoculars"),
-      width = 2,
-      color = "purple",
-      href = NULL)
-    
-    
-  }
-
-
-
-pct_contacts_followed_value_box_regional <- 
-  function(contacts_df_long){
-    
-    
-    
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(prefecture == input$contacts_tab_select_regional)
-    
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date_reactive_regional())
-    
-    
-    data_to_plot <- 
-      contacts_df_long %>%
-      filter(etat_suivi_simple != "Suivi futur") %>% 
-      group_by(follow_up_date) %>% 
-      count(etat_suivi_simple) %>% 
-      ungroup() %>% 
-      complete(follow_up_date = seq.Date(from = min(contacts_df_long$follow_up_date), 
-                                         to = todays_date_reactive_regional(), 
-                                         by = "day"), 
-               etat_suivi_simple,
-               fill = list(n = 0)
-      ) %>% 
-      group_by(follow_up_date) %>% 
-      mutate(total = sum(n)) %>% 
-      mutate(prop = n/total) %>% 
-      mutate(pct = round(100*prop,0)) %>% 
-      mutate(pct_paste = percent(prop)) %>% 
-      ungroup() %>% 
-      filter(etat_suivi_simple == "Vu") %>% 
-      mutate(hc_ttip = glue("<b>Date:</b> {format.Date(follow_up_date,  format = '%a %b %d, %Y')}<br>
-                        <b>{etat_suivi_simple}:</b> {pct_paste} ({n} of {total} )
-                        "))
-    
-    pct_last_day <- 
-      data_to_plot %>% 
-      filter(follow_up_date == todays_date_reactive_regional()) %>% 
-      .$pct_paste
-    
-    date_last_day <- 
-      todays_date_reactive_regional()%>% 
-      format.Date("%b %d")
-    
-    highchart_to_plot <- 
-      data_to_plot %>%  
-      hchart("area", hcaes(x = follow_up_date, y = pct)) %>% 
-      hc_tooltip(formatter = JS("function(){return(this.point.hc_ttip)}")) %>% 
-      hc_size(height = 85) %>% 
-      hc_credits(enabled = FALSE) %>% 
-      hc_add_theme(hc_theme_sparkline_vb()) 
-    
-    valueBoxSpark(
-      value = HTML(glue("{pct_last_day} <font size='1'> on {date_last_day} </font>")),
-      title = toupper("% of cases followed"),
-      sparkobj = highchart_to_plot,
-      info = "Line plot shows the percentage followed on each day",
-      subtitle = HTML(" <font size='1'> </font>"),
-      #icon = icon("check-square"),
-      width = 2,
-      color = "yellow",
-      href = NULL)
-    
-    
-  }
-
 
 
 # ~~~ all_contacts_tab_row_1_regional ----
@@ -2852,22 +2587,22 @@ total_contacts_per_link_type_text_regional <-
       .$Percent %>%
       .[1]
     
-    
-    second_link_type_with_most_contacts <-
-      data_to_plot %>%
-      .$`Link with the case` %>%
-      .[2]
-    
-    second_number_of_contacts_link_type_with_most_contacts <-
-      data_to_plot %>%
-      .$`Number of contacts` %>%
-      .[2]
-    
-    second_percent_link_type_with_most_contacts <-
-      data_to_plot %>%
-      .$Percent %>%
-      .[2]
-    
+    # 
+    # second_link_type_with_most_contacts <-
+    #   data_to_plot %>%
+    #   .$`Link with the case` %>%
+    #   .[2]
+    # 
+    # second_number_of_contacts_link_type_with_most_contacts <-
+    #   data_to_plot %>%
+    #   .$`Number of contacts` %>%
+    #   .[2]
+    # 
+    # second_percent_link_type_with_most_contacts <-
+    #   data_to_plot %>%
+    #   .$Percent %>%
+    #   .[2]
+    # 
     
     
     info <- "<br>
@@ -2877,12 +2612,21 @@ total_contacts_per_link_type_text_regional <-
             Access the data in tabular form by clicking on the top-right button.
             </font>"
     
+    
+    ### ! removed second most common category
+    # str1 <-
+    #   glue(
+    #     "<br>The most common link category is <b>'{link_type_with_most_contacts}'</b>,
+    #              with <b>{number_of_contacts_link_type_with_most_contacts}</b> contacts (<b>{percent_link_type_with_most_contacts}</b>),
+    #              followed by <b>'{second_link_type_with_most_contacts}'</b>
+    #              with <b>{second_number_of_contacts_link_type_with_most_contacts}</b> contacts (<b>{second_percent_link_type_with_most_contacts}</b>)
+    #              "
+    #   )
+    
     str1 <-
       glue(
         "<br>The most common link category is <b>'{link_type_with_most_contacts}'</b>,
-                 with <b>{number_of_contacts_link_type_with_most_contacts}</b> contacts (<b>{percent_link_type_with_most_contacts}</b>),
-                 followed by <b>'{second_link_type_with_most_contacts}'</b>
-                 with <b>{second_number_of_contacts_link_type_with_most_contacts}</b> contacts (<b>{second_percent_link_type_with_most_contacts}</b>)
+                 with <b>{number_of_contacts_link_type_with_most_contacts}</b> contacts (<b>{percent_link_type_with_most_contacts}</b>)
                  "
       )
     
@@ -3051,6 +2795,13 @@ active_contacts_breakdown_bar_chart_regional <-
       contacts_df_long %>% 
       filter(prefecture == input$contacts_tab_select_regional)
     
+    active_contacts <-
+      contacts_df_long %>%
+      group_by(row_id) %>% 
+      ## keep active cases. 
+      ## active cases whose last day of follow-up is today any day past today
+      filter(max(follow_up_date) >= todays_date_reactive_regional()) %>%
+      ungroup()
     
     colors <- 
       contacts_df_long %>% 
@@ -3058,12 +2809,8 @@ active_contacts_breakdown_bar_chart_regional <-
       unique.data.frame()
     
     
-    
     data_to_plot <-
-      contacts_df_long %>%
-      group_by(row_id) %>% 
-      # drop inactive cases
-      filter(max(follow_up_date) >= todays_date_reactive_regional()) %>% 
+      active_contacts %>%
       group_by(follow_up_date) %>% 
       count(etat_suivi) %>% 
       ungroup() %>% 
@@ -3112,6 +2859,13 @@ active_contacts_breakdown_table_regional <-
       contacts_df_long %>% 
       filter(prefecture == input$contacts_tab_select_regional)
     
+    active_contacts <-
+      contacts_df_long %>%
+      group_by(row_id) %>% 
+      ## keep active cases. 
+      ## active cases whose last day of follow-up is today any day past today
+      filter(max(follow_up_date) >= todays_date_reactive_regional()) %>%
+      ungroup()
     
     colors <- 
       contacts_df_long %>% 
@@ -3119,12 +2873,8 @@ active_contacts_breakdown_table_regional <-
       unique.data.frame()
     
     
-    
     data_to_plot <-
-      contacts_df_long %>%
-      group_by(row_id) %>% 
-      # drop inactive cases
-      filter(max(follow_up_date) >= todays_date_reactive_regional()) %>% 
+      active_contacts %>%
       group_by(follow_up_date) %>% 
       count(etat_suivi) %>% 
       ungroup() %>% 

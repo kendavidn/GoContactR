@@ -52,7 +52,7 @@ options(scipen = 999) # turn off scientific notation
 
 set.seed(1) # fix seed
 
-options(tibble.print_max = 35, tibble.print_min = 35)
+options(tibble.print_max = 10, tibble.print_min = 10)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -5,6 +5,7 @@ server <- function(input, output) {
   
   source(here("helper_scripts/server_functions.R"), local = T)
   
+  
 
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -85,6 +86,10 @@ server <- function(input, output) {
     ## date selection needs to use the unfiltered data frame
     ## because the selelction from this input feeds the filtering function
     
+    req(input$data_to_use_id)
+    req(read_file_raw())
+    
+    
     flattened_dates <- 
       read_file_unfiltered()$contacts_df_long_unfiltered%>% 
       select(follow_up_date) %>%
@@ -121,34 +126,36 @@ server <- function(input, output) {
   output$contacts_per_day_value_box <-
     renderValueBox({
       req(input$select_date_of_review)
-      read_file()$contacts_df_long %>% 
-      contacts_per_day_value_box()
+      
+      contacts_per_day_value_box(contacts_df_long = read_file()$contacts_df_long,
+                                 todays_date = todays_date_reactive())
       
     })
-  
   
   output$cumulative_contacts_value_box <-
     renderValueBox({
       req(input$select_date_of_review)
-      read_file()$contacts_df_long %>% 
-        cumulative_contacts_value_box()
+      
+      cumulative_contacts_value_box(contacts_df_long = read_file()$contacts_df_long,
+                                    todays_date = todays_date_reactive())
       
     })
-  
   
   output$contacts_under_surveillance_value_box <-
     renderValueBox({
       req(input$select_date_of_review)
-      read_file()$contacts_df_long %>% 
-        contacts_under_surveillance_value_box()
+      
+      contacts_under_surveillance_value_box(contacts_df_long = read_file()$contacts_df_long,
+                                            todays_date = todays_date_reactive())
       
     })
   
   output$pct_contacts_followed_value_box <-
     renderValueBox({
       req(input$select_date_of_review)
-      read_file()$contacts_df_long %>% 
-        pct_contacts_followed_value_box()
+      
+      pct_contacts_followed_value_box(contacts_df_long = read_file()$contacts_df_long,
+                                      todays_date = todays_date_reactive())
       
     })
   
@@ -303,107 +310,44 @@ server <- function(input, output) {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
-  output$active_contacts_breakdown_bar_chart <- 
+  output$contacts_timeline_snake_plot <-
     renderEcharts4r({
       req(input$select_date_of_review)
       
-      read_file()$contacts_df_long %>% 
+      read_file()$contacts_df_long %>%
+        contacts_timeline_snake_plot(todays_date = todays_date_reactive())
+    })
+  
+  
+  output$contacts_timeline_snake_text <- renderUI({
+    contacts_timeline_snake_text(contacts_df_long = read_file()$contacts_df_long ,
+                                 todays_date = todays_date_reactive())
+    
+    
+  })
+  
+  output$active_contacts_breakdown_bar_chart <-
+    renderEcharts4r({
+      req(input$select_date_of_review)
+      
+      read_file()$contacts_df_long %>%
         active_contacts_breakdown_bar_chart()
     })
   
-  output$active_contacts_breakdown_table <- 
+  
+  output$active_contacts_breakdown_table <-
     renderReactable({
       req(input$select_date_of_review)
       
-      read_file()$contacts_df_long %>% 
+      read_file()$contacts_df_long %>%
         active_contacts_breakdown_table()
     })
-  
   
   
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # ~ all_contacts_tab_row_7 ----
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # 
-  # 
-  # 
-  # output$snake_plot_date_slider <- renderUI({
-  #   req(input$select_date_of_review) # require general date of review select. Can't remember why
-  #   
-  #   read_file()$contacts_df  %>% 
-  #     snake_plot_date_slider()
-  #   
-  # })
-  # 
-  # # ~~~ stage_output ----
-  # 
-  # output$snake_plot_nrows_selected_text <- renderUI({
-  #   
-  #   req(input$snake_plot_date_slider)
-  #   
-  #     snake_plot_nrows_selected_text(contacts_df = read_file()$contacts_df , 
-  #                                    snake_plot_date_slider = input$snake_plot_date_slider)
-  #   
-  #   
-  # })
-  # 
-  # # ~~~ snake_plot_sample_or_not ----
-  # 
-  # output$snake_plot_sample_or_not <- renderUI({
-  #   
-  #   req(input$snake_plot_date_slider)
-  # 
-  #   snake_plot_sample_or_not(contacts_df = read_file()$contacts_df, 
-  #                            snake_plot_date_slider = input$snake_plot_date_slider)
-  #   
-  #   
-  # })
-
-  
-  
-  output$contacts_timeline_snake_text <- renderUI({
-    
-    contacts_timeline_snake_text(contacts_df_long = read_file()$contacts_df_long , 
-                                 todays_date = todays_date_reactive())
-    
-    
-  })
-  
-    
-  # ~~~ generate_snake_plot_bttn ----
-  output$generate_snake_plot_bttn <- renderUI({
-    actionBttn(inputId = "generate_snake_plot_bttn", 
-               label = "Generate snake plot", 
-               style = "jelly", color = "primary",  size = "xs"
-    )
-  })
-  
-  
-  # ~~~ stage_output ----
-  output_staging <- reactiveValues()
-  
-  # ~~~ observeEvent_generate_snake_plot_bttn ----
-  observeEvent(input$generate_snake_plot_bttn,{  
-    output_staging$contacts_timeline_snake_plot <- 
-      read_file()$contacts_df_long %>% 
-      contacts_timeline_snake_plot(todays_date = todays_date_reactive())
-  })
-  
-  # ~~~ contacts_timeline_snake_plot ----
-  output$contacts_timeline_snake_plot <-
-    renderEcharts4r({
-      req(input$generate_snake_plot_bttn)
-      output_staging$contacts_timeline_snake_plot
-    })
-  
-  
-  
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~ all_contacts_tab_row_8 ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -436,7 +380,7 @@ server <- function(input, output) {
   
   output$contacts_tab_select_regional <- renderUI({
     
-    req(input$select_date_of_review)
+    req(read_file_raw()$prefecture)
 
   selectInput("contacts_tab_select_regional", 
               label = "Choose region",
@@ -449,18 +393,32 @@ server <- function(input, output) {
   # ~~~ select_date_of_review_regional----
   output$select_date_of_review_regional <- renderUI({
     
-    
-    flattened_dates <- 
-      read_file_unfiltered()$contacts_df_long%>% 
-      select(follow_up_date) %>%
-      pull(1)
-    
-    min_date <- min(flattened_dates, na.rm = T) 
-    max_date <- max(flattened_dates, na.rm = T) 
-    
+
+      ## date selection needs to use the unfiltered data frame
+      ## because the selection from this input feeds the filtering function
+      
+      flattened_dates <- 
+        read_file_unfiltered_regional()$contacts_df_long_unfiltered_regional%>% 
+        select(follow_up_date) %>%
+        pull(1)
+      
+      min_date <- min(flattened_dates, na.rm = T) 
+      max_date <- max(flattened_dates, na.rm = T) 
+      
+      cat(file=stderr(), "dates have been flattened")
+      
+      # get the last date for which follow-up status was not "missing"
+      # assume that that is the date as at which the data is being analyzed
+      todays_date_imputed_from_data <- 
+        read_file_unfiltered_regional()$contacts_df_long_unfiltered_regional %>% 
+        filter(etat_suivi != "Données manquantes") %>% 
+        select(follow_up_date) %>%
+        pull(1) %>% 
+        max(na.rm = T)
+      
     dateInput("select_date_of_review_regional", 
               label = "Select date", 
-              value = todays_date, 
+              value = todays_date_imputed_from_data, 
               min = min_date, 
               max = max_date)
     
@@ -472,39 +430,45 @@ server <- function(input, output) {
   
   output$contacts_per_day_value_box_regional <-
     renderValueBox({
+      req(input$contacts_tab_select_regional)
       req(input$select_date_of_review_regional)
-      read_file_regional()$contacts_df_long %>% 
-        contacts_per_day_value_box_regional()
+      contacts_per_day_value_box(read_file_regional()$contacts_df_long, 
+                                   todays_date_reactive_regional(),
+                                   input$contacts_tab_select_regional)
       
     })
   
   
   output$cumulative_contacts_value_box_regional <-
     renderValueBox({
+      req(input$contacts_tab_select_regional)
       req(input$select_date_of_review_regional)
-      read_file_regional()$contacts_df_long %>% 
-        cumulative_contacts_value_box_regional()
+      cumulative_contacts_value_box(read_file_regional()$contacts_df_long, 
+                                    todays_date_reactive_regional(),
+                                    input$contacts_tab_select_regional)
       
     })
   
   
   output$contacts_under_surveillance_value_box_regional <-
     renderValueBox({
+      req(input$contacts_tab_select_regional)
       req(input$select_date_of_review_regional)
-      read_file_regional()$contacts_df_long %>% 
-        contacts_under_surveillance_value_box_regional()
+      contacts_under_surveillance_value_box(read_file_regional()$contacts_df_long, 
+                                            todays_date_reactive_regional(),
+                                            input$contacts_tab_select_regional)
       
     })
   
   output$pct_contacts_followed_value_box_regional <-
     renderValueBox({
+      req(input$contacts_tab_select_regional)
       req(input$select_date_of_review_regional)
-      read_file_regional()$contacts_df_long %>% 
-        pct_contacts_followed_value_box_regional()
+      pct_contacts_followed_value_box(read_file_regional()$contacts_df_long, 
+                                      todays_date_reactive_regional(),
+                                      input$contacts_tab_select_regional)
       
     })
-  
-
   
   # ~~~ all_contacts_tab_row_1_regional ----
   

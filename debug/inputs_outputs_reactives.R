@@ -1,7 +1,7 @@
 input <- list()
 output <- list()
 
-todays_date <- as.Date("2021-03-16")
+todays_date <- as.Date("2021-03-06")
 
 input$snake_plot_slider <- c(4,53)
 
@@ -14,6 +14,7 @@ input$preloaded_data <- "Guinea list 03_14"
 input$snake_plot_slider_regional <- c(4,53)
 
 
+region <- "Dubreka"
 
 
 
