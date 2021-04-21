@@ -4,111 +4,189 @@
 library(charlatan)
 library(randomNames)
 library(tidyverse)
-cases <-
-  tibble(
-    id_case = 1:20,
-    name_case = ch_name(n = 20),
-    classif_case = "Confirmed",
-    date_symp_onset_case = paste("2020",
-                               sample(5:12, size = 20, replace = TRUE),
-                               sample(1:19, size = 20, replace = TRUE),
-                               sep = "-")) %>%
-  mutate(date_symp_onset_case = as.Date(date_symp_onset_case,
-                                      format = "%Y-%m-%d")) %>%
-  slice(rep(1:n(), each = 10))  %>%
-  arrange(id_case)
+
+
+
+# ~~~~ Accumulate functions ----
+## these are functions that depend on the previous element in the vector
+
+follow_or_not <-
+  function(previous, current) {
+    if(!is.na(current)) return(current)  # for initialized values
+    # otherwise,
+    return(sample(c("vu ou contacte", "non vu ou contacte"),
+                  prob = c(0.95, 0.05),
+                  replace = T,
+                  size = 1))
+  }
+## once an individual is not seen once, they are not seen for good (for simplicity)
+cascade_down_not_seen <- 
+  function(previous, current) {
+    if(previous == "non vu ou contacte") return("non vu ou contacte")
+    # otherwise,
+    return(current)
+  }
+
+
+cascade_down_symptomatic <-
+  function(previous, current) {
+    if (previous == "devenu symptomatique et resultats tests attendus") return("devenu symptomatique et resultats tests attendus")
+    # otherwise,
+    return(current)
+  }
+
+test_result <-
+  function(previous, current) {
+    if (previous == "devenu symptomatique et resultats tests attendus") return(sample(c("devenu cas confirme", "sorti sain"),
+                                                                                      prob = c(0.3, 0.7),
+                                                                                      size = 1))
+    # otherwise,
+    return(current)
+  }
+
+
+cascade_down_test_result <-
+  function(previous, current) {
+    if(previous == "devenu cas confirme") return("devenu cas confirme")
+    if(previous == "sorti sain") return("sorti sain")
+    # otherwise,
+    return(current)
+  }
+
+
+
+#### BEGIN HERE
+
+regions_df <- 
+  tibble::tribble(
+    ~region,                         ~district,
+    "abidjan 1",                     "abobo est",
+    "abidjan 1",                  "abobo ouest",
+    "abidjan 1",                       "anyama",
+    "abidjan 1",                 "yopougan est",
+    "abidjan 1",               "yopougan ouest",
+    "abidjan 2", "adjame & plateau & attecoube",
+    "abidjan 2",           "cocody bingerville",
+    "abidjan 2",                     "koumassi",
+    "abidjan 2",           "port bouet & vridi",
+    "abidjan 2",         "trechville & marcory"
+  ) %>% 
+  mutate(location = paste(region, district, sep = "--"))
+
+liens_contact_adultes <- c("parent proche", "ami", "collegue de travail", "co passager", "co patient", "patient", "autre")
+liens_contact_enfants <- c("parent proche", "ami", "co passager", "co patient", "autre")
 
 
 
 contacts_male <-
-  tibble(last_name_contact = randomNames(n = 100, which.names = "last", gender = 0),
-         first_name_contact = randomNames(n = 100, which.names = "first", gender = 0),
-         sex_contact = "Male"
+  tibble(quel_est_le_nom_du_contact = randomNames(n = 200, which.names = "last", gender = 0),
+         quel_est_le_prenom_du_contact = randomNames(n = 200, which.names = "first", gender = 0),
+         sexe = "homme"
   )
 
 contacts_female <-
-  tibble(last_name_contact = randomNames(n = 100, which.names = "last", gender = 1),
-         first_name_contact = randomNames(n = 100, which.names = "first", gender = 1),
-         sex_contact = "Female")
+  tibble(quel_est_le_nom_du_contact = randomNames(n = 200, which.names = "last", gender = 1),
+         quel_est_le_prenom_du_contact = randomNames(n = 200, which.names = "first", gender = 1),
+         sexe = "femme")
 
-contacts_init <-
+liste_contacts_sample <-
   contacts_male %>%
   bind_rows(contacts_female) %>%
-  mutate(id_contact_end = sample(1:200, 200)) %>%
-  arrange(id_contact_end)
+  slice_sample(n = nrow(.)) %>% 
+  mutate(code_unique_du_contact = paste0("Civ", 1:400)) %>%
+  arrange(code_unique_du_contact) %>% 
+  mutate(quel_est_l_age_du_contact = sample( c(1:80, rep(NA, times = 5) ),  ## add NA's to make messy
+                                              size = n(), replace = T)) %>% 
+  mutate(quelle_est_l_unite_de_l_age = "ans") %>% 
+  mutate(location = sample(regions_df$location, size = n(), replace = T)) %>% 
+  mutate(location = sample(c(location, rep(NA_character_, times = 10)),
+                           size = n(), 
+                           replace = T)) %>% 
+  separate(location, into = c("region_de_residence", "district_de_residence"), sep = "--", remove = T) %>% 
+  mutate(profession = ch_job(n = n(), locale = "fr_FR")) %>% 
+  mutate(profession = sample(c(profession, rep(NA_character_, times = 50)),
+                           size = n(), 
+                           replace = T)) %>% 
+  mutate(profession = if_else(!is.na(quel_est_l_age_du_contact) & quel_est_l_age_du_contact < 18,
+                              "etudiant",
+                              profession)) %>% 
+  mutate(code_du_cas_index =  paste0("CAS", sample(1:30, size = n(), replace = T)) ) %>% 
+  mutate(code_du_cas_index = sample(c(code_du_cas_index, rep(NA_character_, times = 15)),
+                             size = n(), 
+                             replace = T)) %>% 
+  mutate(quel_est_le_lien_du_contact_avec_le_cas = ifelse(quel_est_l_age_du_contact >= 18, 
+                                                          sample(liens_contact_adultes, size = n(), replace = T), 
+                                                          NA_character_)) %>% 
+  mutate(quel_est_le_lien_du_contact_avec_le_cas = ifelse(quel_est_l_age_du_contact < 18, 
+                                                          sample(liens_contact_enfants, size = n(), replace = T), 
+                                                          quel_est_le_lien_du_contact_avec_le_cas)) %>% 
+  mutate(quel_est_le_lien_du_contact_avec_le_cas = sample(c(quel_est_le_lien_du_contact_avec_le_cas, rep(NA_character_, times = 20)),
+                                    size = n(), 
+                                    replace = T)) %>% 
+  mutate(quel_type_de_contact  = sample(c("haut risque", "risque eleve", 
+                                          "risque modere ou faible"), size = n(), replace = T )) %>% 
+  mutate(quel_type_de_contact = sample(c(quel_type_de_contact, rep(NA_character_, times = 20)),
+                                       size = n(), 
+                                       replace = T)) %>% 
+  mutate(date_du_dernier_contact_avec_le_cas =  sample(seq.Date(Sys.Date()-100, 
+                                                                Sys.Date(), 
+                                                                by = "1 days"), 
+                                                       size = n(), 
+                                                       replace = T)) %>% 
+  ## arrange properly
+  mutate(sort_number = as.numeric(str_remove_all(code_unique_du_contact, "Civ"))) %>% 
+  arrange(sort_number)
 
 
-sample_contacts_df_raw <-
-  cases %>%
-  bind_cols(contacts_init) %>%
-  mutate(id_contact = paste(id_case, 1:10, sep = "-"),
-         relation_contact_case = sample(c("family member", "co-worker", "community-member", "patient"),
-                                        size = n(),
-                                        replace = TRUE),
-         age_contact = sample(0:100, size = n(), replace = TRUE),
-         phone_contact = ch_phone_number(n = n()),
-         hcw_status_contact = sample(c("Yes", "No"), size = n(), replace = TRUE),
-         admin1_contact = "Lagos",
-         admin2_contact = sample(c("Agege", "Ajeromi-Ifelodun", "Alimosho", "Amuwo-Odofin",
-                                   "Apapa", "Badagry", "Epe", "Eti-Osa", "Ibeju/Lekki",
-                                   "Ifako-Ijaye", "Ikeja", "Ikorodu", "Kosofe",
-                                   "Lagos Island", "Lagos Mainland", "Mushin", "Ojo",
-                                   "Oshodi-Isolo", "Shomolu", "Surulere"),
-                                 size = n(),
-                                 replace = TRUE),
-         admin3_contact = NA_character_,
-         hhld_name_contact = NA_character_,
-         type_contact = sample(c("High-risk", "Low-risk"), size = n(), replace = TRUE),
-         vital_state_contact = sample(c("Healthy", "Ill", "Deceased"), size = n(), replace = TRUE),
-         date_death_or_illness_contact = date_symp_onset_case + sample(1:50, size = n(), replace = TRUE),
-         # should be after date of symptom onset but before date of death or illness
-         date_last_interaction = date_symp_onset_case + sample(1:50, size = n(), replace = TRUE),
-         # if data of last interaction is after date of death or illness, set it as 10 days before date of death
-         date_last_interaction = ifelse(vital_state_contact == "Ill" | vital_state_contact == "Deceased",
-                                      date_death_or_illness_contact - 10,
-                                      date_last_interaction),
-         date_last_interaction = as.Date(date_last_interaction, origin = as.Date("1970-01-01")), 
-         date_death_or_illness_contact = as.Date(date_death_or_illness_contact, origin = as.Date("1970-01-01")),
-         follow_up_status = "Inactive",
-         loc_death_contact = ifelse(vital_state_contact == "Deceased",
-                                    sample(admin2_contact),
-                                    NA_character_),
-         # everyday lose 10 people to followup
-         follow_up_day_1 = c(rep(1, each = 190),
-                         rep(0, each = 10)),
-         follow_up_day_2 = c(rep(1, each = 180),
-                         rep(0, each = 20)),
-         follow_up_day_3 = c(rep(1, each = 170),
-                         rep(0, each = 30)),
-         follow_up_day_4 = c(rep(1, each = 160),
-                         rep(0, each = 40)),
-         follow_up_day_5 = c(rep(1, each = 150),
-                         rep(0, each = 50)),
-         follow_up_day_6 = c(rep(1, each = 140),
-                         rep(0, each = 60)),
-         follow_up_day_7 = c(rep(1, each = 130),
-                         rep(0, each = 70)),
-         follow_up_day_8 = c(rep(1, each = 120),
-                         rep(0, each = 80)),
-         follow_up_day_9 = c(rep(1, each = 110),
-                         rep(0, each = 90)),
-         follow_up_day_10 = c(rep(1, each = 100),
-                          rep(0, each = 100)),
-         follow_up_day_11 = c(rep(1, each = 90),
-                          rep(0, each = 110)),
-         follow_up_day_12 = c(rep(1, each = 80),
-                          rep(0, each = 120)),
-         follow_up_day_13 = c(rep(1, each = 70),
-                          rep(0, each = 130)),
-         follow_up_day_14 = c(rep(1, each = 60),
-                          rep(0, each = 140)),
-         reasons_end_follow_up = ifelse(follow_up_day_14 == 0, 
-                                        "Lost to follow-up",
-                                        "Completed"),
-         date_death_or_illness_contact = ifelse(vital_state_contact == "Healthy",
-                                              NA_character_,
-                                              date_death_or_illness_contact))
 
 
-openxlsx::write.xlsx(sample_contacts_df_raw, here("data/sample_contacts_df_raw.xlsx"))
+
+suivi_contacts_sample <- 
+  liste_contacts_sample %>% 
+  select(code_unique_du_contact, date_du_dernier_contact_avec_le_cas) %>% 
+  group_by(code_unique_du_contact) %>% 
+  summarise(date_du_suivi = seq.Date(date_du_dernier_contact_avec_le_cas + 1, 
+                                     date_du_dernier_contact_avec_le_cas + 10,
+                                     by = "1 days"),
+            date_du_dernier_contact_avec_le_cas = date_du_dernier_contact_avec_le_cas
+  ) %>% 
+  filter(date_du_suivi <= Sys.Date()) %>% 
+  mutate(jour_du_suivi = as.numeric(date_du_suivi - date_du_dernier_contact_avec_le_cas )) %>% 
+  mutate(etat_du_suivi = if_else(jour_du_suivi == 1,
+                                 true = sample(c("vu ou contacte", "non vu ou contacte"),
+                                               prob = c(0.8, 0.2),
+                                               size = n(), 
+                                               replace = T), 
+                                 false = NA_character_)) %>% 
+  ## if contact was followed on previous day, roll 90-10 dice on whether or not they will be followed on next day
+  mutate(etat_du_suivi = accumulate(etat_du_suivi, follow_or_not)) %>% 
+  mutate(etat_du_suivi = accumulate(etat_du_suivi, cascade_down_not_seen)) %>% 
+  ## classify follow-up into regular follow-up or symptomatic, needing testing
+  mutate(issue_du_suivi = "NA", 
+         issue_du_suivi = if_else(etat_du_suivi == "non vu ou contacte", 
+                                  "NA", 
+                                  # only for those who were followed-up
+                                  sample(c("poursuite du suivi", 
+                                           "devenu symptomatique et resultats tests attendus"), 
+                                         prob = c(0.9, 0.1),
+                                         replace = T,
+                                         size  = n()))) %>% 
+  ## cascade down symptomatic state
+  mutate(issue_du_suivi = if_else(issue_du_suivi == "NA", 
+                                  "NA",
+                                  accumulate(issue_du_suivi, cascade_down_symptomatic))) %>% 
+  ## if symptomatic, create result
+  mutate(issue_du_suivi = if_else(issue_du_suivi == "NA", 
+                                  "NA",
+                                  accumulate(issue_du_suivi, test_result))) %>% 
+  ## cascade down test result
+  mutate(issue_du_suivi = accumulate(issue_du_suivi, cascade_down_test_result)) %>% 
+  ## now that you're done, put NAs back
+  mutate(issue_du_suivi = ifelse(issue_du_suivi == "NA", NA_character_, issue_du_suivi)) %>% 
+  select(-date_du_dernier_contact_avec_le_cas)
+
+
+
+openxlsx::write.xlsx(liste_contacts_sample, here::here("data/liste_contacts_sample.xlsx"))
+openxlsx::write.xlsx(suivi_contacts_sample, here::here("data/suivi_contacts_sample.xlsx"))
 

@@ -12,22 +12,22 @@ body {
 <body>
   <br>
   <br>
-<p>The analyses in this app rely on appropriately named columns. If you are uploading a csv or xlsx file, it should have at least the columns below (capital, small letters or title case are all fine):</p>
+<p>The analyses in this app rely on appropriately named columns. Your original columns may have been renamed internally. Check that the final dataframe shown contains at least the following columns </p>
 
 <ul>
 <li><p><strong>id</strong>: A unique ID for each case</p>
 </li>
 <li><p><strong>id_contact</strong>: A unique ID for each contact</p>
 </li>
-<li><p><strong>date enreg</strong>: Date of contact registration</p>
-</li>
 <li><p><strong>date du dernier contact</strong>: The date of last contact between the case and the contact</p>
 </li>
-<li><p><strong>prefecture:</strong> Admin level 1 of the contact</p>
+<li><p><strong>region</strong>: Admin level 1 of the contact</p>
 </li>
-<li><p><strong>sous-prefecture:</strong> Admin level 2 of the contact</p>
+<li><p><strong>district</strong>: Admin level 2 of the contact</p>
 </li>
-<li><p><strong>j1, j2 ...j21:</strong> follow-up status for each day that contacts are monitored</p>
+<li><p><strong>follow up date</strong>:Dates of follow-up for monitored contacts</p>
+</li>
+<li><p><strong>etat suivi</strong>: Follow-up status for each day that contacts are monitored</p>
 </li>
 </body>
 </html>

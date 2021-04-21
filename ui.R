@@ -35,15 +35,15 @@ header$children[[3]]$children[[4]]$children[[1]]$children[[2]]$children[[1]] <-
 
 sidebar <- 
   dashboardSidebar(collapsed = TRUE,
-                   sidebarUserPanel(name = HTML("<br>Guinée, EVD 2021"),
+                   sidebarUserPanel(name = HTML("<br>Côte d'Ivoire, COVID"),
                                     image = "flag.png"),
   sidebarMenu(id = "tabs", # Setting id makes input$tabs give the tabName of currently-selected tab
               menuItem("Load data", tabName = "load_data_tab", icon = icon("file-import")),
               menuItem("All contacts",
                        selected = FALSE, # IGNORE THATfor now -> ! Important. Because it sets the date needed for read_file() function to work
                         
-                       tabName = "all_contacts_tab", icon = icon("globe")),
-              menuItem("Contacts per region", tabName = "all_contacts_tab_regional", icon = icon("map-marked"))
+                       tabName = "app_tab", icon = icon("globe")),
+              menuItem("Contacts per region", tabName = "app_tab_regional", icon = icon("map-marked"))
               
               )
   )
@@ -66,16 +66,15 @@ load_data_tab_row_1 <-
                                "Choose dataset to analyse"), 
                closable = F, 
                collapsible = T,
-               fluidRow(column(width = 6, 
-                               uiOutput("data_to_use")),
+               fluidRow(column(width = 3, 
+                               uiOutput("data_to_use_picker")),
                         column(width = 6, 
-                               uiOutput("input_data"))
-                        #,
-                        #column(width = 3, 
-                        #       uiOutput("analyze_action_bttn"))
+                               uiOutput("input_data_preloaded_or_uploaded")), 
+                        column(width = 3, 
+                               uiOutput("analyze_action_bttn")))
 
                )
-  ))
+  )
 
 
 # ~~~ load_data_tab_row_2 ----
@@ -147,26 +146,39 @@ load_data_tab <- tabItem(tabName = "load_data_tab",
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~ all_contacts_tab ----
+# ~~ app_tab ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 
-# ~~~ all_contacts_tab_row_00_regional---- 
-all_contacts_tab_row_00 <- 
-  fluidRow(box(width = 12,
+# ~~~ app_tab_row_00_regional---- 
+app_tab_row_00 <- 
+  fluidRow(box(width = 4,
                title = tagList(icon("hand-pointer"), 
                                "Date of review"), 
-               closable = F, 
-               collapsible = T,
-               fluidRow(column(width = 6, 
-                               uiOutput("select_date_of_review"))
+               closable = FALSE, 
+               collapsible = TRUE,
+               fluidRow(column(width = 12, 
+                               uiOutput("select_date_of_review", style = "height: 4.7em;"))
+                        )
+               ),
+           box(width = 8,
+               title = tagList(icon("file-download"), 
+                               "Download report"),
+               closable = FALSE,
+               collapsible = TRUE,
+               fluidRow(column(width = 5,
+                               uiOutput("select_format", style = "height: 4.7em;")
+                               ),
+                        column(width = 7, 
+                               uiOutput("download_report_button"))
+                        )
                )
-  ))
+           )
 
-# ~~~ all_contacts_tab_row_0 ----
+# ~~~ app_tab_row_0 ----
 
-all_contacts_tab_row_0 <-
+app_tab_row_0 <-
   fluidRow(valueBoxOutput("contacts_per_day_value_box", width = 3),
            valueBoxOutput("cumulative_contacts_value_box", width = 3),
            valueBoxOutput("contacts_under_surveillance_value_box", width = 3),
@@ -176,24 +188,26 @@ all_contacts_tab_row_0 <-
 
 
 
-# ~~~ all_contacts_tab_row_1 ----
+# ~~~ app_tab_row_1 ----
 
 
-all_contacts_tab_row_1 <-
+app_tab_row_1 <-
   tagList(
   h1("  "), 
   icon("map", "fa-2x"),
-  h3("Total contacts per prefecture", 
+  h3("Total contacts per region", 
      style = "display: inline; line-height: 50px;"),
   fluidRow(column(width = 12,
                column(width = 9,
-                      tabsetPanel(tabPanel(title = "Table",
-                                           reactableOutput("all_contacts_per_region_table") %>%
+                      tabsetPanel(tabPanel(title = "Bar plot",
+                                           highchartOutput("all_contacts_per_region_bar_chart" ) %>%
                                              withSpinner(type = 6, color = burnt_sienna)),
-                                  tabPanel(title = "Plot",
+                                  tabPanel(title = "Sunburst plot",
                                            highchartOutput("all_contacts_per_region_sunburst_plot", 
-                                                           height = "350px"
-                                                           ) %>%
+                                                           height = "350px") %>%
+                                             withSpinner(type = 6, color = burnt_sienna)),
+                                  tabPanel(title = "Table",
+                                           reactableOutput("all_contacts_per_region_table") %>%
                                              withSpinner(type = 6, color = burnt_sienna))
                       )
                ),
@@ -212,13 +226,13 @@ all_contacts_tab_row_1 <-
 
 
 
-# ~~~ all_contacts_tab_row_2 ----
+# ~~~ app_tab_row_2 ----
 
-all_contacts_tab_row_2 <-
+app_tab_row_2 <-
   tagList(
     h1("  "), 
     icon("calendar-alt", "fa-2x"),
-    h3("Contacts under surveillance per prefecture over time", 
+    h3("Contacts under surveillance per region over time", 
        style = "display: inline; line-height: 50px;"),
     fluidRow(column(width = 12,
                column(width = 9,
@@ -245,9 +259,9 @@ all_contacts_tab_row_2 <-
   )
 
 
-# ~~~ all_contacts_tab_row_3 ----
+# ~~~ app_tab_row_3 ----
 
-all_contacts_tab_row_3 <-
+app_tab_row_3 <-
   tagList(
     h1("  "), 
     icon("users", "fa-2x"),
@@ -255,9 +269,13 @@ all_contacts_tab_row_3 <-
        style = "display: inline; line-height: 50px;"),
   fluidRow(column(width = 12,
                column(width = 9,
-                      tabsetPanel(tabPanel(title = "Plot",
+                      tabsetPanel(tabPanel(title = "Donut plot",
                                            highchartOutput("total_contacts_per_case_donut_plot") %>%
-                                             withSpinner(type = 6, color = burnt_sienna))
+                                             withSpinner(type = 6, color = burnt_sienna)), 
+                                  tabPanel(title = "Bar chart",
+                                           highchartOutput("total_contacts_per_case_bar_chart") %>%
+                                             withSpinner(type = 6, color = burnt_sienna)) 
+                                  
                                   # ,
                                   # tabPanel(title = "Table",
                                   #          reactableOutput("total_contacts_per_case_table") %>%
@@ -278,18 +296,21 @@ all_contacts_tab_row_3 <-
   hr()
   )
 
-# ~~~ all_contacts_tab_row_4 ----
+# ~~~ app_tab_row_4 ----
 
-all_contacts_tab_row_4 <-
+app_tab_row_4 <-
   tagList(
     h1("  "), 
     icon("link", "fa-2x"),
-    h3("Link type between contacts and cases", 
+    h3("Case-contact relationships", 
        style = "display: inline; line-height: 50px;"),
   fluidRow(column(width = 12,
                column(width = 9,
-                      tabsetPanel(tabPanel(title = "Plot",
+                      tabsetPanel(tabPanel(title = "Donut plot",
                                            highchartOutput("total_contacts_per_link_type_donut_plot") %>%
+                                             withSpinner(type = 6, color = burnt_sienna)), 
+                                  tabPanel(title = "Bar chart",
+                                           highchartOutput("total_contacts_per_link_type_bar_chart") %>%
                                              withSpinner(type = 6, color = burnt_sienna))
                                   
                       )
@@ -307,57 +328,29 @@ all_contacts_tab_row_4 <-
   hr()
   )
 
-# ~~~ all_contacts_tab_row_5 ----
 
-all_contacts_tab_row_5 <-
-  tagList(
-    h1("  "), 
-    icon("syringe", "fa-2x"),
-    h3("Vaccinations per sub-prefecture", 
-       style = "display: inline; line-height: 50px;"),
-  fluidRow(column(width = 12,
-               column(width = 9,
-                      tabsetPanel(tabPanel(title = "Plot",
-                                           highchartOutput("total_contacts_vaccinated_bar_plot") %>%
-                                             withSpinner(type = 6, color = burnt_sienna))
-                                  
-                      )
-               ),
-               column(width = 3,
-                      tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
-                                                           "Description"),
-                                           style = "overflow-y:auto",
-                                           htmlOutput("total_contacts_vaccinated_text") %>% 
-                                             withSpinner(type = 1, color = burnt_sienna))
-                      )
-               )
-  )
-  ), 
-  hr()
-  )
+# ~~~ app_tab_row_6 ----
 
 
-
-# ~~~ all_contacts_tab_row_6 ----
-
-
-all_contacts_tab_row_6 <- 
+app_tab_row_6 <- 
   tagList(
     h1("  "), 
     icon("user-clock", "fa-2x"),
-    h3("Follow-up state", 
+    h3("Follow-up timeline", 
        style = "display: inline; line-height: 50px;"),
   fluidRow(column(width = 12,
                column(width = 9,
-                      tabsetPanel(tabPanel(title = "Plots",
-                                           echarts4rOutput("contacts_timeline_snake_plot",height = 700) %>%
+                      tabsetPanel(tabPanel(title = "Snake plot and bar chart summary",
+                                           echarts4rOutput("active_contacts_timeline_snake_plot",height = 700) %>%
                                              withSpinner(type = 6, color = burnt_sienna),
                                            echarts4rOutput("active_contacts_breakdown_bar_chart") %>%
                                              withSpinner(type = 6, color = burnt_sienna) 
                                            ),
-                                  tabPanel(title = "Table",
+                                  tabPanel(title = "Summary table",
+                                           downloadBttn("active_contacts_breakdown_table_download", 
+                                                        "Download data", style = "jelly"),
                                            reactableOutput("active_contacts_breakdown_table") %>%
-                                             withSpinner(type = 6, color = burnt_sienna))
+                                             withSpinner(type = 6, color = burnt_sienna)), 
                                   
                       )
                ),
@@ -371,7 +364,7 @@ all_contacts_tab_row_6 <-
                                                         (contacts that should be currently under surveillance).
                                                         <br>
                                                         </font>")),
-                                           htmlOutput("contacts_timeline_snake_text")
+                                           htmlOutput("active_contacts_timeline_snake_text")
                                            
                                            
                                            )
@@ -383,9 +376,9 @@ all_contacts_tab_row_6 <-
   )
 
 
-# ~~~ all_contacts_tab_row_7 ----
+# ~~~ app_tab_row_7 ----
 
-all_contacts_tab_row_7 <- 
+app_tab_row_7 <- 
   tagList(
     h1("  "), 
     icon("low-vision", "fa-2x"),
@@ -396,7 +389,8 @@ all_contacts_tab_row_7 <-
                       tabsetPanel(tabPanel(title = "Summary",
                                            gt_output("contacts_lost_24_to_72_hours") %>%
                                              withSpinner(type = 6, color = burnt_sienna)), 
-                                  tabPanel(title = "List of contacts not seen in past 3 days",
+                                  tabPanel(title = "List of contacts not seen",
+                                           htmlOutput("lost_contacts_linelist_title"),
                                            reactableOutput("lost_contacts_linelist") %>%
                                              withSpinner(type = 6, color = burnt_sienna))
                                   
@@ -420,48 +414,47 @@ all_contacts_tab_row_7 <-
   hr()
   )
 
-# ~~~ all_contacts_tab_combine_rows----
+# ~~~ app_tab_combine_rows----
 
 
-all_contacts_tab <- tabItem("all_contacts_tab",
-                            all_contacts_tab_row_00,
-                            all_contacts_tab_row_0,
+app_tab <- tabItem("app_tab",
+                            app_tab_row_00,
+                            app_tab_row_0,
                             h1("All contacts", align = "center"), 
                             hr(),
-                            all_contacts_tab_row_1, 
-                            all_contacts_tab_row_2,
-                            all_contacts_tab_row_3, 
-                            all_contacts_tab_row_4, 
-                            all_contacts_tab_row_5, 
+                            app_tab_row_1, 
+                            app_tab_row_2,
+                            app_tab_row_3, 
+                            app_tab_row_4, 
                             h1("Active contacts", align = "center"), 
                             hr(),
-                            all_contacts_tab_row_6, 
-                            all_contacts_tab_row_7)
+                            app_tab_row_6, 
+                            app_tab_row_7
+                            )
 
 
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~ all_contacts_tab_regional  ----
+# ~~ app_tab_regional  ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-# ~~~ all_contacts_tab_row_00_regional---- 
-all_contacts_tab_row_00_regional <- 
+# ~~~ app_tab_row_00_regional---- 
+app_tab_row_00_regional <- 
   fluidRow(box(width = 12,
                title = tagList(icon("hand-pointer"), 
-                               "Select region to analyse"), 
+                               "Select region and date"), 
                closable = F, 
                collapsible = T,
                fluidRow(column(width = 6, 
-                               uiOutput("contacts_tab_select_regional")),
-                        column(width = 6, 
+                               uiOutput("select_region"), 
                                uiOutput("select_date_of_review_regional"))
                         )
   ))
 
 
-all_contacts_tab_row_0_regional <-
+app_tab_row_0_regional <-
   fluidRow(
     valueBoxOutput("contacts_per_day_value_box_regional", width = 3),
            valueBoxOutput("cumulative_contacts_value_box_regional", width = 3),
@@ -470,20 +463,21 @@ all_contacts_tab_row_0_regional <-
   )
 
 
-# ~~~ all_contacts_tab_row_1_regional ----
+# ~~~ app_tab_row_1_regional ----
 
 
-all_contacts_tab_row_1_regional <-
-  fluidRow(box(width = 12,
-               title = tagList(icon("map"),
-                               "All contacts per region"),
-               closable = F,
-               collapsible = T,
+app_tab_row_1_regional <-
+  tagList(
+    h1("  "), 
+    icon("map", "fa-2x"),
+    h3("Total contacts per district", 
+       style = "display: inline; line-height: 50px;"),
+  fluidRow(column(width = 12,
                column(width = 9,
-                      tabsetPanel(tabPanel(title = "Contacts by sous-prefecture, table",
+                      tabsetPanel(tabPanel(title = "Table",
                                            reactableOutput("all_contacts_per_region_table_regional") %>%
                                              withSpinner(type = 6, color = burnt_sienna)),
-                                  tabPanel(title = "Contacts by sous-prefecture, sunburst plot",
+                                  tabPanel(title = "Plot",
                                            highchartOutput("all_contacts_per_region_sunburst_plot_regional", 
                                                            height = "350px"
                                            ) %>%
@@ -499,23 +493,29 @@ all_contacts_tab_row_1_regional <-
                       )
                )
   )
+  ), 
+  hr()
   )
 
-  
 
-# ~~~ all_contacts_tab_row_2_regional ----
 
-all_contacts_tab_row_2_regional <-
-  fluidRow(box(width = 12,
-               title = tagList(icon("calendar-alt"),
-                               "Contacts under surveillance over time"),
-               closable = F,
-               collapsible = T,
+
+
+
+# ~~~ app_tab_row_2_regional ----
+
+app_tab_row_2_regional <-
+  tagList(
+    h1("  "), 
+    icon("calendar-alt", "fa-2x"),
+    h3("Contacts under surveillance per district over time", 
+       style = "display: inline; line-height: 50px;"),
+  fluidRow(column(width = 12,
                column(width = 9,
-                      tabsetPanel(tabPanel(title = "N. under surveillance over time",
+                      tabsetPanel(tabPanel(title = "Absolute numbers",
                                            highchartOutput("contacts_under_surveillance_per_region_over_time_bar_chart_regional") %>%
                                              withSpinner(type = 6, color = burnt_sienna)),
-                                  tabPanel(title = "N. under surveillance over time (relative)",
+                                  tabPanel(title = "Relative proportions",
                                            highchartOutput("contacts_under_surveillance_per_region_over_time_bar_chart_relative_regional") %>%
                                              withSpinner(type = 6, color = burnt_sienna)) 
                                   
@@ -530,25 +530,26 @@ all_contacts_tab_row_2_regional <-
                       )
                )
   )
+  ), 
+  hr()
   )
 
 
 
-# ~~~ all_contacts_tab_row_3_regional ----
 
-all_contacts_tab_row_3_regional <-
-  fluidRow(box(width = 12,
-               title = tagList(icon("users"),
-                               "Total contacts per case"),
-               closable = F,
-               collapsible = T,
+# ~~~ app_tab_row_3_regional ----
+
+app_tab_row_3_regional <-
+  tagList(
+    h1("  "), 
+    icon("users", "fa-2x"),
+    h3("Number of contacts per case", 
+       style = "display: inline; line-height: 50px;"),
+  fluidRow(column(width = 12,
                column(width = 9,
-                      tabsetPanel(tabPanel(title = "Contacts per case, plot",
+                      tabsetPanel(tabPanel(title = "Plot",
                                            highchartOutput("total_contacts_per_case_donut_plot_regional") %>%
-                                             withSpinner(type = 6, color = burnt_sienna)),
-                                  tabPanel(title = "Contacts per case, table",
-                                           reactableOutput("total_contacts_per_case_table_regional") %>%
-                                             withSpinner(type = 6, color = burnt_sienna)) 
+                                             withSpinner(type = 6, color = burnt_sienna))
                                   
                       )
                ),
@@ -561,18 +562,21 @@ all_contacts_tab_row_3_regional <-
                       )
                )
   )
+  ), 
+  hr()
   )
 
-# ~~~ all_contacts_tab_row_4_regional ----
+# ~~~ app_tab_row_4_regional ----
 
-all_contacts_tab_row_4_regional <-
-  fluidRow(box(width = 12,
-               title = tagList(icon("link"),
-                               "Link type between contacts and cases"),
-               closable = F,
-               collapsible = T,
+app_tab_row_4_regional <-
+  tagList(
+    h1("  "), 
+    icon("link", "fa-2x"),
+    h3("Case-contact relationships", 
+       style = "display: inline; line-height: 50px;"),
+  fluidRow(column(width = 12,
                column(width = 9,
-                      tabsetPanel(tabPanel(title = "Contacts per link type, plot",
+                      tabsetPanel(tabPanel(title = "Plot",
                                            highchartOutput("total_contacts_per_link_type_donut_plot_regional") %>%
                                              withSpinner(type = 6, color = burnt_sienna))
                                   
@@ -587,166 +591,116 @@ all_contacts_tab_row_4_regional <-
                       )
                )
   )
+  ), 
+  hr()
   )
 
 
-
-# ~~~ all_contacts_tab_row_5_regional ----
-
-all_contacts_tab_row_5_regional <-
-  fluidRow(box(width = 12,
-               title = tagList(icon("syringe"),
-                               "Vaccinations per sub-prefecture"),
-               closable = F,
-               collapsible = T,
-               column(width = 9,
-                      tabsetPanel(tabPanel(title = "Contacts vaccinated per sub-prefecture, plot",
-                                           highchartOutput("total_contacts_vaccinated_bar_plot_regional") %>%
-                                             withSpinner(type = 6, color = burnt_sienna))
-                                  
-                      )
-               ),
-               column(width = 3,
-                      tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
-                                                           "Description"),
-                                           style = "overflow-y:auto",
-                                           htmlOutput("total_contacts_vaccinated_text_regional") %>% 
-                                             withSpinner(type = 1, color = burnt_sienna))
-                      )
-               )
-  )
-  )
+# ~~~ app_tab_row_6_regional ----
 
 
-# ~~~ all_contacts_tab_row_6_regional ----
+app_tab_row_6_regional <-
+  tagList(
+    h1("  "),
+    icon("user-clock", "fa-2x"),
+    h3("Follow-up state",
+       style = "display: inline; line-height: 50px;"),
+    fluidRow(column(width = 12,
+                    column(width = 9,
+                           tabsetPanel(tabPanel(title = "Plots",
+                                                echarts4rOutput("active_contacts_timeline_snake_plot_regional",height = 700) %>%
+                                                  withSpinner(type = 6, color = burnt_sienna),
+                                                echarts4rOutput("active_contacts_breakdown_bar_chart_regional") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)
+                           ),
+                           tabPanel(title = "Table",
+                                    reactableOutput("active_contacts_breakdown_table_regional") %>%
+                                      withSpinner(type = 6, color = burnt_sienna))
 
-
-all_contacts_tab_row_6_regional <- 
-  fluidRow(box(width = 12,
-               title = tagList(icon("search"),
-                               "Active contacts summary"),
-               closable = F,
-               collapsible = T,
-               column(width = 9,
-                      tabsetPanel(tabPanel(title = "Bar chart and snake plot",
-                                           highchartOutput("active_contacts_breakdown_bar_chart_regional") %>%
-                                             withSpinner(type = 6, color = burnt_sienna)),
-                                  tabPanel(title = "Table",
-                                           reactableOutput("active_contacts_breakdown_table_regional") %>%
-                                             withSpinner(type = 6, color = burnt_sienna))
-                                  
-                      )
-               ),
-               column(width = 3,
-                      tabsetPanel(tabPanel(title = tagList(icon("info-circle"), 
-                                                           "Description"),
-                                           tagList(HTML("<br>
+                           )
+                    ),
+                    column(width = 3,
+                           tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
+                                                                "Description"),
+                                                tagList(HTML("<br>
                                                         <span style='color: rgb(97, 189, 109);'>ℹ:</span>
                                                         <font size='1'>
-                                                        The table and plot summarize the follow-up state of currently active contacts,
-                                                        (contacts that should be currently under surveillance)
+                                                        The bar chart and snake plot show the follow-up states of currently active contacts,
+                                                        (contacts that should be currently under surveillance).
                                                         <br>
-                                                        </font>")
-                                                   
-                                                   
-                                           ))
-                      )
-               )
+                                                        </font>")),
+                                                htmlOutput("active_contacts_timeline_snake_text_regional")
+
+
+                           )
+                           )
+                    )
+    )
+    ),
+    hr()
   )
-  )
 
 
 
-# ~~~ all_contacts_tab_row_7_regional ----
 
-all_contacts_tab_row_7_regional <- 
-  fluidRow(box(width = 12,
-               title = tagList(icon("question-circle"),
-                               "Active contacts not seen recently"),
-               closable = F,
-               collapsible = T,
-               column(width = 9,
-                      tabsetPanel(tabPanel(title = "Contacts not seen in past day, 2d., 3d.",
-                                           gt_output("contacts_lost_24_to_72_hours_regional") %>%
-                                             withSpinner(type = 6, color = burnt_sienna)), 
-                                  tabPanel(title = "List of contacts not seen in past 3d",
-                                           reactableOutput("lost_contacts_linelist_regional") %>%
-                                             withSpinner(type = 6, color = burnt_sienna))
-                                  
-                      )
-               ),
-               column(width = 3,
-                      tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
-                                                           "Description"),
-                                           style = "overflow-y:auto",
-                                           HTML("<br>
+# ~~~ app_tab_row_7_regional ----
+
+app_tab_row_7_regional <-
+  tagList(
+    h1("  "),
+    icon("low-vision", "fa-2x"),
+    h3("Contacts not seen recently",
+       style = "display: inline; line-height: 50px;"),
+    fluidRow(column(width = 12,
+                    column(width = 9,
+                           tabsetPanel(tabPanel(title = "Summary",
+                                                gt_output("contacts_lost_24_to_72_hours_regional") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)),
+                                       tabPanel(title = "List of contacts not seen",
+                                                htmlOutput("lost_contacts_linelist_title_regional"),
+                                                reactableOutput("lost_contacts_linelist_regional") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna))
+
+                           )
+                    ),
+                    column(width = 3,
+                           tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
+                                                                "Description"),
+                                                style = "overflow-y:auto",
+                                                HTML("<br>
                                                  <span style='color: rgb(97, 189, 109);'>ℹ:</span>
                                                  <font size='1'>
                                                  The tables track the contacts who should be under surveillance but have not been followed for an extended period.
                                                             </font>"
-                                           )
-                      )
-                      )
-               )
-  )
-  )
-
-
-
-
-# ~~~ all_contacts_tab_row_8_regional ----
-
-all_contacts_tab_row_8_regional <- 
-  fluidRow(box(width = 12,
-               title = tagList(icon("search"),
-                               "Contacts timeline"),
-               closable = F,
-               collapsible = T,
-               column(width = 9,
-                      tabsetPanel(tabPanel(title = "Timeline snake plot",
-                                           highchartOutput("contacts_timeline_snake_plot_regional", 
-                                                           height = 600) %>%
-                                             withSpinner(type = 6, color = burnt_sienna))
-                                  
-                      )
-               ),
-               column(width = 3,
-                      tabsetPanel(tabPanel(title = tagList(icon("mouse"), 
-                                                           "Generate snake plot"),
-                                           tagList(HTML("<br>
-                                                        <span style='color: rgb(97, 189, 109);'>ℹ:</span>
-                                                        <font size='1'>
-                                                        The snake plot renders slowly, so it is not loaded automatically. 
-                                                        And at the moment, only 50 contacts can be shown on the plot at a time, 
-                                                        as plot rendering is too slow otherwise. 
-                                                        If more than 50 contacts are selected, a sample of 50 is drawn.
-                                                        'row IDs' correspond to the row numbers on the uploaded .xlsx or .csv file<br>
-                                                        </font>"), 
-                                                   uiOutput("snake_plot_slider_regional"),
-                                                   uiOutput("generate_snake_plot_bttn_regional")
-                                                   
-                                                   
-                                           ))
-                      )
-               )
-  )
+                                                )
+                           )
+                           )
+                    )
+    )
+    ),
+    hr()
   )
 
 
-# ~~~ all_contacts_tabs_combine ----
+
+# ~~~ app_tab_regional_combine_rows----
 
 
-all_contacts_tab_regional <- tabItem("all_contacts_tab_regional",
-                                     all_contacts_tab_row_00_regional, 
-                                     all_contacts_tab_row_0_regional, 
-                                     all_contacts_tab_row_1_regional, 
-                                     all_contacts_tab_row_2_regional, 
-                                     all_contacts_tab_row_3_regional,
-                                     all_contacts_tab_row_4_regional, 
-                                     all_contacts_tab_row_5_regional, 
-                                     all_contacts_tab_row_6_regional, 
-                                     all_contacts_tab_row_7_regional,
-                                     all_contacts_tab_row_8_regional)
+
+app_tab_regional <- tabItem("app_tab_regional",
+                                     app_tab_row_00_regional, 
+                                     app_tab_row_0_regional, 
+                                     h1("All contacts", align = "center"), 
+                                     hr(),
+                                     app_tab_row_1_regional, 
+                                     app_tab_row_2_regional, 
+                                     app_tab_row_3_regional,
+                                     app_tab_row_4_regional, 
+                                     h1("Active contacts", align = "center"), 
+                                     hr(),
+                                     app_tab_row_6_regional, 
+                                     app_tab_row_7_regional
+                                     )
 
 
 
@@ -780,11 +734,12 @@ body <-
                                           padding: 2px 2px 2px 2px !important;}"))),
                 use_waiter(), # include dependencies
                 use_theme(my_fresh_theme), # <-- use the theme
-                setBackgroundImage(src = "light_blue_gradient_3.png",
+                setBackgroundImage(src = "background.jpg",
                                    shinydashboard = TRUE),
                 tabItems(load_data_tab,
-                         all_contacts_tab,
-                         all_contacts_tab_regional)
+                         app_tab,
+                         app_tab_regional
+                         )
   )
 
 

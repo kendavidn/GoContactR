@@ -5,8 +5,8 @@ account: covcontactr
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3818342
-bundleId: 4396077
+bundleId: 4417419
 url: https://gocontactr.shinyapps.io/Guinea/
-when: 1616721460.70541
+when: 1617220881.35578
 asMultiple: FALSE
 asStatic: FALSE
