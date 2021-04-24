@@ -130,12 +130,19 @@ html_webshot <- function(chart, vheight = 350, vwidth = 500) {
   png <- here::here("markdown/tempfig.png")
   
   htmlwidgets::saveWidget(chart, html)
-  webshot2::webshot(url = html, 
-                    file = png, 
-                    zoom = 3, 
-                    vheight = vheight, 
+  webshot2::webshot(url = html,
+                    file = png,
+                    zoom = 3,
+                    vheight = vheight,
                     vwidth = vwidth)
-  
+
+  ## regular webshot does not work for echarts4r plots
+  # webshot::webshot(url = html, 
+  #                   file = png, 
+  #                   zoom = 3, 
+  #                   vheight = vheight, 
+  #                   vwidth = vwidth)
+  # 
   # read back in as PNG raster
   png_out <- 
     png %>% 
@@ -146,3 +153,60 @@ html_webshot <- function(chart, vheight = 350, vwidth = 500) {
    grid::grid.draw(png_out)
   
 }
+
+gt_webshot <- function(gt_object){
+  
+    gt_object %>% 
+    gt::gtsave(path = here::here("markdown"), 
+           filename =  "tempfig.png" )
+  
+  # read back in as PNG raster
+  png_out <- 
+    here::here("markdown/tempfig.png") %>% 
+    png::readPNG(info = FALSE) %>% 
+    grid::rasterGrob() %>% 
+    gridExtra::arrangeGrob()
+  
+  grid::grid.draw(png_out)
+  
+}
+
+
+
+
+return_html_or_webshot <- function(html_object, report_format){
+  
+  if (report_format %in% c("pptx", "docx", "pdf")){
+      html_webshot(html_object)
+      dev.off()
+    # no need to return anything. html_webshot prints automatically
+    return(NULL)
+  }
+  
+  if (report_format %in% c("html", "shiny")){
+    return(html_object)
+  }
+  
+  
+}
+
+return_gt_or_png <- function(gt_table, report_format){
+  
+  if (report_format %in% c("pptx", "docx", "pdf")){
+    
+    gt::gtsave(as_gt(t1), file = file.path(tempdir(), "temp.png"))
+    
+    
+    html_webshot(html_object)
+    # no need to return anything. html_webshot prints automatically
+    return(NULL)
+  }
+  
+  if (report_format %in% c("html", "shiny")){
+    return(html_object)
+  }
+  
+  
+}
+
+

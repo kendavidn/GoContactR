@@ -8,11 +8,23 @@
 #   app_name = "CovContactR",
 #   api_key = "ikHFLT2t4R1gcmXYHWjT2372QPA2v1JQd7"
 # )
+
+
+
+## now, for the packages that I actually (think I ) use:
 library(remotes)
 library(webshot2) 
-remotes::install_github("rstudio/webshot2")
-remotes::install_github("rfortherestofus/pagedreport", ref = "main")
-webshot::install_phantomjs(force = FALSE)
+if (!webshot::is_phantomjs_installed()) webshot::install_phantomjs()
+# webshot::install_phantomjs()
+# phantomjs_path <- webshot:::find_phantom()
+# if (is.null(phantomjs_path)){
+#   webshot::install_phantomjs()
+# } else{
+#   print(paste('phantomjs is installed -', phantomjs_path))
+# }
+# remotes::install_github("rstudio/webshot2")
+# remotes::install_github("rfortherestofus/pagedreport", ref = "main")
+# webshot::install_phantomjs(force = FALSE)
 library(here)
 library(paletteer)
 library(highcharter) ## remotes::install_github("jbkunst/highcharter")
@@ -39,7 +51,8 @@ library(glue)
 library(janitor)
 library(scales)
 library(gt)
-#library(linelist) ##  devtools::install_github("reconhub/linelist")
+library(gtools)
+library(linelist) ##  devtools::install_github("reconhub/linelist")
 library(rvest)  ## devtools::install_github("tidyverse/rvest")
 library(pander)
 library(rio)

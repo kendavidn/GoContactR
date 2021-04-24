@@ -341,30 +341,28 @@ app_tab_row_6 <-
   fluidRow(column(width = 12,
                column(width = 9,
                       tabsetPanel(tabPanel(title = "Snake plot and bar chart summary",
-                                           echarts4rOutput("active_contacts_timeline_snake_plot",height = 700) %>%
+                                           echarts4rOutput("active_contacts_timeline_snake_plot", height = 700) %>%
                                              withSpinner(type = 6, color = burnt_sienna),
                                            echarts4rOutput("active_contacts_breakdown_bar_chart") %>%
                                              withSpinner(type = 6, color = burnt_sienna) 
                                            ),
+                                  tabPanel(title = "Timeline table",
+                                           downloadButton("active_contacts_timeline_table_download", 
+                                                        "Download timeline data"),
+                                           reactableOutput("active_contacts_timeline_table") %>%
+                                             withSpinner(type = 6, color = burnt_sienna)),
                                   tabPanel(title = "Summary table",
-                                           downloadBttn("active_contacts_breakdown_table_download", 
-                                                        "Download data", style = "jelly"),
+                                           downloadButton("active_contacts_breakdown_table_download", 
+                                                        "Download summary table"),
                                            reactableOutput("active_contacts_breakdown_table") %>%
-                                             withSpinner(type = 6, color = burnt_sienna)), 
+                                             withSpinner(type = 6, color = burnt_sienna)) 
                                   
                       )
                ),
                column(width = 3,
                       tabsetPanel(tabPanel(title = tagList(icon("info-circle"), 
                                                            "Description"),
-                                           tagList(HTML("<br>
-                                                        <span style='color: rgb(97, 189, 109);'>ℹ:</span>
-                                                        <font size='1'>
-                                                        The bar chart and snake plot show the follow-up states of currently active contacts,
-                                                        (contacts that should be currently under surveillance).
-                                                        <br>
-                                                        </font>")),
-                                           htmlOutput("active_contacts_timeline_snake_text")
+                                           htmlOutput("active_contacts_timeline_text")
                                            
                                            
                                            )
@@ -386,12 +384,16 @@ app_tab_row_7 <-
        style = "display: inline; line-height: 50px;"),
   fluidRow(column(width = 12,
                column(width = 9,
-                      tabsetPanel(tabPanel(title = "Summary",
-                                           gt_output("contacts_lost_24_to_72_hours") %>%
+                      tabsetPanel(tabPanel(title = "Loss to follow-up, past 3 days",
+                                           downloadButton("contacts_lost_24_to_72_hours_table_download", 
+                                                          "Download summary table"),
+                                           gt_output("contacts_lost_24_to_72_hours_table") %>%
                                              withSpinner(type = 6, color = burnt_sienna)), 
                                   tabPanel(title = "List of contacts not seen",
-                                           htmlOutput("lost_contacts_linelist_title"),
-                                           reactableOutput("lost_contacts_linelist") %>%
+                                           htmlOutput("lost_contacts_linelist_table_title"),
+                                           downloadButton("lost_contacts_linelist_table_download", 
+                                                          "Download lost contacts linelist"),
+                                           reactableOutput("lost_contacts_linelist_table") %>%
                                              withSpinner(type = 6, color = burnt_sienna))
                                   
                       )
@@ -400,12 +402,9 @@ app_tab_row_7 <-
                       tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
                                                            "Description"),
                                            style = "overflow-y:auto",
-                                           HTML("<br>
-                                                 <span style='color: rgb(97, 189, 109);'>ℹ:</span>
-                                                 <font size='1'>
-                                                 The tables track the contacts who should be under surveillance but have not been followed for an extended period.
-                                                            </font>"
-                                                )
+                                           htmlOutput("lost_contacts_linelist_text") %>% 
+                                             withSpinner(type = 1, color = burnt_sienna)
+                                           
                       )
                )
   )
@@ -629,7 +628,7 @@ app_tab_row_6_regional <-
                                                         (contacts that should be currently under surveillance).
                                                         <br>
                                                         </font>")),
-                                                htmlOutput("active_contacts_timeline_snake_text_regional")
+                                                htmlOutput("active_contacts_timeline_text_regional")
 
 
                            )
@@ -654,11 +653,11 @@ app_tab_row_7_regional <-
     fluidRow(column(width = 12,
                     column(width = 9,
                            tabsetPanel(tabPanel(title = "Summary",
-                                                gt_output("contacts_lost_24_to_72_hours_regional") %>%
+                                                gt_output("contacts_lost_24_to_72_hours_table_regional") %>%
                                                   withSpinner(type = 6, color = burnt_sienna)),
                                        tabPanel(title = "List of contacts not seen",
-                                                htmlOutput("lost_contacts_linelist_title_regional"),
-                                                reactableOutput("lost_contacts_linelist_regional") %>%
+                                                htmlOutput("lost_contacts_linelist_table_title_regional"),
+                                                reactableOutput("lost_contacts_linelist_table_regional") %>%
                                                   withSpinner(type = 6, color = burnt_sienna))
 
                            )

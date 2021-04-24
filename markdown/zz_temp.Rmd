@@ -1,60 +1,64 @@
 ---
-title: "COVID Contact Tracing Report: Côte d'Ivoire"
-always_allow_html: true
+title: 'COVID Contact Tracing Report: Côte d''Ivoire'
 output:
-  pagedreport::paged_windmill:
-    logo: "logo.svg"
-    front_img: "front_img.jpg"
-    img_to_dark: TRUE
-    logo_to_white: TRUE
-mainfont: Avenir
-geometry: left=2cm,right=2cm,top=2.5cm,bottom=2cm
-knit: pagedown::chrome_print
-google-font: TRUE
-main-font: "Open Sans"
-fontsize: 10pt
-main-color: "#3391CF"
+  officedown::rpptx_document:
+    reference_doc: zz_template_copy_repaired.pptx
+    slide_level: 2
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```
+
+# Level 1 
+
+Hello I sell cars
 
 ```{r}
-highcharter_webshot <- function(chart) {
-  html <- here::here("markdown/tempfig.html") 
-  png <- here::here("markdown/tempfig.png")
-  
-  htmlwidgets::saveWidget(chart, html)
-  webshot2::webshot(url = html, 
-                    file = png, 
-                    zoom = 3, 
-                    vheight = 350, 
-                    vwidth = 500)
-  
-  # read back in as PNG raster
-    png %>% 
-    png::readPNG(info = FALSE) %>% 
-    grid::rasterGrob() %>% 
-    gridExtra::grid.arrange()
-  
-}
-
+plot(cars)
 ```
 
 
-# R Markdown
+## Level 2
+
+Hello I sell cars
 
 ```{r}
-library(highcharter)
-library(ggplot2)
-library(dplyr)
-library(webshot2)
-
-chart <- 
-  cars$dist %>% 
-  hchart()
-
-highcharter_webshot(chart)
+plot(cars)
 ```
 
+
+# Level 1 
+
+Hello I sell cars
+
+```{r}
+plot(cars)
+```
+
+
+## Level 2
+
+Hello I sell cars
+
+```{r}
+plot(cars)
+```
+
+
+# Level 1 
+
+Hello I sell cars
+
+```{r}
+plot(cars)
+```
+
+
+## Level 2
+
+Hello I sell cars
+
+```{r}
+plot(cars)
+```

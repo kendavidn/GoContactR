@@ -1,0 +1,14 @@
+name: CotedIvoire
+title: CotedIvoire
+username:
+account: gocontactr
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4019542
+bundleId: 4513937
+url: https://gocontactr.shinyapps.io/CotedIvoire/
+when: 1619274673.37071
+lastSyncTime: 1619274673.37072
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .Rprofile
