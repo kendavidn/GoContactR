@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ### level 3
 ```{r}
 library(tidyverse)
-library(plotly)
+library(plotly) 
 
 iris_plot <- function(){
   
