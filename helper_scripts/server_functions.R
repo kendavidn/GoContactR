@@ -281,7 +281,7 @@ reactable_table <-
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~  app_tabs ----
+# ~~  main_tabs ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -330,7 +330,7 @@ download_report_function <-
       file.copy(from = pptx_template_old_path, to = pptx_template_new_path, overwrite = TRUE)
       
       
-      # Set up params
+      # Set up params for Rmd
       params <- list()
       ## normally I would pass all these params in as arguments to the function, 
       ## but they don't seem to work when I do this
@@ -388,7 +388,7 @@ download_report_function <-
   
 }
 
-# ~~~ app_tab_row_0 ----
+# ~~~ main_tab_row_0 ----
 
 contacts_per_day_value_box <- 
   function(contacts_df_long, todays_date){
@@ -719,7 +719,7 @@ pct_contacts_followed_value_box <-
 
 
 
-# ~~~ app_tab_row_1 ----
+# ~~~ main_tab_row_1 ----
 
 
 all_contacts_per_region_bar_chart <- 
@@ -795,9 +795,7 @@ all_contacts_per_region_bar_chart <-
     
     
     if (report_format %in% c("pptx", "docx", "pdf")){
-      # if report is one of the static rmarkdown output formats (not shiny or html)
-      # then remove the animation so that the screenshot taken is of a fully loaded plot
-      # and remove exporting as that is useless
+
       output_highchart <-
         output_highchart %>% 
         hc_exporting(enabled = FALSE) %>%
@@ -895,9 +893,7 @@ all_contacts_per_region_sunburst_plot <-
       hc_exporting(enabled = TRUE)
     
     if (report_format %in% c("pptx", "docx", "pdf")){
-      # if report is one of the static rmarkdown output formats (not shiny or html)
-      # then remove the animation so that the screenshot taken is of a fully loaded plot
-      # and remove exporting as that is useless
+      
       output_highchart <-
         output_highchart %>% 
         hc_exporting(enabled = FALSE) %>%
@@ -1074,7 +1070,7 @@ all_contacts_per_region_text <-
   
 }
 
-# ~~~ app_tab_row_2 ----
+# ~~~ main_tab_row_2 ----
 
 
 contacts_under_surveillance_per_region_over_time_bar_chart <- 
@@ -1127,9 +1123,7 @@ contacts_under_surveillance_per_region_over_time_bar_chart <-
     
     
     if (report_format %in% c("pptx", "docx", "pdf")){
-      # if report is one of the static rmarkdown output formats (not shiny or html)
-      # then remove the animation so that the screenshot taken is of a fully loaded plot
-      # and remove exporting as that is useless
+      
       output_highchart <-
         output_highchart %>% 
         hc_exporting(enabled = FALSE) %>%
@@ -1202,9 +1196,7 @@ contacts_under_surveillance_per_region_over_time_bar_chart_relative <-
     
     
     if (report_format %in% c("pptx", "docx", "pdf")){
-      # if report is one of the static rmarkdown output formats (not shiny or html)
-      # then remove the animation so that the screenshot taken is of a fully loaded plot
-      # and remove exporting as that is useless
+
       output_highchart <-
         output_highchart %>% 
         hc_exporting(enabled = FALSE) %>%
@@ -1309,7 +1301,7 @@ contacts_under_surveillance_per_region_over_time_text <-
 
 
 
-# ~~~ app_tab_row_3 ----
+# ~~~ main_tab_row_3 ----
 
 
 total_contacts_per_case_donut_plot <- 
@@ -1348,7 +1340,7 @@ total_contacts_per_case_donut_plot <-
              innerSize = "40%",
              showInLegend = TRUE,
              dataLabels = list(enabled = TRUE,
-                               style = list(fontSize = 12),
+                               style = list(fontSize = 12, lineHeight = 15),
                                format = '{point.percentage:.1f} %')) %>% 
       hc_exporting(enabled = TRUE) %>% 
       hc_subtitle(text = glue("Contacts per case for the <b>{number_of_cases}</b> 
@@ -1357,9 +1349,7 @@ total_contacts_per_case_donut_plot <-
     
     
     if (report_format %in% c("pptx", "docx", "pdf")){
-      # if report is one of the static rmarkdown output formats (not shiny or html)
-      # then remove the animation so that the screenshot taken is of a fully loaded plot
-      # and remove exporting as that is useless
+
       output_highchart <-
         output_highchart %>% 
         hc_exporting(enabled = FALSE) %>%
@@ -1422,7 +1412,7 @@ total_contacts_per_case_bar_chart <-
              name = "n ",
              showInLegend = TRUE,
              dataLabels = list(enabled = TRUE,
-                               style = list(fontSize = 12),
+                               style = list(fontSize = 12, lineHeight = 15),
                                format = '{point.hc_label}')) %>% 
       hc_exporting(enabled = TRUE) %>% 
       hc_xAxis(categories = data_to_plot$`Case ID`) %>% 
@@ -1434,9 +1424,7 @@ total_contacts_per_case_bar_chart <-
     
     
     if (report_format %in% c("pptx", "docx", "pdf")){
-      # if report is one of the static rmarkdown output formats (not shiny or html)
-      # then remove the animation so that the screenshot taken is of a fully loaded plot
-      # and remove exporting as that is useless
+
       output_highchart <-
         output_highchart %>% 
         hc_exporting(enabled = FALSE) %>%
@@ -1571,7 +1559,7 @@ total_contacts_per_case_text <-
   }
 
 
-# ~~~ app_tab_row_4 ----
+# ~~~ main_tab_row_4 ----
 
 
 total_contacts_per_link_type_donut_plot <- 
@@ -1606,16 +1594,14 @@ total_contacts_per_link_type_donut_plot <-
              name = "n",
              showInLegend = TRUE,
              dataLabels = list(enabled = TRUE,
-                               style = list(fontSize = 12),
+                               style = list(fontSize = 12, lineHeight = 15),
                                format = '{point.name}: {point.y}, ({point.percentage:.1f} %)'))  %>%
       hc_exporting(enabled = TRUE)
       
       
       
       if (report_format %in% c("pptx", "docx", "pdf")){
-        # if report is one of the static rmarkdown output formats (not shiny or html)
-        # then remove the animation so that the screenshot taken is of a fully loaded plot
-        # and remove exporting as that is useless
+
         output_highchart <-
           output_highchart %>% 
           hc_exporting(enabled = FALSE) %>%
@@ -1676,16 +1662,14 @@ total_contacts_per_link_type_bar_chart <-
              name = "n ",
              showInLegend = TRUE,
              dataLabels = list(enabled = TRUE,
-                               style = list(fontSize = 12),
+                               style = list(fontSize = 12, lineHeight = 15),
                                format = '{point.hc_label}')) %>% 
       hc_exporting(enabled = TRUE) %>% 
       hc_xAxis(categories = data_to_plot$`Link with the case`) %>% 
       hc_legend(enabled = FALSE)
     
     if (report_format %in% c("pptx", "docx", "pdf")){
-      # if report is one of the static rmarkdown output formats (not shiny or html)
-      # then remove the animation so that the screenshot taken is of a fully loaded plot
-      # and remove exporting as that is useless
+
       output_highchart <-
         output_highchart %>% 
         hc_exporting(enabled = FALSE) %>%
@@ -1783,11 +1767,11 @@ total_contacts_per_link_type_text <-
 
 
 
-# ~~~ app_tab_row_6 ----
+# ~~~ main_tab_row_6 ----
 
 
 active_contacts_timeline_snake_plot <- 
-  function(contacts_df_long, todays_date, report_format = "shiny"){
+  function(contacts_df_long, todays_date, report_format = "shiny", legend_df){
   
     
     active_contacts <-
@@ -1801,69 +1785,187 @@ active_contacts_timeline_snake_plot <-
       ungroup()
     
     # to be fed to plotter
-    colors <- 
-      active_contacts %>% 
-      select(etat_suivi, colors) %>% 
-      unique.data.frame()
+    # colors <- 
+    #   active_contacts %>% 
+    #   select(etat_suivi, colors) %>% 
+    #   unique.data.frame()
+    
+    # data_to_plot <-
+    #   active_contacts %>%
+    #   # group_by(row_id) %>% 
+    #   # mutate(hc_ttip = glue("<b>ID: </b> {id_contact} <br>
+    #   #                    <b>Date: </b> {format.Date(follow_up_date, format = '%b %d')} (Jour de suivi {follow_up_day}) <br>
+    #   #                    <b>Status: </b> {etat_suivi} <br>
+    #   #                    ")) %>% 
+    #   # ungroup() %>% 
+    #   # arrange(etat_suivi) %>%   # arranging is necessary so that that colors are pulled in the right order for highcharter
+    #   # mutate(follow_up_date_timestamp = datetime_to_timestamp(follow_up_date)) %>% 
+    #   select(id_contact, row_id, follow_up_day, follow_up_date,  etat_suivi, row_id, hc_ttip, colors)
     
     data_to_plot <-
       active_contacts %>%
-      group_by(row_id) %>% 
-      mutate(hc_ttip = glue("<b>ID: </b> {id_contact} <br>
-                         <b>Date: </b> {format.Date(follow_up_date, format = '%b %d')} (Jour de suivi {follow_up_day}) <br>
-                         <b>Status: </b> {etat_suivi} <br>
+      mutate(text = glue("<b>ID: </b> {id_contact}
+                         <b>Date: </b> {format.Date(follow_up_date, format = '%b %d')} (day {follow_up_day})
+                         <b>Status: </b> {etat_suivi}
                          ")) %>% 
-      ungroup() %>% 
-      arrange(etat_suivi) %>%   # arranging is necessary so that that colors are pulled in the right order for highcharter
-      mutate(follow_up_date_timestamp = datetime_to_timestamp(follow_up_date)) %>% 
-      select(id_contact, row_id, follow_up_day, follow_up_date,  etat_suivi, row_id, hc_ttip, colors)
+      select(id_contact, row_id, follow_up_day, follow_up_date, etat_suivi, row_id, text, colors) 
+    #%>% 
+     # mutate(selected_id_and_follow_up = paste(row_id, follow_up_date, sep = "_"))
+    
     
     if (nrow(data_to_plot) == 0) {
-      return(e_charts() %>% e_title(text  = "No data to plot"))
+      return( (ggplot() + labs(title = "No data to plot")) %>% ggplotly() )
     }
+
+      segment_x_start <- 
+        active_contacts %>% 
+        group_by(row_id) %>% 
+        filter(follow_up_date == min(follow_up_date)) %>% 
+        ungroup() %>% 
+        select(follow_up_date) %>% 
+        pull(1)
     
-    output_echart <- 
-      data_to_plot %>% 
-      group_by(etat_suivi) %>%
-      e_charts(follow_up_date, height = "550px") %>%
-      e_scatter(row_id, bind = hc_ttip, symbol_size = 5,  itemStyle = list(opacity = 0.9)) %>%
-      e_tooltip(trigger = "item") %>% 
-      e_tooltip(formatter = htmlwidgets::JS("
-                                        function(params){
-                                        return(params.name) }")) %>% 
-      e_toolbox_feature("dataZoom", title = list(zoom = "zoom", back = "back")) %>%
-      e_toolbox_feature("saveAsImage", type = "png", pixelRatio = 4) %>%
-      e_color(unique(data_to_plot$colors)) %>% 
-      e_legend(show = FALSE) %>% 
-      e_axis_labels(x = "Date", y = "Row ID") 
+      segment_x_end <- 
+        active_contacts %>% 
+        group_by(row_id) %>% 
+        filter(follow_up_date == max(follow_up_date)) %>% 
+        ungroup() %>% 
+        select(follow_up_date) %>% 
+        pull(1)
+      
+      segment_y <- 
+        active_contacts %>% 
+        .$row_id %>% 
+        unique()
     
+    
+      ggplot_to_convert <- 
+        data_to_plot %>%
+        ggplot(aes(x = follow_up_date, y = row_id, color = etat_suivi, text = text, 
+                   customdata = row_id
+                   #, 
+                   #customdata = selected_id_and_follow_up
+                   )) +
+         annotate("segment", x = segment_x_start, xend = segment_x_end, y = segment_y, yend = segment_y, 
+                  color = "grey", size = 0.25) +
+         geom_point() +
+         labs(x = "Follow up date", y = "Row ID") +
+         scale_size_continuous(range = c(1, 2.3)) +
+         scale_color_manual(breaks = legend_df$breaks, values = legend_df$colors,
+                            name = "<br> <br> <br> <br> <br> <br> <br> <br>")  ## push legend off plotly. too troublesome
+    
+      
+      output_plotly <- 
+      ggplot_to_convert %>% 
+        ggplotly(tooltip = "text") %>%
+        # plotly::layout(autosize = T, width = 500, height = 500)%>%
+        event_register("plotly_selecting") %>%
+        plotly::layout(dragmode = "select") %>%
+        plotly::layout(legend= list(itemsizing='constant',
+                                    orientation = "h",
+                                    x = 0.5,
+                                    xanchor = "center",
+                                    y = 1.0,
+                                    yanchor = "bottom",
+                                    bgcolor = "rgba(0, 0, 0, 0)"
+                                    )) %>%
+        plotly::layout(font = list(family = "Avenir",
+                           size = 12,
+                           color = "white")) %>%
+        plotly::style(hoverlabel = list(bordercolor = "transparent",
+                                font = list(family = "Avenir", ## bizarre that you have to duplicat font settings
+                                            color = "white",
+                                            size = 12)) ) %>%
+        plotly::layout(plot_bgcolor  = "rgba(0, 0, 0, 0)",
+               paper_bgcolor = "rgba(0, 0, 0, 0)") %>%
+        plotly::config(displaylogo = FALSE) %>%
+        plotly::config(modeBarButtonsToRemove = c("zoomIn2d", "zoomOut2d", "autoScale2d",
+                                          "hoverClosestCartesian", "hoverCompareCartesian",
+                                          "toggleSpikelines"
+                                          ))
+    
+    
+    # ## go into the internals of plotly to change point size. (calling plotly_json(output_plotly) is helpful for this)
+    # ## there is probably a better way to achieve this
+    # for (i in 1:length(output_plotly$x$data)){
+    #   for (j in 1:length(output_plotly$x$data[[i]]$marker$size)){
+    #     ## if the point is larger than 8 units
+    #     if (output_plotly$x$data[[i]]$marker$size[[j]] > 7) {
+    #       ## force it to be 8 units
+    #       output_plotly$x$data[[i]]$marker$size[[j]] <- 7 }
+    #   }
+    # }
     
     if (report_format %in% c("pptx", "docx", "pdf")){
-      # if report is one of the static rmarkdown output formats (not shiny or html)
-      # then remove the animation so that the screenshot taken is of a fully loaded plot
-      # and remove exporting as that is useless
-      output_echart <-
-        data_to_plot %>% 
-        group_by(etat_suivi) %>%
-        e_charts(follow_up_date, height = "550px") %>%
-        e_scatter(row_id, bind = hc_ttip, symbol_size = 5,  itemStyle = list(opacity = 0.9)) %>%
-        e_tooltip(trigger = "item") %>% 
-        e_tooltip(formatter = htmlwidgets::JS("
-                                        function(params){
-                                        return(params.name) }")) %>% 
-        e_color(unique(data_to_plot$colors)) %>% 
-        e_legend(show = TRUE) %>% ### this is the main difference. But apparently I can't overwrite an old function
-        e_axis_labels(x = "Date", y = "Row ID") %>% 
-        html_webshot()
-      # no need to return anything. html_webshot prints automatically
+      
+      ## webshot is not working when deployed to shinyapps.io
+      output_ggplot <- 
+        ggplot_to_convert + 
+        scale_color_manual(breaks = legend_df$breaks, values = legend_df$colors,
+                           name = "")
+      
+      return(output_ggplot)
+
     }
+    
     
     if (report_format %in% c("html", "shiny")){
       
-      return(output_echart)
+      return(output_plotly)
       
     }
+    
   }
+
+
+active_contacts_snake_plot_selected_table <- 
+  function(contacts_df_long, selected_ids,  download = FALSE) {
+    
+    data_to_plot <- 
+      contacts_df_long %>% 
+      #mutate(id_and_follow_up = paste(row_id, follow_up_date, sep = "_")) %>% 
+      filter(row_id %in% c(selected_ids)) %>% 
+      select(ID = id_contact, 
+             `Follow-up day` = follow_up_day, 
+             `Follow-up date` = follow_up_date,
+             `Follow-up state` = etat_suivi)
+    
+    if (download == TRUE)return(data_to_plot)
+    
+    data_to_plot %>% 
+      reactable(groupBy = "ID", 
+                columns = list(`Follow-up state` = colDef(aggregate = "frequency")
+                ),
+                searchable = TRUE,
+                striped = TRUE,
+                highlight = TRUE,
+                theme = reactableTheme(stripedColor = "#f0f1fc70",
+                                       backgroundColor = "#FFFFFF00",
+                                       highlightColor = "#DADEFB"),
+                defaultPageSize = 15)
+    
+    
+  }
+  
+
+active_contacts_snake_plot_selected_table_download <- 
+    function(){
+      downloadHandler(
+        filename = function() paste("snake_plot_selected.csv"),
+        
+        content = function(file){
+          file_to_write <- active_contacts_snake_plot_selected_table(read_file_filtered_reactive(), 
+                                                                     event_data("plotly_selecting")$customdata, 
+                                                                     download = TRUE)
+          write.csv(file_to_write, file)}
+        
+      )
+    
+
+    
+    
+  }
+
 
 active_contacts_timeline_table <- 
   function(contacts_df_long, todays_date, download = FALSE){
@@ -1917,7 +2019,7 @@ active_contacts_timeline_table_download <-
   }
 
 active_contacts_breakdown_bar_chart <- 
-  function(contacts_df_long, todays_date, report_format = "shiny"){
+  function(contacts_df_long, todays_date, report_format = "shiny", legend_df){
     
     
     active_contacts <-
@@ -1930,11 +2032,11 @@ active_contacts_breakdown_bar_chart <-
       # filter(min(follow_up_date, na.rm = T) <= todays_date) %>%
       ungroup()
  
-    # to be fed to plotter
-    colors <- 
-      active_contacts %>% 
-      select(etat_suivi, colors) %>% 
-      unique.data.frame()
+    # # to be fed to plotter
+    # colors <- 
+    #   active_contacts %>% 
+    #   select(etat_suivi, colors) %>% 
+    #   unique.data.frame()
     
     data_to_plot <-
       active_contacts %>%
@@ -1943,48 +2045,69 @@ active_contacts_breakdown_bar_chart <-
       complete(follow_up_date, etat_suivi, fill = list(n = 0)) %>% 
       mutate(total = sum(n)) %>% 
       mutate(prop = n/total) %>% 
-      mutate(hc_ttip = glue("<b>Date:</b> {format.Date(follow_up_date,  format = '%b %d' )}
+      mutate(text = glue("<b>Date:</b> {format.Date(follow_up_date,  format = '%b %d' )}
                         <b>{etat_suivi}:</b> {n}
-                        ")) %>% 
-      ungroup() %>% 
-      arrange(etat_suivi) %>%   # arranging is necessary so that that colors are pulled in the right order for highcharter
-      left_join(colors)
+                        ")) 
     
-    if (nrow(data_to_plot) == 0) {
-      return(e_charts() %>% e_title(text  = "No active contacts to show"))
-    }
+    ggplot_to_convert <-
+      data_to_plot %>%
+         ggplot(aes(x = follow_up_date, y = n, fill = etat_suivi, text = text)) +
+         geom_col() +
+         labs(x = "Follow up date", y = "Count") +
+         scale_fill_manual(breaks = legend_df$breaks, values = legend_df$colors,
+                            name = "<br> <br> <br> <br> <br> <br> <br> <br>")  ## push legend off plotly. too troublesome
+      
+    output_plotly <-  
+      ggplot_to_convert %>% 
+      ggplotly(tooltip = "text") %>% 
+      plotly::layout(legend= list(orientation = "h",
+                                  x = 0.5, 
+                                  xanchor = "center",
+                                  y = 1.0, 
+                                  yanchor = "bottom",
+                                  title = list(text= ""), 
+                                  bgcolor = "rgba(0,0,0,0)"
+                                  ), 
+             font = list(family = "Avenir",
+                         size = 12,
+                         color = "white")
+             ## Don't know where the axis labels are at the moment. Don't care too much
+             #, 
+             # xaxis = list(title = "Follow up date"), 
+             # yaxis = list(title = "Row ID")
+      ) %>% 
+      plotly::style(hoverlabel = list(bordercolor = "transparent", 
+                              font = list(family = "Avenir", ## bizarre that you have to duplicat font settings
+                                          color = "white", 
+                                          size = 12)) ) %>% 
+      plotly::config(displaylogo = FALSE) %>% 
+      plotly::config(modeBarButtonsToRemove = c("zoomIn2d", "zoomOut2d", "autoScale2d", 
+                                        "hoverClosestCartesian", "hoverCompareCartesian", 
+                                        "toggleSpikelines")) %>% 
+      plotly::layout(plot_bgcolor  = "rgba(0, 0, 0, 0)",
+                     paper_bgcolor = "rgba(0, 0, 0, 0)") 
     
-    output_echart <- 
-      data_to_plot %>% 
-      group_by(etat_suivi) %>%
-      e_charts(follow_up_date, height = "300px") %>%
-      e_bar(n, bind = hc_ttip, stack = "grp") %>%
-      e_tooltip(formatter = htmlwidgets::JS("
-                                        function(params){
-                                        return(params.name) }")) %>% 
-      e_color(unique(data_to_plot$colors)) %>% 
-      e_legend(y = "top") %>% 
-      e_axis_labels(x = "Date", y = "n") %>% 
-      e_y_axis(max = max(data_to_plot$total))
     
     
     if (report_format %in% c("pptx", "docx", "pdf")){
-      # if report is one of the static rmarkdown output formats (not shiny or html)
-      # then remove the animation so that the screenshot taken is of a fully loaded plot
-      # and remove exporting as that is useless
-      output_echart <-
-        output_echart %>% 
-        ## e_toolbox(show = FALSE) %>% ## this line breaks it for some silly reason
-        e_animation(show = FALSE) %>% 
-        html_webshot()
-      # no need to return anything. html_webshot prints automatically
+
+      ## webshot is not working when deployed to shinyapps.io
+      output_ggplot <- 
+        ggplot_to_convert + 
+        scale_fill_manual(breaks = legend_df$breaks, values = legend_df$colors,
+                           name = "")
+      
+      return(output_ggplot)
     }
+    
     
     if (report_format %in% c("html", "shiny")){
       
-      return(output_echart)
+      return(output_plotly)
       
     }
+    
+
 
     
   }
@@ -2032,9 +2155,7 @@ active_contacts_breakdown_table <-
       pivot_wider(names_from = etat_suivi, values_from = n) %>% 
       select(Date = follow_up_date, everything())
     
-    if (download == TRUE){
-      return(data_to_plot)
-    } else {
+    if (download == TRUE)return(data_to_plot)
       
       data_to_plot %>% 
         reactable(searchable = TRUE,
@@ -2044,19 +2165,19 @@ active_contacts_breakdown_table <-
                                          backgroundColor = "#FFFFFF00",
                                          highlightColor = "#DADEFB"),
                   defaultPageSize = 10)
-    }
+  
     
     
   }
 
 active_contacts_breakdown_table_download <- 
-  function(contacts_df_long, todays_date){
+  function(){
     downloadHandler(
       filename = function() paste("follow_up_summary.csv"),
       
       content = function(file){
-        file_to_write <- active_contacts_breakdown_table(contacts_df_long, 
-                                                         todays_date, 
+        file_to_write <- active_contacts_breakdown_table(read_file_filtered_reactive(), 
+                                                         todays_date_reactive(), 
                                                          download = TRUE)
         write.csv(file_to_write, file)}
       
@@ -2117,7 +2238,7 @@ active_contacts_timeline_text <-
 
 
 
-# ~~~ app_tab_row_7 ----
+# ~~~ main_tab_row_7 ----
 
 
 contacts_lost_24_to_72_hours_table <- 
@@ -2336,13 +2457,13 @@ contacts_lost_24_to_72_hours_table <-
 
 
 contacts_lost_24_to_72_hours_table_download <- 
-  function(contacts_df_long, todays_date){
+  function(){
     downloadHandler(
       filename = function() paste("contacts_lost_summary.csv"),
       
       content = function(file){
-        file_to_write <- contacts_lost_24_to_72_hours_table(contacts_df_long, 
-                                                            todays_date, 
+        file_to_write <- contacts_lost_24_to_72_hours_table(read_file_filtered_reactive(), 
+                                                            todays_date_reactive(), 
                                                             download = TRUE)
         write.csv(file_to_write, file)}
       
@@ -2499,13 +2620,13 @@ lost_contacts_linelist_table <-
 
 
 lost_contacts_linelist_table_download <- 
-  function(contacts_df_long, todays_date){
+  function(){
     downloadHandler(
       filename = function() paste("lost_contacts_linelist.csv"),
       
       content = function(file){
-        file_to_write <- lost_contacts_linelist_table(contacts_df_long, 
-                                                      todays_date, 
+        file_to_write <- lost_contacts_linelist_table(read_file_filtered_reactive(), 
+                                                      todays_date_reactive(), 
                                                       download = TRUE)
         write.csv(file_to_write, file)}
       
@@ -2598,11 +2719,11 @@ lost_contacts_linelist_text <-
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~  app_tab_regional ----
+# ~~  main_tab_regional ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-# ~~~ app_tab_row_1_regional ----
+# ~~~ main_tab_row_1_regional ----
 
 
 
@@ -2680,9 +2801,7 @@ all_contacts_per_region_bar_chart <-
     
     
     if (report_format %in% c("pptx", "docx", "pdf")){
-      # if report is one of the static rmarkdown output formats (not shiny or html)
-      # then remove the animation so that the screenshot taken is of a fully loaded plot
-      # and remove exporting as that is useless
+ 
       output_highchart <-
         output_highchart %>% 
         hc_exporting(enabled = FALSE) %>%
@@ -2779,7 +2898,7 @@ all_contacts_per_region_sunburst_plot_regional <-
              name = "n",
              showInLegend = TRUE,
              dataLabels = list(enabled = TRUE,
-                               style = list(fontSize = 12),
+                               style = list(fontSize = 12, lineHeight = 15),
                                format = '{point.name}: {point.y}, ({point.percentage:.1f} %)'))  %>%
       hc_exporting(enabled = TRUE)
     
@@ -2843,7 +2962,7 @@ all_contacts_per_region_text_regional <-
 
 
 
-# ~~~ app_tab_row_2_regional ----
+# ~~~ main_tab_row_2_regional ----
 
 
 contacts_under_surveillance_per_region_over_time_bar_chart_regional <- 
@@ -2976,7 +3095,7 @@ contacts_under_surveillance_per_region_over_time_bar_chart_relative_regional <-
 
 
 
-contacts_under_surveillance_per_region_over_time_text_regional <- 
+  contacts_under_surveillance_per_region_over_time_text_regional <- 
   function(contacts_df_long, todays_date){
     
     contacts_df_long <- 
@@ -3055,19 +3174,19 @@ contacts_under_surveillance_per_region_over_time_text_regional <-
 
 
 
-# ~~~ app_tab_row_3_regional - EMPTY ----
+# ~~~ main_tab_row_3_regional - EMPTY ----
 ## uses the same functions as the national data. Data is subsetted to the region before sending into the function
 
 
-# ~~~ app_tab_row_4_regional - EMPTY ----
+# ~~~ main_tab_row_4_regional - EMPTY ----
 ## uses the same functions as the national data. Data is subsetted to the region before sending into the function
 
 
-# ~~~ app_tab_row_6_regional - EMPTY ----
+# ~~~ main_tab_row_6_regional - EMPTY ----
 ## uses the same functions as the national data. Data is subsetted to the region before sending into the function
 
 
-# ~~~ app_tab_row_7_regional - EMPTY ----
+# ~~~ main_tab_row_7_regional - EMPTY ----
 ## uses the same functions as the national data. Data is subsetted to the region before sending into the function
 
 

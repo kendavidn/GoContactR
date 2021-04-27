@@ -11,20 +11,25 @@
 
 
 
-## now, for the packages that I actually (think I ) use:
-library(remotes)
-library(webshot2) 
+
+require("remotes")
+
+# ## to ensure code stability, ALWAYS load specific package version
+# packages_and_their_versions <- 
+#   list(c("webshot", "0.5.2"), 
+#        c("here", "1.0.1"))
+# 
+# ## the code below installs the package version if it does not already exist
+# packages <- unlist(lapply(packages_and_their_versions, `[[`, 1))
+# versions <- unlist(lapply(packages_and_their_versions, `[[`, 2))
+# 
+# mapply(remotes::install_version, package = packages, version = versions, force = FALSE)
+
+
+
+library(webshot)
+
 if (!webshot::is_phantomjs_installed()) webshot::install_phantomjs()
-# webshot::install_phantomjs()
-# phantomjs_path <- webshot:::find_phantom()
-# if (is.null(phantomjs_path)){
-#   webshot::install_phantomjs()
-# } else{
-#   print(paste('phantomjs is installed -', phantomjs_path))
-# }
-# remotes::install_github("rstudio/webshot2")
-# remotes::install_github("rfortherestofus/pagedreport", ref = "main")
-# webshot::install_phantomjs(force = FALSE)
 library(here)
 library(paletteer)
 library(highcharter) ## remotes::install_github("jbkunst/highcharter")
@@ -39,9 +44,7 @@ library(reactable)
 library(reactablefmtr)
 library(magrittr)
 library(lubridate)
-library(reactable)
 library(inspectdf)
-library(waiter)
 library(visdat)
 library(here)
 library(echarts4r)
@@ -58,11 +61,15 @@ library(pander)
 library(rio)
 library(huxtable)
 library(flextable) # called by huxtable in some functions
+library(rmarkdown)
 library(officedown) #remotes::install_github("davidgohel/officedown", force = TRUE)
+library(pagedreport)
 library(promises) 
 
 
+
 library(tidyverse)
+library(plotly)
 
 
 
@@ -229,6 +236,8 @@ newtheme <-
         panKey = "shift"
       ),
       colors = highcharter_palette,
+      labels = list(style = list(lineHeight = "100px")),
+      plotOptions = list(series = list(label = list(style = list(lineHeight = "100px")))),
       exporting = list(buttons = list(contextButton = list(menuItems = myMenuItems)))
     )
   )
@@ -304,6 +313,26 @@ hc_theme_sparkline_vb <- function(...) {
   
   theme
 }
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  Plotly theme ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+font <- list(family = "Avenir",
+             size = 15,
+             color = "white")
+
+label <- list(
+  bordercolor = "transparent", 
+  font = font
+)
+
+## to be passed to plotly object like so: 
+# object %>% 
+#   gplotly() %>% 
+#   style(hoverlabel = label) %>% 
+#   layout(font = font)
+
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

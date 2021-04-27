@@ -198,18 +198,6 @@
       "Repository": "CRAN",
       "Hash": "a667800d5f0350371bedeb8b8b950289"
     },
-    "chromote": {
-      "Package": "chromote",
-      "Version": "0.0.0.9003",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "chromote",
-      "RemoteUsername": "rstudio",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "ba9bffc291be468c48e658f95fa2bc952a1dbff5",
-      "Hash": "230a546c70d44055b030d8a41a522819"
-    },
     "cli": {
       "Package": "cli",
       "Version": "2.4.0",
@@ -447,13 +435,6 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "42aafda63a2012fb3b928fef01d96698"
-    },
-    "ggiraph": {
-      "Package": "ggiraph",
-      "Version": "0.7.8",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "af635db65dcea06d477c263453239097"
     },
     "ggplot2": {
       "Package": "ggplot2",
@@ -1030,10 +1011,10 @@
     },
     "renv": {
       "Package": "renv",
-      "Version": "0.13.2",
+      "Version": "0.13.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "079cb1f03ff972b30401ed05623cbe92"
+      "Hash": "9f10d9db5b50400c348920c5c603385e"
     },
     "reprex": {
       "Package": "reprex",
@@ -1354,19 +1335,6 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "e99d80ad34457a4853674e89d5e806de"
-    },
-    "webshot2": {
-      "Package": "webshot2",
-      "Version": "0.0.0.9000",
-      "Source": "GitHub",
-      "Remotes": "rstudio/chromote",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "webshot2",
-      "RemoteUsername": "rstudio",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "f62e743c9fee3dea313677ee061c041a8bbccb19",
-      "Hash": "c6846e55aecd1c48cd45c8417c7f6a13"
     },
     "websocket": {
       "Package": "websocket",

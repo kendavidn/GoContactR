@@ -130,7 +130,7 @@ html_webshot <- function(chart, vheight = 350, vwidth = 500) {
   png <- here::here("markdown/tempfig.png")
   
   htmlwidgets::saveWidget(chart, html)
-  webshot2::webshot(url = html,
+  webshot::webshot(url = html,
                     file = png,
                     zoom = 3,
                     vheight = vheight,
@@ -151,6 +151,7 @@ html_webshot <- function(chart, vheight = 350, vwidth = 500) {
     gridExtra::arrangeGrob()
   
    grid::grid.draw(png_out)
+
   
 }
 
@@ -168,7 +169,7 @@ gt_webshot <- function(gt_object){
     gridExtra::arrangeGrob()
   
   grid::grid.draw(png_out)
-  
+
 }
 
 

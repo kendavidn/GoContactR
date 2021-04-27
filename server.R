@@ -234,7 +234,7 @@ server <- function(input, output) {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  #   app_tab ----
+  #   main_tab ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
@@ -299,10 +299,10 @@ server <- function(input, output) {
     selectInput("report_format", 
                 label = "Select format", 
                 choices = c(
-                  "html",
-                  "pdf", 
+                  "pptx",
                   "docx", 
-                  "pptx"
+                  #"pdf", 
+                  "html"
                   ))
     
   })
@@ -326,7 +326,7 @@ server <- function(input, output) {
 
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~ app_tab_row_0 ----
+  # ~ main_tab_row_0 ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   output$contacts_per_day_value_box <-
@@ -375,7 +375,7 @@ server <- function(input, output) {
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~ app_tab_row_1 ----
+  # ~ main_tab_row_1 ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -415,7 +415,7 @@ server <- function(input, output) {
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~ app_tab_row_2 ----
+  # ~ main_tab_row_2 ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -446,7 +446,7 @@ server <- function(input, output) {
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~ app_tab_row_3 ----
+  # ~ main_tab_row_3 ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
@@ -478,7 +478,7 @@ server <- function(input, output) {
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~ app_tab_row_4 ----
+  # ~ main_tab_row_4 ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
@@ -512,17 +512,41 @@ server <- function(input, output) {
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~ app_tab_row_6 ----
+  # ~ main_tab_row_6 ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
+  # output$active_contacts_timeline_snake_plot <-
+  #   renderEcharts4r({
+  #     req(input$select_date_of_review)
+  #     
+  #       active_contacts_timeline_snake_plot(contacts_df_long = read_file_filtered_reactive(),
+  #                                    todays_date = todays_date_reactive(), 
+  #                                    legend_df = legend_df)
+  #   })
+  # 
   output$active_contacts_timeline_snake_plot <-
-    renderEcharts4r({
+    renderPlotly({
       req(input$select_date_of_review)
       
-        active_contacts_timeline_snake_plot(contacts_df_long = read_file_filtered_reactive(),
-                                     todays_date = todays_date_reactive())
+      active_contacts_timeline_snake_plot(contacts_df_long = read_file_filtered_reactive(),
+                                          todays_date = todays_date_reactive(), 
+                                          legend_df = legend_df)
     })
+  
+  
+  output$active_contacts_snake_plot_selected_table <-
+    renderReactable({
+      req(input$select_date_of_review)
+      
+      active_contacts_snake_plot_selected_table(contacts_df_long = read_file_filtered_reactive() ,
+                                     event_data("plotly_selecting")$customdata)
+      
+    })  
+  
+  output$active_contacts_snake_plot_selected_table_download <- 
+    active_contacts_snake_plot_selected_table_download()
+    
   
   output$active_contacts_timeline_table <-
     renderReactable({
@@ -532,9 +556,7 @@ server <- function(input, output) {
                                       todays_date = todays_date_reactive())
     })  
   
-  output$active_contacts_timeline_table_download <-
-    active_contacts_timeline_table_download(contacts_df_long = read_file_filtered_reactive(),
-                                             todays_date = todays_date_reactive())
+  output$active_contacts_timeline_table_download <- active_contacts_timeline_table_download()
 
   
   output$active_contacts_breakdown_bar_chart <-
@@ -542,7 +564,8 @@ server <- function(input, output) {
       req(input$select_date_of_review)
       
         active_contacts_breakdown_bar_chart(contacts_df_long = read_file_filtered_reactive() ,
-                                            todays_date = todays_date_reactive())
+                                            todays_date = todays_date_reactive(), 
+                                            legend_df = legend_df)
     })
   
   
@@ -554,9 +577,7 @@ server <- function(input, output) {
                                         todays_date = todays_date_reactive())
     })
   
-  output$active_contacts_breakdown_table_download <-
-    active_contacts_breakdown_table_download(contacts_df_long = read_file_filtered_reactive(),
-                                             todays_date = todays_date_reactive())
+  output$active_contacts_breakdown_table_download <-active_contacts_breakdown_table_download()
   
   
   output$active_contacts_timeline_text <- renderUI({
@@ -570,7 +591,7 @@ server <- function(input, output) {
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~ app_tab_row_7 ----
+  # ~ main_tab_row_7 ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -583,8 +604,7 @@ server <- function(input, output) {
     })
   
   output$contacts_lost_24_to_72_hours_table_download <-
-    contacts_lost_24_to_72_hours_table_download(contacts_df_long = read_file_filtered_reactive(),
-                                             todays_date = todays_date_reactive())
+    contacts_lost_24_to_72_hours_table_download()
   
   output$lost_contacts_linelist_table <- 
     renderReactable({
@@ -596,8 +616,8 @@ server <- function(input, output) {
     })
   
   output$lost_contacts_linelist_table_download <-
-    lost_contacts_linelist_table_download(contacts_df_long = read_file_filtered_reactive(),
-                                                todays_date = todays_date_reactive())
+    lost_contacts_linelist_table_download()
+  
   
   output$lost_contacts_linelist_table_title <- 
     renderUI({
@@ -624,7 +644,7 @@ server <- function(input, output) {
   
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~~  app_tab_regional ----
+  # ~~  main_tab_regional ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
   
@@ -698,7 +718,7 @@ server <- function(input, output) {
   
   
   
-  # ~~~ app_tab_row_0_regional ----
+  # ~~~ main_tab_row_0_regional ----
   
   
   output$contacts_per_day_value_box_regional <-
@@ -744,7 +764,7 @@ server <- function(input, output) {
       
     })
   
-  # ~~~ app_tab_row_1_regional ----
+  # ~~~ main_tab_row_1_regional ----
   
   
   output$all_contacts_per_region_table_regional <- 
@@ -775,7 +795,7 @@ server <- function(input, output) {
   
   
   
-  # ~~~ app_tab_row_2_regional ----
+  # ~~~ main_tab_row_2_regional ----
   
   
   output$contacts_under_surveillance_per_region_over_time_bar_chart_regional <- 
@@ -804,7 +824,7 @@ server <- function(input, output) {
   
   
   
-  # ~~~ app_tab_row_3_regional ----
+  # ~~~ main_tab_row_3_regional ----
   
   output$total_contacts_per_case_donut_plot_regional <- 
     renderHighchart({
@@ -832,7 +852,7 @@ server <- function(input, output) {
         })
   
   
-  # ~~~ app_tab_row_4_regional ----
+  # ~~~ main_tab_row_4_regional ----
   
   output$total_contacts_per_link_type_donut_plot_regional <- 
     renderHighchart({
@@ -852,7 +872,7 @@ server <- function(input, output) {
     })
 
   
-  # ~~~ app_tab_row_6_regional ----
+  # ~~~ main_tab_row_6_regional ----
   
   
   output$active_contacts_timeline_snake_plot_regional <-
@@ -860,7 +880,8 @@ server <- function(input, output) {
       req(input$select_date_of_review_regional)
       
       active_contacts_timeline_snake_plot(contacts_df_long = read_file_filtered_regional_reactive(),
-                                   todays_date = todays_date_regional_reactive())
+                                   todays_date = todays_date_regional_reactive(), 
+                                   legend_df = legend_df)
     })
   
   
@@ -878,7 +899,8 @@ server <- function(input, output) {
       req(input$select_date_of_review_regional)
       
       active_contacts_breakdown_bar_chart(contacts_df_long = read_file_filtered_regional_reactive() ,
-                                          todays_date = todays_date_regional_reactive())
+                                          todays_date = todays_date_regional_reactive(), 
+                                          legend_df = legend_df)
     })
   
   
@@ -896,7 +918,7 @@ server <- function(input, output) {
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~~~ app_tab_row_7_regional ----
+  # ~~~ main_tab_row_7_regional ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   

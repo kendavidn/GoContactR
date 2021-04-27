@@ -2,9 +2,7 @@
 title: "COVID-19 Contact Tracing Report"
 always_allow_html: true
 output:
-  officedown::rpptx_document:
-    reference_doc: pptx_template_repaired.pptx
-    slide_level: 2
+  # rmarkdown::slidy_presentation:
   rmarkdown::html_document:
     theme: cerulean
     toc: yes
@@ -18,6 +16,9 @@ output:
   officedown::rdocx_document:
     reference_docx: docx_template.docx
     toc: yes
+  officedown::rpptx_document:
+    reference_doc: pptx_template.pptx
+    slide_level: 2
 mainfont: Avenir
 geometry: left=2cm,right=2cm,top=2.5cm,bottom=2cm
 params:
@@ -103,7 +104,7 @@ body {
 
 if (params$rendered_by_shiny == FALSE){
   
-  report_format <- "docx"
+  report_format <- "pptx"
   data_to_use <-  "Use preloaded data"
   data_to_use <-  "Use uploaded data"
   preloaded_data_choice <- "Sample tracing data"
@@ -256,7 +257,7 @@ all_contacts_per_region_table(contacts_df_long,
 update_rmd_progress()
 ```
 
-<!-- # ~~~ app_tab_row_2 ---- -->
+<!-- # ~~~ main_tab_row_2 ---- -->
 
 
 # Regional trends
@@ -288,7 +289,7 @@ update_rmd_progress()
 ```
 
 
-<!-- # ~~~ app_tab_row_3 ---- -->
+<!-- # ~~~ main_tab_row_3 ---- -->
 
 # Contacts per case
 
@@ -368,27 +369,29 @@ active_contacts_timeline_text(contacts_df_long,
                              report_format)
 ```
 
-### Follow-up timeline snake plot
-
-```{r activeContactsTimelineSnakePlot}
-active_contacts_timeline_snake_plot(contacts_df_long,
-                             todays_date,
-                             report_format)
-
-update_rmd_progress()
-```
-
 ### Follow-up summary bar chart
 
-```{r activeContactsBreakdownBarChart}
-
+```{r activeContactsBreakdownBarChart, fig.width = 7, dpi = if(report_format == "html"){96} else {300} }
 active_contacts_breakdown_bar_chart(contacts_df_long,
-                             todays_date,
-                             report_format)
+                           todays_date,
+                           report_format,
+                           legend_df)
 
 update_rmd_progress()
 
 ```
+
+### Follow-up timeline snake plot
+
+```{r activeContactsTimelineSnakePlot, fig.width = 7, dpi = if(report_format == "html"){96} else {300} }
+active_contacts_timeline_snake_plot(contacts_df_long,
+                           todays_date,
+                           report_format,
+                           legend_df)
+
+update_rmd_progress()
+```
+
 
 # Contacts not seen recently
 

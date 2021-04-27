@@ -35,15 +35,19 @@ header$children[[3]]$children[[4]]$children[[1]]$children[[2]]$children[[1]] <-
 
 sidebar <- 
   dashboardSidebar(collapsed = TRUE,
-                   sidebarUserPanel(name = HTML("<br>Côte d'Ivoire, COVID"),
+                   sidebarUserPanel(name = HTML("<br> <span style = 'font-size: 12px'> Côte d'Ivoire, COVID-19 </span>"),
                                     image = "flag.png"),
   sidebarMenu(id = "tabs", # Setting id makes input$tabs give the tabName of currently-selected tab
-              menuItem("Load data", tabName = "load_data_tab", icon = icon("file-import")),
+              menuItem("Load data", tabName = "load_data_tab", icon = icon("file-upload")),
               menuItem("All contacts",
                        selected = FALSE, # IGNORE THATfor now -> ! Important. Because it sets the date needed for read_file() function to work
                         
-                       tabName = "app_tab", icon = icon("globe")),
-              menuItem("Contacts per region", tabName = "app_tab_regional", icon = icon("map-marked"))
+                       tabName = "main_tab", icon = icon("globe")),
+              menuItem("Contacts per region", tabName = "main_tab_regional", icon = icon("map-marked")), 
+              menuItem("Help", tabName = "help_tab", icon = icon("info-circle")), 
+              menuItem("Click to logout", href = "https://gocontactr.shinyapps.io/cotedivoire/__logout__/",newtab = FALSE,
+                       icon = icon("sign-out-alt")
+              )
               
               )
   )
@@ -146,13 +150,13 @@ load_data_tab <- tabItem(tabName = "load_data_tab",
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~ app_tab ----
+# ~~ main_tab ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 
-# ~~~ app_tab_row_00_regional---- 
-app_tab_row_00 <- 
+# ~~~ main_tab_row_00_regional---- 
+main_tab_row_00 <- 
   fluidRow(box(width = 4,
                title = tagList(icon("hand-pointer"), 
                                "Date of review"), 
@@ -176,9 +180,9 @@ app_tab_row_00 <-
                )
            )
 
-# ~~~ app_tab_row_0 ----
+# ~~~ main_tab_row_0 ----
 
-app_tab_row_0 <-
+main_tab_row_0 <-
   fluidRow(valueBoxOutput("contacts_per_day_value_box", width = 3),
            valueBoxOutput("cumulative_contacts_value_box", width = 3),
            valueBoxOutput("contacts_under_surveillance_value_box", width = 3),
@@ -188,10 +192,10 @@ app_tab_row_0 <-
 
 
 
-# ~~~ app_tab_row_1 ----
+# ~~~ main_tab_row_1 ----
 
 
-app_tab_row_1 <-
+main_tab_row_1 <-
   tagList(
   h1("  "), 
   icon("map", "fa-2x"),
@@ -226,9 +230,9 @@ app_tab_row_1 <-
 
 
 
-# ~~~ app_tab_row_2 ----
+# ~~~ main_tab_row_2 ----
 
-app_tab_row_2 <-
+main_tab_row_2 <-
   tagList(
     h1("  "), 
     icon("calendar-alt", "fa-2x"),
@@ -259,9 +263,9 @@ app_tab_row_2 <-
   )
 
 
-# ~~~ app_tab_row_3 ----
+# ~~~ main_tab_row_3 ----
 
-app_tab_row_3 <-
+main_tab_row_3 <-
   tagList(
     h1("  "), 
     icon("users", "fa-2x"),
@@ -296,9 +300,9 @@ app_tab_row_3 <-
   hr()
   )
 
-# ~~~ app_tab_row_4 ----
+# ~~~ main_tab_row_4 ----
 
-app_tab_row_4 <-
+main_tab_row_4 <-
   tagList(
     h1("  "), 
     icon("link", "fa-2x"),
@@ -329,10 +333,10 @@ app_tab_row_4 <-
   )
 
 
-# ~~~ app_tab_row_6 ----
+# ~~~ main_tab_row_6 ----
 
 
-app_tab_row_6 <- 
+main_tab_row_6 <- 
   tagList(
     h1("  "), 
     icon("user-clock", "fa-2x"),
@@ -340,11 +344,21 @@ app_tab_row_6 <-
        style = "display: inline; line-height: 50px;"),
   fluidRow(column(width = 12,
                column(width = 9,
-                      tabsetPanel(tabPanel(title = "Snake plot and bar chart summary",
-                                           echarts4rOutput("active_contacts_timeline_snake_plot", height = 700) %>%
+                      tabsetPanel(tabPanel(title = "Status bar chart and snake plot",
+                                           style = "overflow-y:auto",
+                                           # echarts4rOutput("active_contacts_timeline_snake_plot", height = 700) %>%
+                                           #   withSpinner(type = 6, color = burnt_sienna)
+                                           plotlyOutput("active_contacts_breakdown_bar_chart", height = 300) %>%
                                              withSpinner(type = 6, color = burnt_sienna),
-                                           echarts4rOutput("active_contacts_breakdown_bar_chart") %>%
-                                             withSpinner(type = 6, color = burnt_sienna) 
+                                           h4(HTML("For snake plot below:")),
+                                           h6(HTML("• <b>Drag</b> to select contacts on snake plot. This filters the table beneath. Double-click anywhere to reset selection")),
+                                           h6(HTML("• <b>Double click</b> on legend to isolate group.")),
+                                           plotlyOutput("active_contacts_timeline_snake_plot", height = 500) %>%
+                                             withSpinner(type = 6, color = burnt_sienna),
+                                           downloadButton("active_contacts_snake_plot_selected_table_download", 
+                                                          "Download selected contacts"),
+                                           reactableOutput("active_contacts_snake_plot_selected_table", height = 400) %>%
+                                             withSpinner(type = 6, color = burnt_sienna)
                                            ),
                                   tabPanel(title = "Timeline table",
                                            downloadButton("active_contacts_timeline_table_download", 
@@ -374,9 +388,9 @@ app_tab_row_6 <-
   )
 
 
-# ~~~ app_tab_row_7 ----
+# ~~~ main_tab_row_7 ----
 
-app_tab_row_7 <- 
+main_tab_row_7 <- 
   tagList(
     h1("  "), 
     icon("low-vision", "fa-2x"),
@@ -413,34 +427,34 @@ app_tab_row_7 <-
   hr()
   )
 
-# ~~~ app_tab_combine_rows----
+# ~~~ main_tab_combine_rows----
 
 
-app_tab <- tabItem("app_tab",
-                            app_tab_row_00,
-                            app_tab_row_0,
+main_tab <- tabItem("main_tab",
+                            main_tab_row_00,
+                            main_tab_row_0,
                             h1("All contacts", align = "center"), 
                             hr(),
-                            app_tab_row_1, 
-                            app_tab_row_2,
-                            app_tab_row_3, 
-                            app_tab_row_4, 
+                            main_tab_row_1, 
+                            main_tab_row_2,
+                            main_tab_row_3, 
+                            main_tab_row_4, 
                             h1("Active contacts", align = "center"), 
                             hr(),
-                            app_tab_row_6, 
-                            app_tab_row_7
+                            main_tab_row_6, 
+                            main_tab_row_7
                             )
 
 
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~ app_tab_regional  ----
+# ~~ main_tab_regional  ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-# ~~~ app_tab_row_00_regional---- 
-app_tab_row_00_regional <- 
+# ~~~ main_tab_row_00_regional---- 
+main_tab_row_00_regional <- 
   fluidRow(box(width = 12,
                title = tagList(icon("hand-pointer"), 
                                "Select region and date"), 
@@ -453,7 +467,7 @@ app_tab_row_00_regional <-
   ))
 
 
-app_tab_row_0_regional <-
+main_tab_row_0_regional <-
   fluidRow(
     valueBoxOutput("contacts_per_day_value_box_regional", width = 3),
            valueBoxOutput("cumulative_contacts_value_box_regional", width = 3),
@@ -462,10 +476,10 @@ app_tab_row_0_regional <-
   )
 
 
-# ~~~ app_tab_row_1_regional ----
+# ~~~ main_tab_row_1_regional ----
 
 
-app_tab_row_1_regional <-
+main_tab_row_1_regional <-
   tagList(
     h1("  "), 
     icon("map", "fa-2x"),
@@ -501,9 +515,9 @@ app_tab_row_1_regional <-
 
 
 
-# ~~~ app_tab_row_2_regional ----
+# ~~~ main_tab_row_2_regional ----
 
-app_tab_row_2_regional <-
+main_tab_row_2_regional <-
   tagList(
     h1("  "), 
     icon("calendar-alt", "fa-2x"),
@@ -536,9 +550,9 @@ app_tab_row_2_regional <-
 
 
 
-# ~~~ app_tab_row_3_regional ----
+# ~~~ main_tab_row_3_regional ----
 
-app_tab_row_3_regional <-
+main_tab_row_3_regional <-
   tagList(
     h1("  "), 
     icon("users", "fa-2x"),
@@ -565,9 +579,9 @@ app_tab_row_3_regional <-
   hr()
   )
 
-# ~~~ app_tab_row_4_regional ----
+# ~~~ main_tab_row_4_regional ----
 
-app_tab_row_4_regional <-
+main_tab_row_4_regional <-
   tagList(
     h1("  "), 
     icon("link", "fa-2x"),
@@ -595,10 +609,10 @@ app_tab_row_4_regional <-
   )
 
 
-# ~~~ app_tab_row_6_regional ----
+# ~~~ main_tab_row_6_regional ----
 
 
-app_tab_row_6_regional <-
+main_tab_row_6_regional <-
   tagList(
     h1("  "),
     icon("user-clock", "fa-2x"),
@@ -607,9 +621,9 @@ app_tab_row_6_regional <-
     fluidRow(column(width = 12,
                     column(width = 9,
                            tabsetPanel(tabPanel(title = "Plots",
-                                                echarts4rOutput("active_contacts_timeline_snake_plot_regional",height = 700) %>%
+                                                plotlyOutput("active_contacts_timeline_snake_plot_regional",height = 700) %>%
                                                   withSpinner(type = 6, color = burnt_sienna),
-                                                echarts4rOutput("active_contacts_breakdown_bar_chart_regional") %>%
+                                                plotlyOutput("active_contacts_breakdown_bar_chart_regional") %>%
                                                   withSpinner(type = 6, color = burnt_sienna)
                            ),
                            tabPanel(title = "Table",
@@ -642,9 +656,9 @@ app_tab_row_6_regional <-
 
 
 
-# ~~~ app_tab_row_7_regional ----
+# ~~~ main_tab_row_7_regional ----
 
-app_tab_row_7_regional <-
+main_tab_row_7_regional <-
   tagList(
     h1("  "),
     icon("low-vision", "fa-2x"),
@@ -682,26 +696,49 @@ app_tab_row_7_regional <-
 
 
 
-# ~~~ app_tab_regional_combine_rows----
+# ~~~ main_tab_regional_combine_rows----
 
 
 
-app_tab_regional <- tabItem("app_tab_regional",
-                                     app_tab_row_00_regional, 
-                                     app_tab_row_0_regional, 
+main_tab_regional <- tabItem("main_tab_regional",
+                                     main_tab_row_00_regional, 
+                                     main_tab_row_0_regional, 
                                      h1("All contacts", align = "center"), 
                                      hr(),
-                                     app_tab_row_1_regional, 
-                                     app_tab_row_2_regional, 
-                                     app_tab_row_3_regional,
-                                     app_tab_row_4_regional, 
+                                     main_tab_row_1_regional, 
+                                     main_tab_row_2_regional, 
+                                     main_tab_row_3_regional,
+                                     main_tab_row_4_regional, 
                                      h1("Active contacts", align = "center"), 
                                      hr(),
-                                     app_tab_row_6_regional, 
-                                     app_tab_row_7_regional
+                                     main_tab_row_6_regional, 
+                                     main_tab_row_7_regional
                                      )
 
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~ help_tab  ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+help_tab_row_1 <-
+  tagList(
+    h1("  "),
+    icon("info-circle", "fa-2x"),
+    h3("WHo Afro technical guidance on contact tracing",
+       style = "display: inline; line-height: 50px;"),
+  fluidRow(column(width = 12,
+                  tags$iframe(style="height:80vh; width:100%; scrolling=yes", 
+                              src= "WHO_Afro_technical_guidance_for_contact_tracing.pdf")
+                  )
+           )
+  )
+
+help_tab <- tabItem("help_tab", 
+                    h1("Resources", align = "center"), 
+                    hr(),
+                    help_tab_row_1)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~ Combine into body object  ----
@@ -731,15 +768,16 @@ body <-
                 # for FAQs
                 tags$head(tags$style(HTML(".box.box-solid.box-success>.box-header {
                                           padding: 2px 2px 2px 2px !important;}"))),
-                use_waiter(), # include dependencies
                 use_theme(my_fresh_theme), # <-- use the theme
                 setBackgroundImage(src = "background.jpg",
                                    shinydashboard = TRUE),
                 tabItems(load_data_tab,
-                         app_tab,
-                         app_tab_regional
+                         main_tab,
+                         main_tab_regional, 
+                         help_tab
                          )
   )
+
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -775,7 +813,7 @@ controlbar_str <-
     )
   )',  collapse = " ")
 
-# store in controlbar object. There should be a neater way to achieve this
+# store in controlbar object. There should be a neater way to achieve all of this
 controlbar <- eval(str2expression(controlbar_str))
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
