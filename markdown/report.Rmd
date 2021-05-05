@@ -2,7 +2,8 @@
 title: "COVID-19 Contact Tracing Report"
 always_allow_html: true
 output:
-  # rmarkdown::slidy_presentation:
+  rmarkdown::slidy_presentation:
+    slide_level: 3
   rmarkdown::html_document:
     theme: cerulean
     toc: yes
@@ -104,7 +105,7 @@ body {
 
 if (params$rendered_by_shiny == FALSE){
   
-  report_format <- "pptx"
+  report_format <- "html"
   data_to_use <-  "Use preloaded data"
   data_to_use <-  "Use uploaded data"
   preloaded_data_choice <- "Sample tracing data"
@@ -137,10 +138,10 @@ if (params$rendered_by_shiny == FALSE){
       tracing_data_raw = tracing_data_raw
       )
   
-# ~~~~ read_file_transformed_regional ----  ## probably will make a separate Rmd for regional report
+# ~~~~ read_file_transformed_admin_1 ----  ## probably will make a separate Rmd for admin_1 report
 
-  contacts_df_long_transformed_regional <- 
-    read_file_transformed_regional(
+  contacts_df_long_transformed_admin_1 <- 
+    read_file_transformed_admin_1(
       contacts_df_long_transformed = contacts_df_long_transformed, 
       select_region = select_region
       )
@@ -154,10 +155,10 @@ if (params$rendered_by_shiny == FALSE){
       legend_df = legend_df
     )
 
-# ~~~~ read_file_filtered_regional ----  ## probably will make a separate Rmd for regional report
+# ~~~~ read_file_filtered_admin_1 ----  ## probably will make a separate Rmd for admin_1 report
 
-    contacts_df_long_regional <- 
-    read_file_filtered_regional(
+    contacts_df_long_admin_1 <- 
+    read_file_filtered_admin_1(
       contacts_df_long_transformed = contacts_df_long_transformed,
       todays_date = todays_date,
       legend_df = legend_df
@@ -216,7 +217,7 @@ update_rmd_progress()
 
 # DATA PERTAINING TO ALL CONTACTS {.unlisted .unnumbered}
 
-# Regional breakdown
+# Admin level 1 breakdown
 
 ## {.unlisted .unnumbered}
 
@@ -229,7 +230,7 @@ update_rmd_progress()
 ```
 
 
-### Regional breakdown bar chart
+### Admin level 1 breakdown bar chart
 
 ```{r allContactsPerRegionBarChart}
 all_contacts_per_region_bar_chart(contacts_df_long,
@@ -238,7 +239,7 @@ all_contacts_per_region_bar_chart(contacts_df_long,
 update_rmd_progress()
 ```
 
-### Regional breakdown sunburst plot
+### Admin level 1 breakdown sunburst plot
 
 ```{r allContactsPerRegionSunburstPlot}
 all_contacts_per_region_sunburst_plot(contacts_df_long,
@@ -247,7 +248,7 @@ all_contacts_per_region_sunburst_plot(contacts_df_long,
 update_rmd_progress()
 ```
 
-### Regional breakdown table
+### Admin level 1 breakdown table
 
 ```{r allContactsPerRegionTable}
 
@@ -260,7 +261,7 @@ update_rmd_progress()
 <!-- # ~~~ main_tab_row_2 ---- -->
 
 
-# Regional trends
+# Admin level 1 trends
 
 ## {.unlisted .unnumbered}
 
@@ -272,7 +273,7 @@ update_rmd_progress()
 ```
 
 
-### Regional trends absolute counts
+### Admin level 1 trends, absolute counts
 ```{r contactsUnderSurveillancePerRegionOverTimeBarChart}
 contacts_under_surveillance_per_region_over_time_bar_chart(contacts_df_long,
                                                            todays_date,
@@ -280,7 +281,7 @@ contacts_under_surveillance_per_region_over_time_bar_chart(contacts_df_long,
 update_rmd_progress()
 ```
 
-### Regional trends relative proportions
+### Admin level 1 trends, relative proportions
 ```{r contactsUnderSurveillancePerRegionOverTimeBarChartRelative}
 contacts_under_surveillance_per_region_over_time_bar_chart_relative(contacts_df_long,
                                                                     todays_date,

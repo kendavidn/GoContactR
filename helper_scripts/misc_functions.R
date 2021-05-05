@@ -136,13 +136,6 @@ html_webshot <- function(chart, vheight = 350, vwidth = 500) {
                     vheight = vheight,
                     vwidth = vwidth)
 
-  ## regular webshot does not work for echarts4r plots
-  # webshot::webshot(url = html, 
-  #                   file = png, 
-  #                   zoom = 3, 
-  #                   vheight = vheight, 
-  #                   vwidth = vwidth)
-  # 
   # read back in as PNG raster
   png_out <- 
     png %>% 
@@ -191,23 +184,6 @@ return_html_or_webshot <- function(html_object, report_format){
   
 }
 
-return_gt_or_png <- function(gt_table, report_format){
-  
-  if (report_format %in% c("pptx", "docx", "pdf")){
-    
-    gt::gtsave(as_gt(t1), file = file.path(tempdir(), "temp.png"))
-    
-    
-    html_webshot(html_object)
-    # no need to return anything. html_webshot prints automatically
-    return(NULL)
-  }
-  
-  if (report_format %in% c("html", "shiny")){
-    return(html_object)
-  }
-  
-  
-}
+
 
 

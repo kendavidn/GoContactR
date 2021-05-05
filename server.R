@@ -90,15 +90,15 @@ server <- function(input, output) {
     
   })
   
-  #~~~~ read_file_transformed_regional_reactive ----
+  #~~~~ read_file_transformed_admin_1_reactive ----
 
-  read_file_transformed_regional_reactive <- reactive({
+  read_file_transformed_admin_1_reactive <- reactive({
     
-    req(input$select_region)
+    req(input$select_admin_1)
 
-    read_file_transformed_regional(
+    read_file_transformed_admin_1(
       contacts_df_long_transformed = read_file_transformed_reactive(),
-      select_region = input$select_region
+      select_admin_1 = input$select_admin_1
     )
 
   })
@@ -118,15 +118,15 @@ server <- function(input, output) {
   })
   
   
-  # ~~~~ read_file_filtered_regional_reactive ----
+  # ~~~~ read_file_filtered_admin_1_reactive ----
   
-  read_file_filtered_regional_reactive <- reactive({
+  read_file_filtered_admin_1_reactive <- reactive({
     
-    req(input$select_region)
+    req(input$select_admin_1)
 
-    read_file_filtered_regional(
-      contacts_df_long_transformed_regional = read_file_transformed_regional_reactive(),
-      todays_date = todays_date_regional_reactive(),
+    read_file_filtered_admin_1(
+      contacts_df_long_transformed_admin_1 = read_file_transformed_admin_1_reactive(),
+      todays_date = todays_date_admin_1_reactive(),
       legend_df = legend_df # defined in global.R
     )
     
@@ -263,9 +263,9 @@ server <- function(input, output) {
     # assume that that is the date as on which the data is being analyzed
     todays_date_imputed_from_data <- 
       read_file_transformed_reactive() %>% 
-      filter(etat_suivi != "Suivi futur" & 
-               etat_suivi != "Manquant" &
-               !is.na(etat_suivi) ) %>% 
+      filter(follow_up_status != "Suivi futur" & 
+               follow_up_status != "Manquant" &
+               !is.na(follow_up_status) ) %>% 
       select(follow_up_date) %>%
       pull(1) %>% 
       max(na.rm = T)
@@ -379,37 +379,37 @@ server <- function(input, output) {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  output$all_contacts_per_region_table <- 
+  output$all_contacts_per_admin_1_table <- 
     renderReactable({
       req(input$select_date_of_review)
       
-        all_contacts_per_region_table(contacts_df_long = read_file_filtered_reactive(),
+        all_contacts_per_admin_1_table(contacts_df_long = read_file_filtered_reactive(),
                                       todays_date = todays_date_reactive()) 
       })
   
   
-  output$all_contacts_per_region_sunburst_plot <- 
+  output$all_contacts_per_admin_1_sunburst_plot <- 
     renderHighchart({
       req(input$select_date_of_review)
       
-        all_contacts_per_region_sunburst_plot(contacts_df_long = read_file_filtered_reactive(),
+        all_contacts_per_admin_1_sunburst_plot(contacts_df_long = read_file_filtered_reactive(),
                                               todays_date = todays_date_reactive())
       })
   
-  output$all_contacts_per_region_bar_chart <- 
+  output$all_contacts_per_admin_1_bar_chart <- 
     renderHighchart({
       req(input$select_date_of_review)
       
-      all_contacts_per_region_bar_chart(contacts_df_long = read_file_filtered_reactive(),
+      all_contacts_per_admin_1_bar_chart(contacts_df_long = read_file_filtered_reactive(),
                                             todays_date = todays_date_reactive())
     })
   
   
-  output$all_contacts_per_region_text <- 
+  output$all_contacts_per_admin_1_text <- 
     renderUI({
       req(input$select_date_of_review)
       
-        all_contacts_per_region_text(contacts_df_long = read_file_filtered_reactive(),
+        all_contacts_per_admin_1_text(contacts_df_long = read_file_filtered_reactive(),
                                      todays_date = todays_date_reactive())
       })
   
@@ -419,27 +419,27 @@ server <- function(input, output) {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  output$contacts_under_surveillance_per_region_over_time_bar_chart <- 
+  output$contacts_under_surveillance_per_admin_1_over_time_bar_chart <- 
     renderHighchart({
       req(input$select_date_of_review)
       
-        contacts_under_surveillance_per_region_over_time_bar_chart(contacts_df_long = read_file_filtered_reactive(),
+        contacts_under_surveillance_per_admin_1_over_time_bar_chart(contacts_df_long = read_file_filtered_reactive(),
                                                                    todays_date = todays_date_reactive())
     })
   
-  output$contacts_under_surveillance_per_region_over_time_bar_chart_relative <- 
+  output$contacts_under_surveillance_per_admin_1_over_time_bar_chart_relative <- 
     renderHighchart({
       req(input$select_date_of_review)
       
-        contacts_under_surveillance_per_region_over_time_bar_chart_relative(contacts_df_long = read_file_filtered_reactive(),
+        contacts_under_surveillance_per_admin_1_over_time_bar_chart_relative(contacts_df_long = read_file_filtered_reactive(),
                                                                             todays_date = todays_date_reactive())
     })
   
-  output$contacts_under_surveillance_per_region_over_time_text <- 
+  output$contacts_under_surveillance_per_admin_1_over_time_text <- 
     renderUI({
       req(input$select_date_of_review)
       
-        contacts_under_surveillance_per_region_over_time_text(contacts_df_long = read_file_filtered_reactive(),
+        contacts_under_surveillance_per_admin_1_over_time_text(contacts_df_long = read_file_filtered_reactive(),
                                                               todays_date = todays_date_reactive())
     })
   
@@ -644,37 +644,37 @@ server <- function(input, output) {
   
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~~  main_tab_regional ----
+  # ~~  main_tab_admin_1 ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
   
-  output$select_region <- renderUI({
+  output$select_admin_1 <- renderUI({
     
     req(read_file_transformed_reactive())
     
-    region_choices <- 
-      unique(read_file_transformed_reactive()$region) %>% 
+    admin_1_choices <- 
+      unique(read_file_transformed_reactive()$admin_1) %>% 
       .[.!="NA"] %>% 
       .[!is.na(.)]
       
-  selectInput("select_region", 
-              label = "Choose region",
-              choices = region_choices,
+  selectInput("select_admin_1", 
+              label = "Choose admin level 1",
+              choices = admin_1_choices,
               multiple = FALSE)
 
     })
   
   
-  # ~~~ select_date_of_review_regional----
-  output$select_date_of_review_regional <- renderUI({
+  # ~~~ select_date_of_review_admin_1----
+  output$select_date_of_review_admin_1 <- renderUI({
     
-    req(read_file_transformed_regional_reactive())
+    req(read_file_transformed_admin_1_reactive())
     
       ## date selection needs to use the unfiltered data frame
       ## because the selection from this input feeds the filtering function
       
       flattened_dates <- 
-        read_file_transformed_regional_reactive() %>% 
+        read_file_transformed_admin_1_reactive() %>% 
         select(follow_up_date) %>%
         pull(1)
       
@@ -684,20 +684,20 @@ server <- function(input, output) {
       # get the last date for which follow-up status was not "missing"
       # assume that that is the date as at which the data is being analyzed
       todays_date_imputed_from_data <- 
-        read_file_transformed_regional_reactive() %>% 
-        filter(etat_suivi != "Suivi futur" & 
-                 etat_suivi != "Manquant" &
-                 !is.na(etat_suivi) ) %>% 
+        read_file_transformed_admin_1_reactive() %>% 
+        filter(follow_up_status != "Suivi futur" & 
+                 follow_up_status != "Manquant" &
+                 !is.na(follow_up_status) ) %>% 
         select(follow_up_date) %>%
         pull(1) %>% 
         max(na.rm = T)
       
 
-    dateInput("select_date_of_review_regional", 
+    dateInput("select_date_of_review_admin_1", 
               label = HTML("Select date of review 
                            <br>
                          <font size='1'>
-                         (Date range is from the date of first follow-up in region to the date of final follow-up in the region)
+                         (Date range is from the date of first follow-up in the division to the date of final follow-up in the division)
                          </font>"
                            ),
               value = todays_date_imputed_from_data, 
@@ -707,209 +707,209 @@ server <- function(input, output) {
   })
   
   
-  # ~~~ todays_date_regional_reactive ----
+  # ~~~ todays_date_admin_1_reactive ----
   
   ## does not need to be inside of a reactive atm. But it was put there initially so I can trigger it with ObserveEvent
-  todays_date_regional_reactive <- reactive({
-    req(input$select_region)
-    input$select_date_of_review_regional
+  todays_date_admin_1_reactive <- reactive({
+    req(input$select_admin_1)
+    input$select_date_of_review_admin_1
   })
   
   
   
   
-  # ~~~ main_tab_row_0_regional ----
+  # ~~~ main_tab_row_0_admin_1 ----
   
   
-  output$contacts_per_day_value_box_regional <-
+  output$contacts_per_day_value_box_admin_1 <-
     renderValueBox({
-      req(input$select_region)
-      req(input$select_date_of_review_regional)
+      req(input$select_admin_1)
+      req(input$select_date_of_review_admin_1)
       
-      contacts_per_day_value_box(read_file_filtered_regional_reactive(), 
-                                   todays_date_regional_reactive()) %>% 
+      contacts_per_day_value_box(read_file_filtered_admin_1_reactive(), 
+                                   todays_date_admin_1_reactive()) %>% 
         .$shiny_valuebox
       
     })
   
   
-  output$cumulative_contacts_value_box_regional <-
+  output$cumulative_contacts_value_box_admin_1 <-
     renderValueBox({
-      req(input$select_region)
-      req(input$select_date_of_review_regional)
-      cumulative_contacts_value_box(read_file_filtered_regional_reactive(), 
-                                    todays_date_regional_reactive()) %>% 
+      req(input$select_admin_1)
+      req(input$select_date_of_review_admin_1)
+      cumulative_contacts_value_box(read_file_filtered_admin_1_reactive(), 
+                                    todays_date_admin_1_reactive()) %>% 
         .$shiny_valuebox
       
     })
   
   
-  output$contacts_under_surveillance_value_box_regional <-
+  output$contacts_under_surveillance_value_box_admin_1 <-
     renderValueBox({
-      req(input$select_region)
-      req(input$select_date_of_review_regional)
-      contacts_under_surveillance_value_box(read_file_filtered_regional_reactive(), 
-                                            todays_date_regional_reactive()) %>% 
+      req(input$select_admin_1)
+      req(input$select_date_of_review_admin_1)
+      contacts_under_surveillance_value_box(read_file_filtered_admin_1_reactive(), 
+                                            todays_date_admin_1_reactive()) %>% 
         .$shiny_valuebox
       
     })
   
-  output$pct_contacts_followed_value_box_regional <-
+  output$pct_contacts_followed_value_box_admin_1 <-
     renderValueBox({
-      req(input$select_region)
-      req(input$select_date_of_review_regional)
-      pct_contacts_followed_value_box(read_file_filtered_regional_reactive(), 
-                                      todays_date_regional_reactive()) %>% 
+      req(input$select_admin_1)
+      req(input$select_date_of_review_admin_1)
+      pct_contacts_followed_value_box(read_file_filtered_admin_1_reactive(), 
+                                      todays_date_admin_1_reactive()) %>% 
         .$shiny_valuebox
       
     })
   
-  # ~~~ main_tab_row_1_regional ----
+  # ~~~ main_tab_row_1_admin_1 ----
   
   
-  output$all_contacts_per_region_table_regional <- 
+  output$all_contacts_per_admin_1_table_admin_1 <- 
     renderReactable({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-        all_contacts_per_region_table_regional(contacts_df_long = read_file_filtered_regional_reactive(),
-                                               todays_date = todays_date_regional_reactive())   
+        all_contacts_per_admin_1_table_admin_1(contacts_df_long = read_file_filtered_admin_1_reactive(),
+                                               todays_date = todays_date_admin_1_reactive())   
     })
   
   
-  output$all_contacts_per_region_sunburst_plot_regional <- 
+  output$all_contacts_per_admin_1_sunburst_plot_admin_1 <- 
     renderHighchart({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-        all_contacts_per_region_sunburst_plot_regional(contacts_df_long = read_file_filtered_regional_reactive(),
-                                                       todays_date = todays_date_regional_reactive())   
+        all_contacts_per_admin_1_sunburst_plot_admin_1(contacts_df_long = read_file_filtered_admin_1_reactive(),
+                                                       todays_date = todays_date_admin_1_reactive())   
     })
   
-  output$all_contacts_per_region_text_regional <- 
+  output$all_contacts_per_admin_1_text_admin_1 <- 
     renderUI({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-        all_contacts_per_region_text_regional(contacts_df_long = read_file_filtered_regional_reactive(),
-                                              todays_date = todays_date_regional_reactive())   
+        all_contacts_per_admin_1_text_admin_1(contacts_df_long = read_file_filtered_admin_1_reactive(),
+                                              todays_date = todays_date_admin_1_reactive())   
     })
   
   
   
   
-  # ~~~ main_tab_row_2_regional ----
+  # ~~~ main_tab_row_2_admin_1 ----
   
   
-  output$contacts_under_surveillance_per_region_over_time_bar_chart_regional <- 
+  output$contacts_under_surveillance_per_admin_1_over_time_bar_chart_admin_1 <- 
     renderHighchart({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-        contacts_under_surveillance_per_region_over_time_bar_chart_regional(contacts_df_long = read_file_filtered_regional_reactive(),
-                                                                            todays_date = todays_date_regional_reactive())   
+        contacts_under_surveillance_per_admin_1_over_time_bar_chart_admin_1(contacts_df_long = read_file_filtered_admin_1_reactive(),
+                                                                            todays_date = todays_date_admin_1_reactive())   
     })
   
-  output$contacts_under_surveillance_per_region_over_time_bar_chart_relative_regional <- 
+  output$contacts_under_surveillance_per_admin_1_over_time_bar_chart_relative_admin_1 <- 
     renderHighchart({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-        contacts_under_surveillance_per_region_over_time_bar_chart_relative_regional(contacts_df_long = read_file_filtered_regional_reactive(),
-                                                                                     todays_date = todays_date_regional_reactive())   
+        contacts_under_surveillance_per_admin_1_over_time_bar_chart_relative_admin_1(contacts_df_long = read_file_filtered_admin_1_reactive(),
+                                                                                     todays_date = todays_date_admin_1_reactive())   
     })
   
-  output$contacts_under_surveillance_per_region_over_time_text_regional <- 
+  output$contacts_under_surveillance_per_admin_1_over_time_text_admin_1 <- 
     renderUI({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-        contacts_under_surveillance_per_region_over_time_text_regional(contacts_df_long = read_file_filtered_regional_reactive(),
-                                                                       todays_date = todays_date_regional_reactive())   
+        contacts_under_surveillance_per_admin_1_over_time_text_admin_1(contacts_df_long = read_file_filtered_admin_1_reactive(),
+                                                                       todays_date = todays_date_admin_1_reactive())   
     })
   
   
   
-  # ~~~ main_tab_row_3_regional ----
+  # ~~~ main_tab_row_3_admin_1 ----
   
-  output$total_contacts_per_case_donut_plot_regional <- 
+  output$total_contacts_per_case_donut_plot_admin_1 <- 
     renderHighchart({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-        total_contacts_per_case_donut_plot(contacts_df_long = read_file_filtered_regional_reactive(),
-                                           todays_date = todays_date_regional_reactive())   
+        total_contacts_per_case_donut_plot(contacts_df_long = read_file_filtered_admin_1_reactive(),
+                                           todays_date = todays_date_admin_1_reactive())   
     })
   
-  output$total_contacts_per_case_table_regional <- 
+  output$total_contacts_per_case_table_admin_1 <- 
     renderReactable({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-        total_contacts_per_case_table(contacts_df_long = read_file_filtered_regional_reactive(),
-                                      todays_date = todays_date_regional_reactive())   
+        total_contacts_per_case_table(contacts_df_long = read_file_filtered_admin_1_reactive(),
+                                      todays_date = todays_date_admin_1_reactive())   
     })
   
   
-  output$total_contacts_per_case_text_regional <- 
+  output$total_contacts_per_case_text_admin_1 <- 
     renderUI({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-        total_contacts_per_case_text(contacts_df_long = read_file_filtered_regional_reactive(),
-                                     todays_date = todays_date_regional_reactive())    
+        total_contacts_per_case_text(contacts_df_long = read_file_filtered_admin_1_reactive(),
+                                     todays_date = todays_date_admin_1_reactive())    
         })
   
   
-  # ~~~ main_tab_row_4_regional ----
+  # ~~~ main_tab_row_4_admin_1 ----
   
-  output$total_contacts_per_link_type_donut_plot_regional <- 
+  output$total_contacts_per_link_type_donut_plot_admin_1 <- 
     renderHighchart({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-        total_contacts_per_link_type_donut_plot(contacts_df_long = read_file_filtered_regional_reactive(),
-                                                todays_date = todays_date_regional_reactive())   
+        total_contacts_per_link_type_donut_plot(contacts_df_long = read_file_filtered_admin_1_reactive(),
+                                                todays_date = todays_date_admin_1_reactive())   
     })
 
   
-  output$total_contacts_per_link_type_text_regional <- 
+  output$total_contacts_per_link_type_text_admin_1 <- 
     renderUI({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-        total_contacts_per_link_type_text(contacts_df_long = read_file_filtered_regional_reactive(),
-                                          todays_date = todays_date_regional_reactive())   
+        total_contacts_per_link_type_text(contacts_df_long = read_file_filtered_admin_1_reactive(),
+                                          todays_date = todays_date_admin_1_reactive())   
     })
 
   
-  # ~~~ main_tab_row_6_regional ----
+  # ~~~ main_tab_row_6_admin_1 ----
   
   
-  output$active_contacts_timeline_snake_plot_regional <-
+  output$active_contacts_timeline_snake_plot_admin_1 <-
     renderEcharts4r({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-      active_contacts_timeline_snake_plot(contacts_df_long = read_file_filtered_regional_reactive(),
-                                   todays_date = todays_date_regional_reactive(), 
+      active_contacts_timeline_snake_plot(contacts_df_long = read_file_filtered_admin_1_reactive(),
+                                   todays_date = todays_date_admin_1_reactive(), 
                                    legend_df = legend_df)
     })
   
   
-  output$active_contacts_timeline_text_regional <- renderUI({
-    req(input$select_date_of_review_regional)
+  output$active_contacts_timeline_text_admin_1 <- renderUI({
+    req(input$select_date_of_review_admin_1)
     
-    active_contacts_timeline_text(contacts_df_long = read_file_filtered_regional_reactive() ,
-                                 todays_date = todays_date_regional_reactive())
+    active_contacts_timeline_text(contacts_df_long = read_file_filtered_admin_1_reactive() ,
+                                 todays_date = todays_date_admin_1_reactive())
     
     
   })
   
-  output$active_contacts_breakdown_bar_chart_regional <-
+  output$active_contacts_breakdown_bar_chart_admin_1 <-
     renderEcharts4r({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-      active_contacts_breakdown_bar_chart(contacts_df_long = read_file_filtered_regional_reactive() ,
-                                          todays_date = todays_date_regional_reactive(), 
+      active_contacts_breakdown_bar_chart(contacts_df_long = read_file_filtered_admin_1_reactive() ,
+                                          todays_date = todays_date_admin_1_reactive(), 
                                           legend_df = legend_df)
     })
   
   
-  output$active_contacts_breakdown_table_regional <-
+  output$active_contacts_breakdown_table_admin_1 <-
     renderReactable({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-      active_contacts_breakdown_table(contacts_df_long = read_file_filtered_regional_reactive() ,
-                                      todays_date = todays_date_regional_reactive())
+      active_contacts_breakdown_table(contacts_df_long = read_file_filtered_admin_1_reactive() ,
+                                      todays_date = todays_date_admin_1_reactive())
     })
   
   
@@ -918,34 +918,34 @@ server <- function(input, output) {
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~~~ main_tab_row_7_regional ----
+  # ~~~ main_tab_row_7_admin_1 ----
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
-  output$contacts_lost_24_to_72_hours_table_regional <- 
+  output$contacts_lost_24_to_72_hours_table_admin_1 <- 
     render_gt({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-      contacts_lost_24_to_72_hours_table(contacts_df_long = read_file_filtered_regional_reactive() ,
-                                   todays_date = todays_date_regional_reactive())
+      contacts_lost_24_to_72_hours_table(contacts_df_long = read_file_filtered_admin_1_reactive() ,
+                                   todays_date = todays_date_admin_1_reactive())
     })
   
   
-  output$lost_contacts_linelist_table_regional <- 
+  output$lost_contacts_linelist_table_admin_1 <- 
     renderReactable({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-      lost_contacts_linelist_table(contacts_df_long = read_file_filtered_regional_reactive() ,
-                             todays_date = todays_date_regional_reactive()) %>%
+      lost_contacts_linelist_table(contacts_df_long = read_file_filtered_admin_1_reactive() ,
+                             todays_date = todays_date_admin_1_reactive()) %>%
         .$output_table
     })
   
-  output$lost_contacts_linelist_table_title_regional <- 
+  output$lost_contacts_linelist_table_title_admin_1 <- 
     renderUI({
-      req(input$select_date_of_review_regional)
+      req(input$select_date_of_review_admin_1)
       
-      lost_contacts_linelist_table(contacts_df_long = read_file_filtered_regional_reactive() ,
-                             todays_date = todays_date_regional_reactive()) %>%
+      lost_contacts_linelist_table(contacts_df_long = read_file_filtered_admin_1_reactive() ,
+                             todays_date = todays_date_admin_1_reactive()) %>%
         .$table_title
     })
   

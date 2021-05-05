@@ -1,9 +1,9 @@
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~  Packages ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  Packages ----
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#library(polished)
-# 
+# library(polished)
+#
 # polished::global_sessions_config(
 #   app_name = "CovContactR",
 #   api_key = "ikHFLT2t4R1gcmXYHWjT2372QPA2v1JQd7"
@@ -15,14 +15,14 @@
 require("remotes")
 
 # ## to ensure code stability, ALWAYS load specific package version
-# packages_and_their_versions <- 
-#   list(c("webshot", "0.5.2"), 
+# packages_and_their_versions <-
+#   list(c("webshot", "0.5.2"),
 #        c("here", "1.0.1"))
-# 
+#
 # ## the code below installs the package version if it does not already exist
 # packages <- unlist(lapply(packages_and_their_versions, `[[`, 1))
 # versions <- unlist(lapply(packages_and_their_versions, `[[`, 2))
-# 
+#
 # mapply(remotes::install_version, package = packages, version = versions, force = FALSE)
 
 
@@ -56,15 +56,16 @@ library(scales)
 library(gt)
 library(gtools)
 library(linelist) ##  devtools::install_github("reconhub/linelist")
-library(rvest)  ## devtools::install_github("tidyverse/rvest")
+library(rvest) ## devtools::install_github("tidyverse/rvest")
 library(pander)
 library(rio)
 library(huxtable)
 library(flextable) # called by huxtable in some functions
 library(rmarkdown)
-library(officedown) #remotes::install_github("davidgohel/officedown", force = TRUE)
+library(officedown) # remotes::install_github("davidgohel/officedown", force = TRUE)
 library(pagedreport)
-library(promises) 
+library(promises)
+library(clock)
 
 
 
@@ -74,56 +75,88 @@ library(plotly)
 
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~  Options ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  Options ----
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 options(scipen = 999) # turn off scientific notation
 
 set.seed(1) # fix seed
 
-options(tibble.print_max = 15, tibble.print_min = 15)
+options(tibble.print_max = 35, tibble.print_min = 35)
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~   FUNCTIONS ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 source(here("helper_scripts/misc_functions.R"), local = T)
 
-col2hex <- function(col, alpha) rgb(t(col2rgb(col)), 
-                                    alpha=alpha, maxColorValue=255)
+col2hex <- function(col, alpha) {
+  rgb(t(col2rgb(col)),
+    alpha = alpha, maxColorValue = 255
+  )
+}
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~  Read in preloaded datasets ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+prepend_col_nums <- function(df) {
+  names(df) <-
+    names(df) %>%
+    paste(stringr::str_pad(1:ncol(df), 2, pad = 0), .)
+  df
+}
+
+ViewExcel <-
+  function(df = .Last.value,
+           file = tempfile(fileext = ".csv")) {
+    df <- try(as.data.frame(df))
+    stopifnot(is.data.frame(df))
+    utils::write.csv(df, file = file)
+
+    shell.exec <- function(x) {
+      # replacement for shell.exe (doesn't exist on MAC)
+      if (exists("shell.exec", where = "package:base")) {
+        return(base::shell.exec(x))
+      }
+      comm <- paste("open", x)
+      return(system(comm))
+    }
 
 
-#cleaning_rules <- rio::import(here("data", "cleaning_rules_contacts.xlsx"))
+    shell.exec(file)
+  }
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  Read in preloaded datasets ----
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+# cleaning_rules <- rio::import(here("data", "cleaning_rules_contacts.xlsx"))
 
 # contacts_df_raw <-
 #   rio::import(here("data/Base contacts_GUINEE_2021_03_14_GLOBAL.xlsx"))  %>%
 #   clean_names() %>%
 #   type_convert()
 
-#! Not used at the moment March 26
+# ! Not used at the moment March 26
 contacts_list_sample <-
   rio::import(here("data/liste_contacts_sample.xlsx"))
 
 follow_up_list_sample <-
   rio::import(here("data/suivi_contacts_sample.xlsx"))
 
-tracing_data_sample <- list(contacts_list = contacts_list_sample, 
-                            follow_up_list = follow_up_list_sample)
+tracing_data_sample <- list(
+  contacts_list = contacts_list_sample,
+  follow_up_list = follow_up_list_sample
+)
 
 # called by data_input UI element on page 1 of app
 preloaded_data_options <-
   list(`Sample tracing data` = tracing_data_sample)
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~ Colors ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 space_cadet <- "#1C2541"
@@ -143,12 +176,12 @@ cinnabar <- "#E64B35"
 coral <- "#ff7a4a"
 peach <- "#FCDC9C"
 bright_yellow_crayola <- "#FFB238"
-spinner_color <- burnt_sienna <- "#EE6C4D" 
+spinner_color <- burnt_sienna <- "#EE6C4D"
 
 
 
 
-my_fresh_theme <- 
+my_fresh_theme <-
   fresh::create_theme(
     fresh::adminlte_color(
       light_blue = white
@@ -160,7 +193,7 @@ my_fresh_theme <-
     ),
     fresh::adminlte_global(
       content_bg = white,
-      box_bg = white, 
+      box_bg = white,
       info_box_bg = light_gray
     )
   )
@@ -168,30 +201,30 @@ my_fresh_theme <-
 
 
 
-legend_df <- 
-  tribble(    
-    ~breaks ,                                              ~colors,                   
-    "Manquant",                                           col2hex("black"),                  
-    "Poursuite du suivi",                                 col2hex("lightseagreen"),  
-    "Symptomatique, resultats attendus",                  col2hex("lightpink2"),       
-    "Devenu cas confirme",                                col2hex("orangered"),     
-    "Sorti sain",                                         col2hex("darkolivegreen4"),          
-    "Deplacé",                                            col2hex("wheat3"),  
-    "Fin du suivi",                                       col2hex("dodgerblue3"),    
-    "Suivi futur",                                        col2hex("goldenrod"),      
-    "Decede",                                             col2hex("purple3")       
-  ) %>% 
-  arrange(breaks) %>% 
-  mutate(breaks = fct_inorder(breaks)) %>% 
+legend_df <-
+  tribble(
+    ~breaks, ~colors,
+    "Manquant", col2hex("black"),
+    "Poursuite du suivi", col2hex("lightseagreen"),
+    "Symptomatique, resultats attendus", col2hex("lightpink2"),
+    "Devenu cas confirme", col2hex("orangered"),
+    "Sorti sain", col2hex("darkolivegreen4"),
+    "Deplacé", col2hex("wheat3"),
+    "Fin du suivi", col2hex("dodgerblue3"),
+    "Suivi futur", col2hex("goldenrod"),
+    "Decede", col2hex("purple3")
+  ) %>%
+  arrange(breaks) %>%
+  mutate(breaks = fct_inorder(breaks)) %>%
   mutate(legend_index = row_number())
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~ highcharter themes ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-highcharter_palette_initial <-  c(
+highcharter_palette_initial <- c(
   "#332859",
   (
     paletteer_d("ggsci::nrc_npg") %>%
@@ -204,8 +237,8 @@ ramped_colors <- colorRampPalette(highcharter_palette_initial)(10)
 
 # remove first and last colors from ramp, because these are the initial colors
 
-new_colors <- 
-  ramped_colors[-c(1, length(ramped_colors)) ] %>% 
+new_colors <-
+  ramped_colors[-c(1, length(ramped_colors))] %>%
   rev()
 
 highcharter_palette <- c(highcharter_palette_initial, new_colors)
@@ -248,7 +281,6 @@ options(highcharter.theme = newtheme)
 # ~~~ highcharter sparkline theme ----
 
 hc_theme_sparkline_vb <- function(...) {
-  
   theme <- list(
     chart = list(
       backgroundColor = NULL,
@@ -262,13 +294,13 @@ hc_theme_sparkline_vb <- function(...) {
       style = list(overflow = "visible")
     ),
     xAxis = list(
-      visible = FALSE, 
-      endOnTick = FALSE, 
+      visible = FALSE,
+      endOnTick = FALSE,
       startOnTick = FALSE
     ),
     yAxis = list(
       visible = FALSE,
-      endOnTick = FALSE, 
+      endOnTick = FALSE,
       startOnTick = FALSE
     ),
     tooltip = list(
@@ -301,54 +333,56 @@ hc_theme_sparkline_vb <- function(...) {
       text = ""
     )
   )
-  
+
   theme <- structure(theme, class = "hc_theme")
-  
+
   if (length(list(...)) > 0) {
     theme <- hc_theme_merge(
       theme,
       hc_theme(...)
     )
   }
-  
+
   theme
 }
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Plotly theme ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-font <- list(family = "Avenir",
-             size = 15,
-             color = "white")
+font <- list(
+  family = "Avenir",
+  size = 15,
+  color = "white"
+)
 
 label <- list(
-  bordercolor = "transparent", 
+  bordercolor = "transparent",
   font = font
 )
 
-## to be passed to plotly object like so: 
-# object %>% 
-#   gplotly() %>% 
-#   style(hoverlabel = label) %>% 
+## to be passed to plotly object like so:
+# object %>%
+#   gplotly() %>%
+#   style(hoverlabel = label) %>%
 #   layout(font = font)
 
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~ ggplot2 theme ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-my_theme <- theme_classic() + 
+my_theme <- theme_classic() +
   theme(
     plot.title = element_text(face = "bold"),
-    #plot.background = element_rect(fill = "gray93"),
+    # plot.background = element_rect(fill = "gray93"),
     panel.grid.major = element_line(color = "gray95", size = 0.2),
     strip.background = element_blank(),
     # element textbox is from ggtext
     strip.text = ggtext::element_textbox(
       size = 11, face = "bold",
-      color = "white", fill = "steelblue3", halign = 0.5, 
+      color = "white", fill = "steelblue3", halign = 0.5,
       r = unit(5, "pt"), width = unit(1, "npc"),
       padding = margin(2, 0, 1, 0), margin = margin(3, 3, 3, 3)
     )
