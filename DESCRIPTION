@@ -1,0 +1,14 @@
+Package: GoContactR
+Title: Shiny App for Summarizing Contact Tracing Follow-up Data
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Kene David",
+           family = "Nwosu",
+           role = c("aut", "cre"),
+           email = "kendavidn@gmail.com")
+Description: Pull contact tracing data from a range of sources, and produce a dashboard, and accompanying reports that summarise this data.
+License: `use_mit_license()`
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
