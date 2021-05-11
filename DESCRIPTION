@@ -1,6 +1,6 @@
 Package: GoContactR
 Title: Shiny App for Summarizing Contact Tracing Follow-up Data
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: 
     person(given = "Kene David",
            family = "Nwosu",
@@ -14,3 +14,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 URL: https://github.com/kendavidn/GoContactR
 BugReports: https://github.com/kendavidn/GoContactR/issues
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
