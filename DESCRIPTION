@@ -7,7 +7,6 @@ Authors@R:
            role = c("aut", "cre"),
            email = "kendavidn@gmail.com")
 Description: Pull contact tracing data from a range of sources, and produce a dashboard, and accompanying reports that summarise this data.
-License: `use_mit_license()`
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

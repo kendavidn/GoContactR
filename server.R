@@ -5,7 +5,8 @@ server <- function(input, output) {
   
   source(here("helper_scripts/server_functions.R"), local = T)
   
-
+  source(here(paste0("helper_scripts/server_functions_for_",PARAMS$country_code), local = T))
+  
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #   load_data_tab ----
@@ -22,20 +23,21 @@ server <- function(input, output) {
                              "Use uploaded data"))
   })
   
-  } else if (PARAMS$country_code == "UGA"){
-    
-    output$data_to_use_picker <- renderUI({
-      radioButtons(inputId = "data_to_use", 
-                   label = "Input Data", 
-                   choices = c("Connect to Go.Data"))
-    })
-    
-    
-  }
+  } 
+  # else if (PARAMS$country_code == "UGA"){
+  #   
+  #   output$data_to_use_picker <- renderUI({
+  #     radioButtons(inputId = "data_to_use", 
+  #                  label = "Input Data", 
+  #                  choices = c("Connect to Go.Data"))
+  #   })
+  #   
+  #   
+  # }
   
-  # ~~ input_data_preloaded_or_uploaded ---------------------------
+  # ~~ data_to_use_input ---------------------------
   
-  output$input_data_preloaded_or_uploaded <- renderUI({
+  output$data_to_use_input <- renderUI({
     
     req(input$data_to_use)
     

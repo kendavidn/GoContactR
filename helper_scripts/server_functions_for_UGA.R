@@ -1,5 +1,18 @@
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  UI Outputs ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+output$data_to_use_picker <- renderUI({
+  radioButtons(inputId = "data_to_use", 
+               label = "Input Data", 
+               choices = c("Connect to Go.Data"))
+})
+
+output$input_data_preloaded_or_uploaded <- 
+
+
 request_access_reactive <- reactive({
   
   req(input$go_data_url)

@@ -68,7 +68,7 @@ load_data_tab_row_1 <-
                fluidRow(column(width = 3, 
                                uiOutput("data_to_use_picker")),
                         column(width = 6, 
-                               uiOutput("input_data_preloaded_or_uploaded")), 
+                               uiOutput("data_to_use_input")), 
                         column(width = 3, 
                                uiOutput("analyze_action_bttn")))
 
