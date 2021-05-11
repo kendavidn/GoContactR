@@ -1,0 +1,483 @@
+---
+title: "evd_guinea"
+author: "Franck Mboussou"
+date: "12/03/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Load packages
+```{r}
+library(lubridate)
+library(rio)
+library(here)
+library(incidence)
+library(epicontacts)
+library(distcrete)
+library(tidyverse)
+library(epitrix)
+library(projections)
+library(outbreaks)
+library(ggplot2)
+library(linelist)
+library(janitor)
+library(knitr)
+library(kableExtra)
+library(moonBook)
+library(webr)
+library(ISOweek)
+```
+
+
+
+## Importer la base de suivi des contacts
+
+```{r}
+
+contacts_guinea0 <- here("data", "Base contacts_GUINEE_2021_03_14_GLOBAL.xlsx") %>%
+  import(sheet = 1, skip = 0) %>%
+  as_tibble() %>%
+  clean_variable_names()
+
+cleaning_rules <- rio::import(here("data", "cleaning_rules_contacts.xlsx"))
+
+contacts_guinea <- clean_variable_spelling(contacts_guinea0, wordlists = cleaning_rules)
+
+export(
+  contacts_guinea,
+  file = here::here("data/cleaned/contacts_guinea.xlsx")
+)
+```
+# Cumul des contacts par prefecture,sous-prefecture et type de contacts
+
+```{r}
+Tab_synthese_comtacts <-
+  contacts_guinea %>%
+  select(prefecture, sous_prefecture) %>%
+  count(prefecture, sous_prefecture) %>%
+  group_by(prefecture, sous_prefecture) %>%
+  summarise(total_contacts = sum(n)) %>%
+  adorn_totals()
+
+export(Tab_synthese_comtacts,
+  file = here::here("outputs/Tab_synthese_comtacts.xlsx")
+)
+```
+
+# Contacts par cas index
+
+```{r}
+tab_contacts_cas_index <- contacts_guinea %>%
+  select(id) %>%
+  count(id)
+
+moyenne_contacts_par_cas <- mean(tab_contacts_cas_index$n)
+
+moyenne_contacts_par_cas
+
+sd_contacts_par_cas <- sd(tab_contacts_cas_index$n)
+
+sd_contacts_par_cas
+
+plot_contacts_cas_index <- ggplot(tab_contacts_cas_index, aes(x = reorder(id, -n), y = n)) +
+  geom_col(fill = "#d64161") +
+  geom_text(aes(label = n), position = position_dodge(width = .9), vjust = -.25, hjust = .5, size = 7, face = "bold") +
+  theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = .5, size = 16)) +
+  theme(axis.title.x = element_text(color = "black", size = 16, face = "bold")) +
+  theme(axis.text.y = element_text(angle = 0, vjust = .5, hjust = .5, size = 16)) +
+  theme(axis.title.y = element_text(color = "black", size = 16, face = "bold")) +
+  theme(
+    legend.title = element_text(color = "black", size = 16),
+    legend.text = element_text(color = "black", size = 16)
+  ) +
+  labs(
+    x = "Cas de MVE",
+    y = "Nombre de contacts"
+  )
+
+
+directory <- here("outputs")
+
+imagefile <- file.path(directory, "plot_contacts_cas_index.png")
+
+ggsave(imagefile, width = 20, height = 10)
+```
+
+# Relations avec le cas index
+
+```{r}
+table(contacts_guinea$lien_avec_le_cas)
+
+contacts_guinea$country <- "Guinea"
+
+tab_lien_contact_cas <- contacts_guinea %>%
+  select(lien_avec_le_cas, country) %>%
+  count(lien_avec_le_cas, country) %>%
+  spread(country, n, fill = 0)
+
+PieDonut(tab_lien_contact_cas, aes(lien_avec_le_cas, count = Guinea), r0 = 0.7, start = 3 * pi / 2, labelpositionThreshold = 0.1)
+```
+
+# Contacts vaccinés par sous-prefecture
+
+```{r}
+
+table(contacts_guinea$vaccination)
+
+tab_contacts_vaccination <- contacts_guinea %>%
+  select(sous_prefecture, vaccination) %>%
+  count(sous_prefecture, vaccination) %>%
+  spread(vaccination, n, fill = 0) %>%
+  mutate(perc_vaccines = round((Vaccine / (Vaccine + Non_vaccine)) * 100, 1)) %>%
+  mutate(contacts_vaccines = Vaccine) %>%
+  mutate(contacts_non_vaccines = Non_vaccine) %>%
+  mutate(cumul = Non_vaccine + Vaccine) %>%
+  gather("etat_vaccination", "nb_contacts", 2:3)
+
+
+epi_contacts_vaccines <- ggplot(tab_contacts_vaccination) +
+  geom_col(aes(x = reorder(sous_prefecture, -contacts_vaccines), y = nb_contacts, fill = etat_vaccination), position = "stack") +
+  geom_text(
+    data = tab_contacts_vaccination, aes(
+      x = sous_prefecture, y = contacts_vaccines,
+      label = paste0("perc_vaccines: ", `perc_vaccines`, "%", " (", `contacts_vaccines`, " sur ", `cumul`, ")")
+    ),
+    size = 5, hjust = -.2, colour = "#3e4444"
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.2))) +
+  scale_fill_manual(
+    name = "Etat de vaccination",
+    values = c("Non_vaccine" = "#d64161", "Vaccine" = "#618685"),
+    labels = c("Non vacciné", "Vacciné")
+  ) +
+  theme(axis.text.x = element_text(angle = 0, vjust = .5, hjust = 1, size = 14)) +
+  theme(axis.title.x = element_text(color = "black", size = 14, face = "bold")) +
+  theme(axis.title.y = element_text(color = "black", size = 14, face = "bold")) +
+  theme(
+    legend.title = element_text(color = "black", size = 14),
+    legend.text = element_text(color = "black", size = 14)
+  ) +
+  labs(
+    x = "Sous-prefecture",
+    y = "Nombre de contacts "
+  ) +
+  coord_flip()
+
+imagefile2 <- file.path(directory, "epi_contacts_vaccines.png")
+
+ggsave(imagefile2, width = 12, height = 6)
+```
+
+
+# Contacts actifs par prefecture et sous-prefecture
+
+```{r}
+
+date_revu <- as.Date("2021-03-13")
+
+date_contacts_actifs <- as.Date(date_revu) - 21
+
+
+guinea_contacts_actifs <- contacts_guinea %>%
+  filter(date_du_dernier_contact >= date_contacts_actifs)
+
+guinea_contacts_actifs2 <- guinea_contacts_actifs %>%
+  gather("date_suivi", "follow_up_state", 27:47)
+
+table(guinea_contacts_actifs2$date_suivi)
+
+
+cleaning_rules <- rio::import(here("data", "cleaned", "cleaning_rules_contacts.xlsx"))
+
+
+contacts_guinea_actifs3 <- clean_variable_spelling(guinea_contacts_actifs2, wordlists = cleaning_rules)
+
+
+contacts_guinea_actifs3$date_suivi <- as.integer(contacts_guinea_actifs3$date_suivi)
+
+contacts_guinea_actifs3$date_du_dernier_contact <- as.Date(contacts_guinea_actifs3$date_du_dernier_contact)
+
+contacts_guinea_actifs_ok <- contacts_guinea_actifs3 %>% mutate(date_suivi2 = (date_du_dernier_contact + date_suivi))
+
+table(contacts_guinea_actifs_ok$follow_up_state)
+
+
+tab_contacts_suivi_jour <- contacts_guinea_actifs_ok %>%
+  filter(follow_up_state != "Doublon") %>%
+  # filter(date_suivi2<=date_revu) %>%
+  select(date_suivi2, follow_up_state) %>%
+  count(date_suivi2, follow_up_state) %>%
+  group_by(date_suivi2, follow_up_state) %>%
+  mutate(total_contacts = sum(n))
+
+tab_contcts_suivis_vus <- contacts_guinea_actifs_ok %>%
+  filter(follow_up_state == "Vu") %>%
+  filter(date_suivi2 <= date_revu) %>%
+  select(date_suivi2) %>%
+  count(date_suivi2) %>%
+  group_by(date_suivi2) %>%
+  mutate(contacts_vus = n) %>%
+  select(date_suivi2, contacts_vus)
+
+tab_contacts_suivis_complet <- tab_contacts_suivi_jour %>%
+  left_join(tab_contcts_suivis_vus, by = "date_suivi2") %>%
+  mutate(perc_vus = round((contacts_vus / total_contacts) * 100, 1))
+
+tab_contacts_suivis_complet$follow_up_state[is.na(tab_contacts_suivis_complet$follow_up_state)] <- "Non_vu"
+
+tab_contacts_suivis_complet$date_suivi2 <- as.Date(tab_contacts_suivis_complet$date_suivi2)
+
+class(tab_contacts_suivis_complet$date_suivi2)
+
+str(tab_contacts_suivis_complet)
+
+epi_suivi_journalier <- ggplot(tab_contacts_suivis_complet, aes(x = date_suivi2, y = n, fill = follow_up_state)) +
+  geom_col() +
+  scale_x_date(date_breaks = "1 day", date_minor_breaks = "1 day", date_labels = "%d %m") +
+  scale_fill_manual(" ",
+    values = c("Vu" = "#618685", "Non_vu" = "#d64161", "Deplace" = "#4040a1", "Recycle" = "#50394c", "Suspect" = "#ffef96")
+  ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1, size = 12)) +
+  theme(axis.title.x = element_text(color = "black", size = 14, face = "bold")) +
+  theme(axis.title.y = element_text(color = "black", size = 14, face = "bold")) +
+  labs(
+    x = "Date de suivi",
+    y = "Nombre de contacts"
+  ) +
+  ylim(0, 400)
+
+epi_suivi_journalier
+
+imagefile3 <- file.path(directory, "epi_suivi_journalier.png")
+
+ggsave(imagefile3, width = 12, height = 6)
+
+
+# Facet par sous-prefecture
+
+
+tab_contacts_suivi_jour2 <- contacts_guinea_actifs_ok %>%
+  filter(follow_up_state != "Doublon") %>%
+  filter(date_suivi2 <= date_revu) %>%
+  select(date_suivi2, sous_prefecture, follow_up_state) %>%
+  count(date_suivi2, sous_prefecture, follow_up_state)
+
+epi_suivi_journalier2 <- ggplot(tab_contacts_suivi_jour2, aes(x = date_suivi2, y = n, fill = follow_up_state)) +
+  geom_col() +
+  scale_x_date(date_breaks = "1 day", date_minor_breaks = "1 day", date_labels = "%d%m") +
+  scale_fill_manual(" ",
+    values = c("Vu" = "#618685", "Non_vu" = "#d64161", "Deplace" = "#4040a1", "Recycle" = "#50394c", "Suspect" = "#ffef96")
+  ) +
+  # geom_text(aes(y=total_contacts,label = n), hjust = 1.5, size = 4, color = "#ffffff")+
+  theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1, size = 12)) +
+  theme(axis.title.x = element_text(color = "black", size = 14, face = "bold")) +
+  theme(axis.title.y = element_text(color = "black", size = 14, face = "bold")) +
+  labs(
+    x = "Date de suivi",
+    y = "Nombre de contacts"
+  )
+
+epi_suivi_journalier_sous_prefecture <- epi_suivi_journalier2 +
+  facet_wrap(~sous_prefecture, ncol = 3) +
+  theme(strip.text.y = element_text(angle = 0)) +
+  theme(strip.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, size = 12, face = "bold")) +
+  theme(panel.spacing = unit(0.5, "lines"))
+
+imagefile4 <- file.path(directory, "epi_suivi_journalier_sous_prefecture.png")
+
+ggsave(imagefile4, width = 12, height = 6)
+```
+# perc contacts seen
+
+```{r}
+
+
+contacts_guinea_actifs_ok$follow_up_state <-
+  recode_factor(
+    contacts_guinea_actifs_ok$follow_up_state,
+    "Vu" = "Vu",
+    "Non_vu" = "Non_vu",
+    "Suspect" = "Vu",
+    "Decede" = "Vu",
+    "Deplace" = "Non_vu",
+    "Conforme" = "Vu",
+    "Transfere" = "Vu",
+    "Refus" = "Non_vu",
+    "Reco_pas_passe" = "Non_vu",
+    "Doublon" = "Doublon",
+    "Recycle" = "Vu"
+  )
+
+table(contacts_guinea_actifs_ok$follow_up_state)
+
+Tab_perc_suivi <- 
+  contacts_guinea_actifs_ok %>%
+  filter(follow_up_state != "Doublon") %>%
+  filter(date_suivi2 <= date_revu) %>%
+  select(date_suivi2, follow_up_state) %>%
+  count(date_suivi2, follow_up_state) %>%
+  spread(follow_up_state, n, fill = 0) %>%
+  mutate(perc_suivi = round((Vu / (Vu + Non_vu)) * 100, 1))
+
+Tab_perc_suivi$perc_suivi <- replace(Tab_perc_suivi$perc_suivi, Tab_perc_suivi$perc_suivi == "NaN", "0")
+
+Tab_perc_suivi$perc_suivi <- as.numeric(Tab_perc_suivi$perc_suivi)
+
+
+Tab_perc_suivi$date_suivi2 <- as.Date(Tab_perc_suivi$date_suivi2)
+
+epi_perc_suivi <- ggplot(Tab_perc_suivi, aes(x = date_suivi2, y = perc_suivi, fill = NULL)) +
+  geom_point() +
+  geom_line() +
+  geom_text(aes(label = round(perc_suivi, 0)), position = position_dodge(width = 0.9), vjust = -0.25, size = 6, face = "bold") +
+  scale_x_date(
+    date_breaks = "1 day", date_minor_breaks = "1 day", date_labels = "%d %m"
+  ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1)) +
+  ylim(0, 100) +
+  labs(
+    x = "date de suivi",
+    y = "% de contacts vus"
+  )
+
+
+imagefile5 <- file.path(directory, "epi_perc_suivi.png")
+
+ggsave(imagefile5, width = 12, height = 6)
+
+
+# Suivi par district
+
+Tab_perc_suivi2 <- contacts_guinea_actifs_ok %>%
+  filter(follow_up_state != "Doublon") %>%
+  filter(date_suivi2 <= date_revu) %>%
+  select(date_suivi2, sous_prefecture, follow_up_state) %>%
+  count(date_suivi2, sous_prefecture, follow_up_state) %>%
+  spread(follow_up_state, n, fill = 0) %>%
+  mutate(perc_suivi = round((Vu / (Vu + Non_vu)) * 100, 1))
+
+Tab_perc_suivi2$perc_suivi <- replace(Tab_perc_suivi2$perc_suivi, Tab_perc_suivi2$perc_suivi == "NaN", "0")
+
+Tab_perc_suivi2$perc_suivi <- as.numeric(Tab_perc_suivi2$perc_suivi)
+
+
+Tab_perc_suivi2$date_suivi2 <- as.Date(Tab_perc_suivi2$date_suivi2)
+
+epi_perc_suivi2 <- ggplot(Tab_perc_suivi2, aes(x = date_suivi2, y = perc_suivi, fill = NULL)) +
+  geom_point() +
+  geom_line() +
+  geom_text(aes(label = round(perc_suivi, 0)), position = position_dodge(width = 0.9), vjust = -0.25, size = 5, face = "bold") +
+  scale_x_date(
+    date_breaks = "1 day", date_minor_breaks = "1 day", date_labels = "%d %m"
+  ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1)) +
+  ylim(0, 100) +
+  labs(
+    x = "date de suivi",
+    y = "% de contacts vus"
+  )
+
+
+epi_perc_suivi_district2 <- epi_perc_suivi2 + facet_wrap(~sous_prefecture, ncol = 4) +
+  theme(strip.text.y = element_text(angle = 0)) +
+  theme(strip.text.x = element_text(angle = 0, hjust = 0.5, vjust = 0.5, size = 12, face = "bold")) +
+  theme(panel.spacing = unit(0.5, "lines"))
+
+epi_perc_suivi_district2
+
+imagefile6 <- file.path(directory, "epi_perc_suivi_district2.png")
+
+ggsave(imagefile6, width = 20, height = 6)
+```
+
+
+# Synthese perdus de vus
+
+```{r}
+
+# Last 24 H
+
+Tab_suivis_las24H <- contacts_guinea_actifs_ok %>%
+  filter(follow_up_state != "Doublon") %>%
+  filter(date_suivi2 == "2021-03-13") %>%
+  select(sous_prefecture, follow_up_state) %>%
+  count(sous_prefecture, follow_up_state) %>%
+  spread(follow_up_state, n, fill = 0) %>%
+  mutate(Vu_24H = Vu) %>%
+  mutate(Non_vu_24H = Non_vu) %>%
+  mutate(perc_non_vus_24H = round((Non_vu / (Vu + Non_vu)) * 100, 1)) %>%
+  select(sous_prefecture, Vu_24H, Non_vu_24H, perc_non_vus_24H)
+
+# Last 2 days
+
+
+Tab_suivis_non_vus_las48H <- contacts_guinea_actifs_ok %>%
+  filter(follow_up_state != "Doublon") %>%
+  subset(date_suivi2 == "2021-03-13" | date_suivi2 == "2021-03-12") %>%
+  select(id_contact, sous_prefecture, follow_up_state) %>%
+  count(id_contact, sous_prefecture, follow_up_state) %>%
+  spread(follow_up_state, n, fill = 0)
+
+
+Tab_suivis_non_vus_las48H$follow_up_state2 <- ifelse(Tab_suivis_non_vus_las48H$Non_vu == "2", "Non_vu_last2d", "Vu_last2d")
+
+Tab_suivis_vus_las48H_V2 <- Tab_suivis_non_vus_las48H %>%
+  select(sous_prefecture, follow_up_state2) %>%
+  count(sous_prefecture, follow_up_state2) %>%
+  spread(follow_up_state2, n, fill = 0) %>%
+  mutate(per_non_vus_last2d = round((Non_vu_last2d / (Vu_last2d + Non_vu_last2d)) * 100, 1))
+
+
+Tab_join_summary1 <- Tab_suivis_las24H %>%
+  left_join(Tab_suivis_vus_las48H_V2, by = "sous_prefecture") %>%
+  mutate_all(funs(replace_na(., 0)))
+
+# Last 3 days
+
+Tab_suivis_non_vus_las3d <- contacts_guinea_actifs_ok %>%
+  filter(follow_up_state != "Doublon") %>%
+  subset(date_suivi2 == "2021-03-13" | date_suivi2 == "2021-03-12" | date_suivi2 == "2021-03-11") %>%
+  select(id_contact, sous_prefecture, follow_up_state) %>%
+  count(id_contact, sous_prefecture, follow_up_state) %>%
+  spread(follow_up_state, n, fill = 0)
+
+
+Tab_suivis_non_vus_las3d$follow_up_state3 <- ifelse(Tab_suivis_non_vus_las3d$Non_vu == "3", "Non_vu_last3d", "Vu_last3d")
+
+Tab_suivis_vus_las3d_V2 <- Tab_suivis_non_vus_las3d %>%
+  select(sous_prefecture, follow_up_state3) %>%
+  count(sous_prefecture, follow_up_state3) %>%
+  spread(follow_up_state3, n, fill = 0) %>%
+  mutate(per_non_vus_last3d = round((Non_vu_last3d / (Vu_last3d + Non_vu_last3d)) * 100, 1))
+
+
+Tab_join_summary2 <- Tab_join_summary1 %>%
+  left_join(Tab_suivis_vus_las3d_V2, by = "sous_prefecture") %>%
+  mutate_all(funs(replace_na(., 0))) %>%
+  set_names("Sous-prefecture", "Vus 24H", "Non vus 24H", "% non vus 24H", "Non vus 2 derniers J consec", "Vus 2 derniers J consec", "% non vus 2 derniers J consec", "Perdus de vue", "Vus 3 derniers J consec", "% perdus de vue")
+
+export(
+  Tab_join_summary2,
+  file = here::here("outputs/Tab_join_summary2.xlsx")
+)
+
+# Liste des contacts perdus de vue
+
+Tab_perdu_de_vue <- Tab_suivis_non_vus_las3d %>%
+  filter(Non_vu == "3") %>%
+  select(id_contact, sous_prefecture)
+
+
+Tab_perdu_de_vue2 <- contacts_guinea %>%
+  select(id_contact, date_du_dernier_contact, type_de_contact, lien_avec_le_cas, vaccination)
+
+Liste_contacts_perdus_de_vue <- Tab_perdu_de_vue %>%
+  left_join(Tab_perdu_de_vue2, by = "id_contact")
+
+export(
+  Liste_contacts_perdus_de_vue,
+  file = here::here("outputs/Liste_contacts_perdus_de_vue.xlsx")
+)
+```

@@ -1,6 +1,39 @@
 
 
 
+col2hex <- function(col, alpha) {
+  rgb(t(col2rgb(col)),
+      alpha = alpha, maxColorValue = 255
+  )
+}
+
+prepend_col_nums <- function(df) {
+  names(df) <-
+    names(df) %>%
+    paste(stringr::str_pad(1:ncol(df), 2, pad = 0), .)
+  df
+}
+
+ViewExcel <-
+  function(df = .Last.value,
+           file = tempfile(fileext = ".csv")) {
+    df <- try(as.data.frame(df))
+    stopifnot(is.data.frame(df))
+    utils::write.csv(df, file = file)
+    
+    shell.exec <- function(x) {
+      # replacement for shell.exe (doesn't exist on MAC)
+      if (exists("shell.exec", where = "package:base")) {
+        return(base::shell.exec(x))
+      }
+      comm <- paste("open", x)
+      return(system(comm))
+    }
+    
+    
+    shell.exec(file)
+  }
+
 
 faq_function <- function(question, answer, n){
   paste0('accordion(id = "accordion',n, '",
@@ -10,6 +43,14 @@ faq_function <- function(question, answer, n){
                                tags$p("', answer, '", style = "font-size: 11px; color: #0b8f53")
                                )
                 ),')
+}
+
+## add column if it does not exist
+force_col_to_exist <- function(data, cname) {
+  add <-cname[!cname%in%names(data)]
+  
+  if(length(add)!=0) data[add] <- NA
+  data
 }
 
 

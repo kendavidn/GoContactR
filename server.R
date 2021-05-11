@@ -12,15 +12,26 @@ server <- function(input, output) {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
-  
-
   # ~~ data_to_use_picker ---------------------------
+  if (PARAMS$country_code == "CIV") {
+
   output$data_to_use_picker <- renderUI({
     radioButtons(inputId = "data_to_use", 
                  label = "Input Data", 
                  choices = c("Use preloaded data", 
                              "Use uploaded data"))
   })
+  
+  } else if (PARAMS$country_code == "UGA"){
+    
+    output$data_to_use_picker <- renderUI({
+      radioButtons(inputId = "data_to_use", 
+                   label = "Input Data", 
+                   choices = c("Connect to Go.Data"))
+    })
+    
+    
+  }
   
   # ~~ input_data_preloaded_or_uploaded ---------------------------
   
@@ -57,8 +68,49 @@ server <- function(input, output) {
                                    ".csv", 
                                    ".xlsx",
                                    ".xls")))
+    } else if (input$data_to_use == "Connect to Go.Data"){
+      
+      tagList(textInput("go_data_url",
+                        "URL for your instance:",
+                        value = "https://godata-r13.who.int/"), 
+              textInput("go_data_username", 
+                        "Username:",
+                        value = "godata_api@who.int"),
+              passwordInput("go_data_password", 
+                            "Password:"), 
+              textInput("go_data_outbreak_id", 
+                        "Outbreak ID:", 
+                        value = "3b5554d7-2c19-41d0-b9af-475ad25a382b"),
+              actionBttn("go_data_request_access_button",
+                         "Request access", 
+                         style = "jelly", 
+                         color = "primary"
+                         ), 
+              uiOutput("access_granted")
+              )
+      
       }  
   })
+  
+  output$access_granted <- renderUI({
+    
+    req(input$go_data_url)
+    req(input$go_data_username)
+    req(input$go_data_password)
+    req(input$go_data_outbreak_id)
+    req(input$go_data_request_access_button)
+    
+    if(is.character(request_access_reactive())){
+      c("Successful!")
+    } else {
+      c("Access not permitted. Try again or contact developers.")
+    }
+    
+    
+  })
+    
+  
+  
   
   
   # ~~~~ read_file_raw_reactive ----
@@ -67,13 +119,7 @@ server <- function(input, output) {
     req(input$data_to_use)
     req(input$analyze_action_bttn)
 
-    read_file_raw(
-      data_to_use = input$data_to_use,
-      preloaded_data_options = preloaded_data_options,
-      preloaded_data_choice = input$preloaded_data_choice,
-      uploaded_data_contacts_list_path = input$uploaded_data_contacts_list$datapath,
-      uploaded_data_follow_up_list_path = input$uploaded_data_follow_up_list$datapath
-      )
+    read_file_raw()
     
   })
   
@@ -90,49 +136,21 @@ server <- function(input, output) {
     
   })
   
-  #~~~~ read_file_transformed_admin_1_reactive ----
-
-  read_file_transformed_admin_1_reactive <- reactive({
-    
-    req(input$select_admin_1)
-
-    read_file_transformed_admin_1(
-      contacts_df_long_transformed = read_file_transformed_reactive(),
-      select_admin_1 = input$select_admin_1
-    )
-
-  })
   
   
   # ~~~~ read_file_filtered_reactive ----
   
+  
+  ## can't be inside of a function because the input[[cols_to_filter]] elements would not work
   read_file_filtered_reactive <- reactive({
-    
-    read_file_filtered(
-      contacts_df_long_transformed = read_file_transformed_reactive(),
-      todays_date = todays_date_reactive(),
-      legend_df = legend_df # defined in global.R
-    )
-    
-    
-  })
-  
-  
-  # ~~~~ read_file_filtered_admin_1_reactive ----
-  
-  read_file_filtered_admin_1_reactive <- reactive({
-    
-    req(input$select_admin_1)
 
-    read_file_filtered_admin_1(
-      contacts_df_long_transformed_admin_1 = read_file_transformed_admin_1_reactive(),
-      todays_date = todays_date_admin_1_reactive(),
-      legend_df = legend_df # defined in global.R
-    )
+    req(input$analyze_action_bttn)
+    req(input$filter_or_not)
     
-    
+    read_file_filtered()
+      
+
   })
-  
   
 
 
@@ -151,6 +169,17 @@ server <- function(input, output) {
     if(input$data_to_use == "Use preloaded data") {
       req(input$preloaded_data_choice)
     }
+    
+    if(input$data_to_use == "Connect to Go.Data") {
+      req(input$go_data_url)
+      req(input$go_data_username)
+      req(input$go_data_password)
+      req(input$go_data_outbreak_id)
+      req(input$go_data_request_access_button)
+      #shiny::validate(need(is.character(request_access_reactive())), message = FALSE, label = "Proceed to analysis" )
+  
+    }
+    
     tagList(HTML("<p style='font-size:4px'>  <br><br>  </p>"),
             
             actionBttn(inputId = "analyze_action_bttn", label = "Analyze", 
@@ -238,8 +267,200 @@ server <- function(input, output) {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
+  # ~~~~ ouput$filters----
   
+  output$filters <- renderUI({
+    
+    req(input$analyze_action_bttn)
+    req(input$select_date_of_review)
+    req(input$filter_or_not)
+    
+    if ((!is.null(input$filter_or_not)) && input$filter_or_not == "Yes"){
+      
+    my_data <- 
+      read_file_transformed_reactive() %>% 
+      as.data.frame() %>%  ## not sure why but tibble doesnt work
+      select(-any_of(c("follow_up_date", 
+                       "first_name", 
+                       "last_name", 
+                       "row_id", 
+                       "row_number", 
+                       "sort_number"))) %>% 
+      janitor::remove_constant() 
+      
+    
+    selected_cols <- names(my_data)
+    
+    na_cols <- 
+      my_data %>% 
+      select(where(~ any(is.na(.x))  )) %>% 
+      ## there are some columns which, although may come in as NA in the read_file_transformed_reactive(),
+      ## will be filled before being passed along to read_file_filtered(). 
+      ## therefore, we do not need to show NAs for these columns
+      select(-(any_of(c("follow_up_day", 
+                        "follow_up_status",
+                        "follow_up_status_simple",
+                        "follow_up_start_date"
+                        ) ))) %>% 
+      names()
+    
+    #browser()
+    
+    labels <- lapply(1:length(selected_cols), FUN = function(x){
+      selected_cols[x]
+    })
+    
+    choices <- lapply(1:length(selected_cols), FUN = function(x){
+      unique(my_data[ ,selected_cols[x]]) 
+    })
+    
+    
+    ## first we render each ui in the list
+    lapply(1:length(labels), function(i) {
+      
+      output[[labels[[i]]]] <- renderUI({
+        col <- my_data[ ,selected_cols[i]]
+        
+        
+        ## factor columns
+       if (is.factor(col)) {
+          
+         if (any(is.na(col)) & labels[[i]] %in% na_cols){
+         tagList(
+             
+          pickerInput(labels[[i]],
+                      label = labels[[i]],
+                      choices = na.omit(levels(choices[[i]])),
+                      selected = na.omit(levels(choices[[i]])),
+                      options = list(`actions-box` = TRUE),
+                      multiple = TRUE), 
+          
+          checkboxInput(paste0("na_", labels[[i]]),
+                        label = paste0("Include contacts w. missing values for ", labels[[i]], "?"), 
+                        value = TRUE)
+          )
+         } else {
+           pickerInput(labels[[i]],
+                       label = labels[[i]],
+                       choices = na.omit(levels(choices[[i]])),
+                       selected = na.omit(levels(choices[[i]])),
+                       options = list(`actions-box` = TRUE),
+                       multiple = TRUE)
+         }
+          
+         ## character columns
+        } else if (is.character(col)) {
+          
+          
+          if (any(is.na(col)) & labels[[i]] %in% na_cols){
+            tagList(pickerInput(labels[[i]],
+                      label = labels[[i]],
+                      choices = na.omit(choices[[i]]),
+                      selected = na.omit(choices[[i]]),
+                      options = list(`actions-box` = TRUE),
+                      multiple = TRUE), 
+                    checkboxInput(paste0("na_", labels[[i]]),
+                                  label = paste0("Include contacts w. missing values for ", labels[[i]], "?"), 
+                                  value = TRUE)
+            )
+          } else {
+            pickerInput(labels[[i]],
+                                label = labels[[i]],
+                                choices = na.omit(choices[[i]]),
+                                selected = na.omit(choices[[i]]),
+                                options = list(`actions-box` = TRUE),
+                                multiple = TRUE)
+          }
+          
+          ## numeric columns 
+        } else if (is.numeric(col)) {
+         if (any(is.na(col)) & labels[[i]] %in% na_cols){
+            tagList(sliderInput(labels[[i]],
+                      label = labels[[i]],
+                      min = min(col, na.rm = TRUE),
+                      max = max(col, na.rm = TRUE),
+                      value = c(min(col, na.rm = TRUE), max(col, na.rm = TRUE))), 
+                    
+                    checkboxInput(paste0("na_", labels[[i]]),
+                                  label = paste0("Include contacts w. missing values for ", labels[[i]], "?"), 
+                                  value = TRUE)
+                    
+            )
+          } else {
+            sliderInput(labels[[i]],
+                        label = labels[[i]],
+                        min = min(col, na.rm = TRUE),
+                        max = max(col, na.rm = TRUE),
+                        value = c(min(col, na.rm = TRUE), max(col, na.rm = TRUE)))
+            
+            }
+          
+          ## date columns 
+        } else if (lubridate::is.Date(col)) {
+          
+        if (any(is.na(col)) & labels[[i]] %in% na_cols){
+            tagList(
+          dateRangeInput(labels[[i]],
+                         label = labels[[i]],
+                         min = min(col, na.rm = TRUE),
+                         max = max(col, na.rm = TRUE), 
+                         start = min(col, na.rm = TRUE), 
+                         end = max(col, na.rm = TRUE)), 
+          
+          checkboxInput(paste0("na_", labels[[i]]),
+                        label = paste0("Include contacts w. missing values for ", labels[[i]], "?"), 
+                        value = TRUE)
+            )
+          } else {
+              
+            dateRangeInput(labels[[i]],
+                           label = labels[[i]],
+                           min = min(col, na.rm = TRUE),
+                           max = max(col, na.rm = TRUE), 
+                           start = min(col, na.rm = TRUE), 
+                           end = max(col, na.rm = TRUE))
+            
+            }
+        }
+        
+        
+        
+      })
+      
+    })
+    
+    lapply(1:length(labels), function(i) {
+      uiOutput(labels[[i]])
+    })
+    
+    }
+    
+    
+  })
   
+  output$additional_filters_text <- renderUI({
+    
+    req(input$filter_or_not)
+    
+    if ((!is.null(input$filter_or_not)) && input$filter_or_not == "Yes"){
+    
+    tagList(
+    h6("Use the input pickers and sliders to filter your data"),
+    HTML( "<font size='1'>
+            Note that the following are not shown: <br>
+          • Empty or constant columns; <br>
+          • Name columns; and <br>
+          • the date of follow-up column <br>
+          Also note that the options for each filter do not react to selections on other filters.
+                               </font>")
+    )
+    } else { 
+      HTML(c(" ")) 
+      }
+    
+  })
+  
+
   # ~~ select_date_of_review---------------------------
   
   output$select_date_of_review <- renderUI({
@@ -301,8 +522,9 @@ server <- function(input, output) {
                 choices = c(
                   "pptx",
                   "docx", 
-                  #"pdf", 
-                  "html"
+                  "pdf", 
+                  "html (page)",
+                  "html (slides)"
                   ))
     
   })
@@ -333,6 +555,7 @@ server <- function(input, output) {
     renderValueBox({
       req(input$select_date_of_review)
       req(input$analyze_action_bttn)
+      shiny::validate(need(nrow(read_file_filtered_reactive()) > 0, message = FALSE))
       
       contacts_per_day_value_box(contacts_df_long = read_file_filtered_reactive(),
                                  todays_date = todays_date_reactive()) %>% 
@@ -344,6 +567,7 @@ server <- function(input, output) {
     renderValueBox({
       req(input$select_date_of_review)
       req(input$analyze_action_bttn)
+      shiny::validate(need(nrow(read_file_filtered_reactive()) > 0, message = FALSE))
       
       cumulative_contacts_value_box(contacts_df_long = read_file_filtered_reactive(),
                                     todays_date = todays_date_reactive()) %>% 
@@ -355,6 +579,7 @@ server <- function(input, output) {
     renderValueBox({
       req(input$select_date_of_review)
       req(input$analyze_action_bttn)
+      shiny::validate(need(nrow(read_file_filtered_reactive()) > 0, message = FALSE))
       
       contacts_under_surveillance_value_box(contacts_df_long = read_file_filtered_reactive(),
                                             todays_date = todays_date_reactive()) %>% 
@@ -366,6 +591,7 @@ server <- function(input, output) {
     renderValueBox({
       req(input$select_date_of_review)
       req(input$analyze_action_bttn)
+      shiny::validate(need(nrow(read_file_filtered_reactive()) > 0, message = FALSE))
       
       pct_contacts_followed_value_box(contacts_df_long = read_file_filtered_reactive(),
                                       todays_date = todays_date_reactive())%>% 
@@ -642,10 +868,13 @@ server <- function(input, output) {
   
 
   
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #   main_tab_admin_1 ----
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # ~~  main_tab_admin_1 ----
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
   
   output$select_admin_1 <- renderUI({

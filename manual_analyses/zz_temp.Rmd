@@ -1,0 +1,45 @@
+---
+title: "Untitled"
+author: "Kenechukwu Nwosu"
+date: "4/24/2021"
+output:
+  rmarkdown::html_document:
+    theme: cerulean
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Level 1
+
+### level 3
+```{r}
+library(tidyverse)
+library(plotly) 
+
+iris_plot <- function(){
+  
+  return((iris %>% 
+    ggplot() + 
+    geom_point(aes(x = Sepal.Width, y = Sepal.Length, color =  Species)) + 
+    annotate("segment", x = 1, xend = 20, y = 1, yend = 20)) %>% 
+  ggplotly())
+  
+}
+
+ (iris %>% 
+    ggplot() + 
+    geom_point(aes(x = Sepal.Width, y = Sepal.Length, color = Species)) + 
+    annotate("segment", x = 1, xend = 20, y = 1, yend = 20)) %>% 
+  ggplotly()
+
+iris_plot()
+
+renv::install()
+    
+```
+

@@ -1,3 +1,11 @@
+
+PARAMS <- list()
+PARAMS$testing_mode <- FALSE
+PARAMS$fake_data <- TRUE
+#PARAMS$country_code <- "UGA"
+PARAMS$country_code <- "UGA"
+## App currently built for CIV and UGA
+## CIV & UGA
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Packages ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -12,20 +20,7 @@
 
 
 
-require("remotes")
-
-# ## to ensure code stability, ALWAYS load specific package version
-# packages_and_their_versions <-
-#   list(c("webshot", "0.5.2"),
-#        c("here", "1.0.1"))
-#
-# ## the code below installs the package version if it does not already exist
-# packages <- unlist(lapply(packages_and_their_versions, `[[`, 1))
-# versions <- unlist(lapply(packages_and_their_versions, `[[`, 2))
-#
-# mapply(remotes::install_version, package = packages, version = versions, force = FALSE)
-
-
+library("remotes")
 
 library(webshot)
 
@@ -66,11 +61,15 @@ library(officedown) # remotes::install_github("davidgohel/officedown", force = T
 library(pagedreport)
 library(promises)
 library(clock)
-
-
-
-library(tidyverse)
 library(plotly)
+library(charlatan)
+
+## for godata
+library(httr)
+library(jsonlite)
+
+## last to avoid masking
+library(tidyverse)
 
 
 
@@ -91,39 +90,6 @@ options(tibble.print_max = 35, tibble.print_min = 35)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 source(here("helper_scripts/misc_functions.R"), local = T)
-
-col2hex <- function(col, alpha) {
-  rgb(t(col2rgb(col)),
-    alpha = alpha, maxColorValue = 255
-  )
-}
-
-prepend_col_nums <- function(df) {
-  names(df) <-
-    names(df) %>%
-    paste(stringr::str_pad(1:ncol(df), 2, pad = 0), .)
-  df
-}
-
-ViewExcel <-
-  function(df = .Last.value,
-           file = tempfile(fileext = ".csv")) {
-    df <- try(as.data.frame(df))
-    stopifnot(is.data.frame(df))
-    utils::write.csv(df, file = file)
-
-    shell.exec <- function(x) {
-      # replacement for shell.exe (doesn't exist on MAC)
-      if (exists("shell.exec", where = "package:base")) {
-        return(base::shell.exec(x))
-      }
-      comm <- paste("open", x)
-      return(system(comm))
-    }
-
-
-    shell.exec(file)
-  }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Read in preloaded datasets ----
@@ -210,9 +176,29 @@ legend_df <-
     "Devenu cas confirme", col2hex("orangered"),
     "Sorti sain", col2hex("darkolivegreen4"),
     "Deplacé", col2hex("wheat3"),
+    "Not generated", col2hex("wheat4"),
     "Fin du suivi", col2hex("dodgerblue3"),
     "Suivi futur", col2hex("goldenrod"),
     "Decede", col2hex("purple3")
+  ) %>%
+  arrange(breaks) %>%
+  mutate(breaks = fct_inorder(breaks)) %>%
+  mutate(legend_index = row_number())
+
+
+## Uganda version
+legend_df <-
+  tribble(
+    ~breaks, ~colors,
+    "Missed", col2hex("gray50"),
+    "Missing", col2hex("black"),
+    "Seen, Ok", col2hex("lightseagreen"),
+    "Seen, Not Ok", col2hex("orangered"),
+    "Not attempted", col2hex("wheat3"),
+    "Not performed", col2hex("blueviolet"),
+    "Not generated", col2hex("purple3"),
+    "End of follow-up", col2hex("dodgerblue3"),
+    "Future follow-up", col2hex("goldenrod")
   ) %>%
   arrange(breaks) %>%
   mutate(breaks = fct_inorder(breaks)) %>%

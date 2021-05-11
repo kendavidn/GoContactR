@@ -1,0 +1,74 @@
+% \usepackage[export]{adjustbox}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+% \usepackage{framed}
+% \usepackage{tcolorbox}
+% \usepackage{tikz}
+% \usetikzlibrary{calc}
+% \usepackage{tikzpagenodes}
+\usepackage{float}
+% \usepackage{booktabs}
+% \usepackage{tabularx}
+% \usepackage{colortbl}
+% \usepackage{graphicx}
+% \usepackage{longtable}
+
+%sans-serif font
+% \usepackage{helvet}
+% \renewcommand{\familydefault}{\sfdefault} % sans serif
+% \fontfamily{ppl}\selectfont
+% 
+% \makeatletter
+% \global\let\tikz@ensure@dollar@catcode=\relax
+% \makeatother
+
+\fancyhf{}
+
+% \chead{
+% \vspace{2cm}
+% \includegraphics[width=21.7cm,height = 7cm, center]{who_header.png}
+% }
+
+% numbering pages
+\fancyfoot[C]{
+\includegraphics[width=21.7cm,height = 4cm, center]{who_footer.png}
+}
+
+% \def\chpcolor{blue!60!green}
+% \def\chpcolortxt{blue!60!green}
+% \def\sectionfont{\sffamily\LARGE}
+% 
+% \setcounter{secnumdepth}{2}
+% 
+% \makeatletter
+% %Section:
+% \def\@sectionstrut{\vrule\@width\z@\@height12.5\p@}
+% \def\@makesectionhead#1{%
+%   {\par\vspace{20pt}%
+%    \parindent 0pt\raggedleft\sectionfont
+%    \colorbox{\chpcolor}{%
+%      \parbox[t]{90pt}{\color{white}\@sectionstrut\@depth4.5\p@\hfill
+%        \ifnum\c@secnumdepth>\z@\thesection\fi}%
+%    }%
+%    \begin{minipage}[t]{\dimexpr\textwidth-90pt-2\fboxsep\relax}
+%    \color{\chpcolortxt}\@sectionstrut\hspace{5pt}#1
+%    \end{minipage}\par
+%    \vspace{10pt}%
+%   }
+% }
+% \def\section{\@afterindentfalse\secdef\@section\@section}
+% \def\@section[#1]#2{%
+%   \ifnum\c@secnumdepth>\m@ne
+%     \refstepcounter{section}%
+%     \addcontentsline{toc}{section}{\protect\numberline{\thesection}#1}%
+%   \else
+%     \phantomsection
+%     \addcontentsline{toc}{section}{#1}%
+%   \fi
+%   \sectionmark{#1}%
+%   \if@twocolumn
+%     \@topnewpage[\@makesectionhead{#2}]%
+%   \else
+%     \@makesectionhead{#2}\@afterheading
+%   \fi
+% }

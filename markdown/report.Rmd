@@ -105,11 +105,11 @@ body {
 
 if (params$rendered_by_shiny == FALSE){
   
-  report_format <- "html"
+  report_format <- "html (page)"
   data_to_use <-  "Use preloaded data"
   data_to_use <-  "Use uploaded data"
   preloaded_data_choice <- "Sample tracing data"
-  select_region <- "Abidjan 1"
+  select_admin_1 <- "Abidjan 1"
   
   if (data_to_use == "Use preloaded data")   todays_date <- as.Date("2021-04-13")
   if (data_to_use == "Use uploaded data")   todays_date <- as.Date("2021-02-20")
@@ -143,7 +143,7 @@ if (params$rendered_by_shiny == FALSE){
   contacts_df_long_transformed_admin_1 <- 
     read_file_transformed_admin_1(
       contacts_df_long_transformed = contacts_df_long_transformed, 
-      select_region = select_region
+      select_admin_1 = select_admin_1
       )
   
 # ~~~~ read_file_filtered ----
@@ -221,8 +221,8 @@ update_rmd_progress()
 
 ## {.unlisted .unnumbered}
 
-```{r allContactsPerRegionText, results = "asis"}
-all_contacts_per_region_text(contacts_df_long,
+```{r allContactsPerAdmin1Text, results = "asis"}
+all_contacts_per_admin_1_text(contacts_df_long,
                                todays_date,
                                report_format)
 
@@ -232,8 +232,8 @@ update_rmd_progress()
 
 ### Admin level 1 breakdown bar chart
 
-```{r allContactsPerRegionBarChart}
-all_contacts_per_region_bar_chart(contacts_df_long,
+```{r allContactsPerAdmin1BarChart}
+all_contacts_per_admin_1_bar_chart(contacts_df_long,
                                       todays_date,
                                       report_format)
 update_rmd_progress()
@@ -241,8 +241,8 @@ update_rmd_progress()
 
 ### Admin level 1 breakdown sunburst plot
 
-```{r allContactsPerRegionSunburstPlot}
-all_contacts_per_region_sunburst_plot(contacts_df_long,
+```{r allContactsPerAdmin1SunburstPlot}
+all_contacts_per_admin_1_sunburst_plot(contacts_df_long,
                                       todays_date,
                                       report_format)
 update_rmd_progress()
@@ -250,9 +250,9 @@ update_rmd_progress()
 
 ### Admin level 1 breakdown table
 
-```{r allContactsPerRegionTable}
+```{r allContactsPerAdmin1Table}
 
-all_contacts_per_region_table(contacts_df_long,
+all_contacts_per_admin_1_table(contacts_df_long,
                               todays_date,
                               report_format)
 update_rmd_progress()
@@ -265,8 +265,8 @@ update_rmd_progress()
 
 ## {.unlisted .unnumbered}
 
-```{r contactsUnderSurveillancePerRegionOverTimeText, results = "asis"}
-contacts_under_surveillance_per_region_over_time_text(contacts_df_long,
+```{r contactsUnderSurveillancePerAdmin1OverTimeText, results = "asis"}
+contacts_under_surveillance_per_admin_1_over_time_text(contacts_df_long,
                                                       todays_date,
                                                       report_format)
 update_rmd_progress()
@@ -274,16 +274,16 @@ update_rmd_progress()
 
 
 ### Admin level 1 trends, absolute counts
-```{r contactsUnderSurveillancePerRegionOverTimeBarChart}
-contacts_under_surveillance_per_region_over_time_bar_chart(contacts_df_long,
+```{r contactsUnderSurveillancePerAdmin1OverTimeBarChart}
+contacts_under_surveillance_per_admin_1_over_time_bar_chart(contacts_df_long,
                                                            todays_date,
                                                            report_format)
 update_rmd_progress()
 ```
 
 ### Admin level 1 trends, relative proportions
-```{r contactsUnderSurveillancePerRegionOverTimeBarChartRelative}
-contacts_under_surveillance_per_region_over_time_bar_chart_relative(contacts_df_long,
+```{r contactsUnderSurveillancePerAdmin1OverTimeBarChartRelative}
+contacts_under_surveillance_per_admin_1_over_time_bar_chart_relative(contacts_df_long,
                                                                     todays_date,
                                                                     report_format)
 update_rmd_progress()
@@ -372,7 +372,7 @@ active_contacts_timeline_text(contacts_df_long,
 
 ### Follow-up summary bar chart
 
-```{r activeContactsBreakdownBarChart, fig.width = 7, dpi = if(report_format == "html"){96} else {300} }
+```{r activeContactsBreakdownBarChart, fig.width = 7, dpi = if(report_format %in% c("html (page)", "html (slides)")) {96} else {300} }
 active_contacts_breakdown_bar_chart(contacts_df_long,
                            todays_date,
                            report_format,
@@ -384,7 +384,7 @@ update_rmd_progress()
 
 ### Follow-up timeline snake plot
 
-```{r activeContactsTimelineSnakePlot, fig.width = 7, dpi = if(report_format == "html"){96} else {300} }
+```{r activeContactsTimelineSnakePlot, fig.width = 7, dpi =  if(report_format %in% c("html (page)", "html (slides)")) {96} else {300} }
 active_contacts_timeline_snake_plot(contacts_df_long,
                            todays_date,
                            report_format,

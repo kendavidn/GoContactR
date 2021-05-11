@@ -5,10 +5,10 @@ account: gocontactr
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4019542
-bundleId: 4544343
+bundleId: 4565287
 url: https://gocontactr.shinyapps.io/CotedIvoire/
-when: 1619899192.28531
-lastSyncTime: 1619899192.28533
+when: 1620308110.65225
+lastSyncTime: 1620308110.65227
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .Rprofile
+ignoredFiles: .Rprofile|go_data|manual_analyses
