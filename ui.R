@@ -84,7 +84,7 @@ load_data_tab_row_2 <-
                                                         "Missingness"),
                                         HTML("<br>
                                              The plot below shows the data types and missingess for the loaded dataset.
-                                             If the dataset has more than 1000 rows, then it was downsampled to 1000 rows to hasten plotting speed. 
+                                             If the dataset has more than 500 rows, then it was downsampled to 500 rows to hasten plotting speed. 
                                              Repetitive variables (e.g. follow-up days), are not shown. <br> <br>
                                              "),
                                         plotOutput("data_completeness_plot") %>%
@@ -94,7 +94,7 @@ load_data_tab_row_2 <-
                                                         "Cardinality"),
                                         HTML("<br>
                                              The plot below shows the frequency of categorical levels in the loaded dataset.
-                                             If the dataset has more than 1000 rows, then it was downsampled to 1000 rows to hasten plotting speed. 
+                                             If the dataset has more than 500 rows, then it was downsampled to 500 rows to hasten plotting speed. 
                                              Please check that key columns are coded properly.  <br> <br>
                                              "),
                                         plotOutput("data_cardinality_plot") %>%
@@ -162,7 +162,7 @@ main_tab_row_00 <-
                closable = FALSE,
                collapsible = TRUE,
                fluidRow(column(width = 5,
-                               uiOutput("select_format", style = "height: 4.7em;")
+                               uiOutput("select_report_format", style = "height: 4.7em;")
                                ),
                         column(width = 7, 
                                uiOutput("download_report_button"))
@@ -182,10 +182,11 @@ main_tab_select_columns <-
                collapsed = TRUE,
                fluidRow(style = "height: 30vh; overflow-y:auto",
                         column(width = 4,
-                               radioButtons("filter_or_not", 
+                               HTML("<br>"),
+                               materialSwitch("filter_or_not", 
                                             label = "Load additional filters?", 
-                                            choices = c("Yes", "No"), 
-                                            selected = "No"),
+                                            value = FALSE, 
+                                            status = "info"),
                                htmlOutput("additional_filters_text")
                                ),
                         column(width = 8, 
@@ -270,10 +271,10 @@ main_tab_row_2 <-
     fluidRow(column(width = 12,
                column(width = 9,
                       tabsetPanel(tabPanel(title = "Absolute numbers",
-                                           highchartOutput("contacts_under_surveillance_per_admin_1_over_time_bar_chart") %>%
+                                           highchartOutput("contacts_surveilled_admin_1_bar_chart") %>%
                                              withSpinner(type = 6, color = burnt_sienna)),
                                   tabPanel(title = "Relative proportions",
-                                           highchartOutput("contacts_under_surveillance_per_admin_1_over_time_bar_chart_relative") %>%
+                                           highchartOutput("contacts_surveilled_admin_1_bar_chart_relative") %>%
                                              withSpinner(type = 6, color = burnt_sienna)) 
                                   
                       )
@@ -282,7 +283,7 @@ main_tab_row_2 <-
                       tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
                                                            "Description"),
                                            style = "overflow-y:auto",
-                                           htmlOutput("contacts_under_surveillance_per_admin_1_over_time_text") %>% 
+                                           htmlOutput("contacts_surveilled_admin_1_text") %>% 
                                              withSpinner(type = 1, color = burnt_sienna))
                       )
                )
@@ -457,10 +458,10 @@ main_tab <- tabItem("main_tab",
 #   fluidRow(column(width = 12,
 #                column(width = 9,
 #                       tabsetPanel(tabPanel(title = "Absolute numbers",
-#                                            highchartOutput("contacts_under_surveillance_per_admin_1_over_time_bar_chart_admin_1") %>%
+#                                            highchartOutput("contacts_surveilled_admin_1_bar_chart_admin_1") %>%
 #                                              withSpinner(type = 6, color = burnt_sienna)),
 #                                   tabPanel(title = "Relative proportions",
-#                                            highchartOutput("contacts_under_surveillance_per_admin_1_over_time_bar_chart_relative_admin_1") %>%
+#                                            highchartOutput("contacts_surveilled_admin_1_bar_chart_relative_admin_1") %>%
 #                                              withSpinner(type = 6, color = burnt_sienna)) 
 #                                   
 #                       )
@@ -469,7 +470,7 @@ main_tab <- tabItem("main_tab",
 #                       tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
 #                                                            "Description"),
 #                                            style = "overflow-y:auto",
-#                                            htmlOutput("contacts_under_surveillance_per_admin_1_over_time_text_admin_1") %>% 
+#                                            htmlOutput("contacts_surveilled_admin_1_text_admin_1") %>% 
 #                                              withSpinner(type = 1, color = burnt_sienna))
 #                       )
 #                )

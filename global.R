@@ -5,14 +5,18 @@
 #'  toc: yes
 #'  toc_depth: 2
 #'  toc_float: yes
+#'  number_sections: true
 #'---
 
 #' The global.R file is run once before your app starts. 
 #' Any R objects created here global.R file become available to the app.R file, 
 #' the ui.R and the server.R files. 
 
-#
+
 #' # Main parameters
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  Main parameters ----
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' The application has been built to work with two main data sources: 
 #' contact tracing data from KoboCollect-exported csv files,
 #' and contact tracing data from a Go.Data instance (by direct API connection)
@@ -21,12 +25,7 @@
 #' This ensures that the correct data import elements are loaded in the app, 
 #' either the elements for KoboCollect csv import and processing, 
 #' or the elements for connecting to, and downloading from the Go.Data instance.
-#' 
-#' 
-#' 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~  Main parameters ----
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 PARAMS <- list()
 #PARAMS$country_code <- "UGA"
 #PARAMS$country_code <- "CDO"
@@ -37,12 +36,12 @@ PARAMS$fake_data <- TRUE
 
 
 #' # Packages 
-#' I would normally load packages with `pacman::p_load` 
-#' but I had some trouble with this when deploying to shiny 
-#+ message=FALSE, warning=FALSE, fig.width=7
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Packages ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' I would normally load packages with `pacman::p_load` 
+#' but I had some trouble with this when deploying to shiny 
+#+ message=FALSE, warning=FALSE, fig.width=7
 library(remotes)
 if (!webshot::is_phantomjs_installed()) webshot::install_phantomjs()
 library(webshot)  ##  for screenshots of htmlwidgets when outputting
@@ -95,19 +94,20 @@ library(tidyverse) ## tidyverse called last to avoid masking
 
 
 #' # Misc options
-#' A few miscellaneous settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Misc options ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' A few miscellaneous settings
 options(scipen = 999) # turn off scientific notation
 set.seed(1) # fix seed
 options(tibble.print_max = 35, tibble.print_min = 35) # personal preference
 
+
 #' # Misc functions
-#' Random functions used throughout the application
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~ Misc functions ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Random functions used throughout the application
 source(here("helper_scripts/misc_functions.R"), local = T)
 
 
@@ -192,9 +192,9 @@ legend_df <-
   mutate(legend_index = row_number())
 }
 
-#' ## Highcharter theme
+#' # Highcharter themes
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~ highcharter themes ----
+# ~~ Highcharter themes ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # ~~~~ Palette ----
@@ -216,8 +216,9 @@ new_colors <-
 ## combine to final palette
 highcharter_palette <- c(highcharter_palette_initial, new_colors)
 
-#' ### Menu items for highcharter
+#' ## Menu items for highcharter
 # ~~~~ Menu items for highcharter ----
+
 myMenuItems <-
   c(
     "printChart",
@@ -232,7 +233,7 @@ myMenuItems <-
     "downloadXLS"
   )
 
-#' ### Combine into final theme
+#' ## Combine into final theme
 # ~~~~ Combine into final theme ----
 newtheme <-
   hc_theme_merge(
@@ -255,8 +256,8 @@ newtheme <-
 
 options(highcharter.theme = newtheme)
 
-
-# ~~~ theme for sparklines in value boxes ----
+#' ## Theme for sparklines in value boxes
+# ~~~ Theme for sparklines in value boxes ----
 #' This theme is very minimalist. Equivalent to theme_void in ggplot. 
 #' Still hoverable though.
 

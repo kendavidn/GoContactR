@@ -74,9 +74,6 @@
       <a href="../articles/global.html">Global.R</a>
     </li>
     <li>
-      <a href="../articles/knitr_spin_test.html">A report generated from a pure R script</a>
-    </li>
-    <li>
       <a href="../articles/server.html">Server.R</a>
     </li>
   </ul>
@@ -119,33 +116,29 @@
 
     
     
-<p>The global.R file is run once before your app starts. Any R objects created here global.R file become available to the app.R file, the ui.R and the server.R files.</p>
+<p>The global.R file is run once before your app starts. Any R objects created here global.R file become available to the app.R file, the ui.R and the server.R files. # Main parameters</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co">#</span></code></pre></div>
-<div id="main-parameters" class="section level1">
-<h1 class="hasAnchor">
-<a href="#main-parameters" class="anchor"></a>Main parameters</h1>
-<p>The application has been built to work with two main data sources: contact tracing data from KoboCollect-exported csv files, and contact tracing data from a Go.Data instance (by direct API connection) Here, at the beginning of the global.R file, we set the PARAMS$country_code variable to the country being worked on. This ensures that the correct data import elements are loaded in the app, either the elements for KoboCollect csv import and processing, or the elements for connecting to, and downloading from the Go.Data instance.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~  Main parameters ----</span>
-<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
-<span class="va">PARAMS</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span>
+<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
+<p>The application has been built to work with two main data sources: contact tracing data from KoboCollect-exported csv files, and contact tracing data from a Go.Data instance (by direct API connection) Here, at the beginning of the global.R file, we set the PARAMS$country_code variable to the country being worked on. This ensures that the correct data import elements are loaded in the app, either the elements for KoboCollect csv import and processing, or the elements for connecting to, and downloading from the Go.Data instance.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">PARAMS</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span>
 <span class="co">#PARAMS$country_code &lt;- "UGA"</span>
 <span class="co">#PARAMS$country_code &lt;- "CDO"</span>
 <span class="va">PARAMS</span><span class="op">$</span><span class="va">country_code</span> <span class="op">&lt;-</span> <span class="st">"CIV"</span> 
 <span class="va">PARAMS</span><span class="op">$</span><span class="va">testing_mode</span> <span class="op">&lt;-</span> <span class="cn">FALSE</span>
 <span class="va">PARAMS</span><span class="op">$</span><span class="va">fake_data</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></code></pre></div>
-</div>
 <div id="packages" class="section level1">
 <h1 class="hasAnchor">
 <a href="#packages" class="anchor"></a>Packages</h1>
-<p>I would normally load packages with <code>pacman::p_load</code> but I had some trouble with this when deploying to shiny</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~  Packages ----</span>
-<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://remotes.r-lib.org">remotes</a></span><span class="op">)</span>
+<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
+<p>I would normally load packages with <code>pacman::p_load</code> but I had some trouble with this when deploying to shiny</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://remotes.r-lib.org">remotes</a></span><span class="op">)</span>
 <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu">webshot</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/webshot/man/is_phantomjs_installed.html">is_phantomjs_installed</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="fu">webshot</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/webshot/man/install_phantomjs.html">install_phantomjs</a></span><span class="op">(</span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/wch/webshot/">webshot</a></span><span class="op">)</span>  <span class="co">##  for screenshots of htmlwidgets when outputting</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://here.r-lib.org/">here</a></span><span class="op">)</span> 
@@ -197,34 +190,36 @@
 <div id="misc-options" class="section level1">
 <h1 class="hasAnchor">
 <a href="#misc-options" class="anchor"></a>Misc options</h1>
-<p>A few miscellaneous settings</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~  Misc options ----</span>
-<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
-<span class="fu"><a href="https://rdrr.io/r/base/options.html">options</a></span><span class="op">(</span>scipen <span class="op">=</span> <span class="fl">999</span><span class="op">)</span> <span class="co"># turn off scientific notation</span>
+<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
+<p>A few miscellaneous settings</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/options.html">options</a></span><span class="op">(</span>scipen <span class="op">=</span> <span class="fl">999</span><span class="op">)</span> <span class="co"># turn off scientific notation</span>
 <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="co"># fix seed</span>
 <span class="fu"><a href="https://rdrr.io/r/base/options.html">options</a></span><span class="op">(</span>tibble.print_max <span class="op">=</span> <span class="fl">35</span>, tibble.print_min <span class="op">=</span> <span class="fl">35</span><span class="op">)</span> <span class="co"># personal preference</span></code></pre></div>
 </div>
 <div id="misc-functions" class="section level1">
 <h1 class="hasAnchor">
 <a href="#misc-functions" class="anchor"></a>Misc functions</h1>
-<p>Random functions used throughout the application</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~~ Misc functions ----</span>
-<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
-<span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="st">"helper_scripts/misc_functions.R"</span><span class="op">)</span>, local <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></code></pre></div>
+<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
+<p>Random functions used throughout the application</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="st">"helper_scripts/misc_functions.R"</span><span class="op">)</span>, local <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="set-colors-and-themes" class="section level1">
 <h1 class="hasAnchor">
 <a href="#set-colors-and-themes" class="anchor"></a>Set colors and themes</h1>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~~ Set colors and themes ----</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
 <p>Save some hex codes as named colors for use in app</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">space_cadet</span> <span class="op">&lt;-</span> <span class="st">"#1C2541"</span>
 <span class="va">white</span> <span class="op">&lt;-</span> <span class="st">"#FFFFFF"</span>
 <span class="va">alice_blue</span> <span class="op">&lt;-</span> <span class="st">"#D9F0FE"</span>
@@ -235,7 +230,7 @@
 <span class="va">bright_yellow_crayola</span> <span class="op">&lt;-</span> <span class="st">"#FFB238"</span>
 <span class="va">spinner_color</span> <span class="op">&lt;-</span> <span class="va">burnt_sienna</span> <span class="op">&lt;-</span> <span class="st">"#EE6C4D"</span></code></pre></div>
 <p>Here we set the params for the <code>fresh</code> theme. The <code>fresh</code> package permits easy customization of shinydashboard colors.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">my_fresh_theme</span> <span class="op">&lt;-</span>
   <span class="fu">fresh</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/fresh/man/create_theme.html">create_theme</a></span><span class="op">(</span>
     <span class="fu">fresh</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/fresh/man/adminlte_color.html">adminlte_color</a></span><span class="op">(</span>
@@ -253,7 +248,7 @@
     <span class="op">)</span>
   <span class="op">)</span></code></pre></div>
 <p>Set a color legend for each country/ app version. This feeds the colors on active contacts plots (app tab 2)</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw">if</span> <span class="op">(</span><span class="va">PARAMS</span><span class="op">$</span><span class="va">country_code</span> <span class="op">==</span> <span class="st">"CIV"</span><span class="op">)</span><span class="op">{</span>
   
 <span class="va">legend_df</span> <span class="op">&lt;-</span>
@@ -292,12 +287,13 @@
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu">fct_inorder</span><span class="op">(</span><span class="va">breaks</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>legend_index <span class="op">=</span> <span class="fu">row_number</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span></code></pre></div>
-<div id="highcharter-theme" class="section level2">
-<h2 class="hasAnchor">
-<a href="#highcharter-theme" class="anchor"></a>Highcharter theme</h2>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+</div>
+<div id="highcharter-themes" class="section level1">
+<h1 class="hasAnchor">
+<a href="#highcharter-themes" class="anchor"></a>Highcharter themes</h1>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
-<span class="co"># ~~ highcharter themes ----</span>
+<span class="co"># ~~ Highcharter themes ----</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 
 <span class="co"># ~~~~ Palette ----</span>
@@ -318,11 +314,12 @@
   <span class="fu"><a href="https://rdrr.io/r/base/rev.html">rev</a></span><span class="op">(</span><span class="op">)</span>
 <span class="co">## combine to final palette</span>
 <span class="va">highcharter_palette</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">highcharter_palette_initial</span>, <span class="va">new_colors</span><span class="op">)</span></code></pre></div>
-<div id="menu-items-for-highcharter" class="section level3">
-<h3 class="hasAnchor">
-<a href="#menu-items-for-highcharter" class="anchor"></a>Menu items for highcharter</h3>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div id="menu-items-for-highcharter" class="section level2">
+<h2 class="hasAnchor">
+<a href="#menu-items-for-highcharter" class="anchor"></a>Menu items for highcharter</h2>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~ Menu items for highcharter ----</span>
+
 <span class="va">myMenuItems</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>
     <span class="st">"printChart"</span>,
@@ -337,10 +334,10 @@
     <span class="st">"downloadXLS"</span>
   <span class="op">)</span></code></pre></div>
 </div>
-<div id="combine-into-final-theme" class="section level3">
-<h3 class="hasAnchor">
-<a href="#combine-into-final-theme" class="anchor"></a>Combine into final theme</h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div id="combine-into-final-theme" class="section level2">
+<h2 class="hasAnchor">
+<a href="#combine-into-final-theme" class="anchor"></a>Combine into final theme</h2>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~ Combine into final theme ----</span>
 <span class="va">newtheme</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="http://jkunst.com/highcharter/reference/hc_theme_merge.html">hc_theme_merge</a></span><span class="op">(</span>
@@ -361,12 +358,15 @@
     <span class="op">)</span>
   <span class="op">)</span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/options.html">options</a></span><span class="op">(</span>highcharter.theme <span class="op">=</span> <span class="va">newtheme</span><span class="op">)</span>
-
-
-<span class="co"># ~~~ theme for sparklines in value boxes ----</span></code></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/base/options.html">options</a></span><span class="op">(</span>highcharter.theme <span class="op">=</span> <span class="va">newtheme</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="theme-for-sparklines-in-value-boxes" class="section level2">
+<h2 class="hasAnchor">
+<a href="#theme-for-sparklines-in-value-boxes" class="anchor"></a>Theme for sparklines in value boxes</h2>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~ Theme for sparklines in value boxes ----</span></code></pre></div>
 <p>This theme is very minimalist. Equivalent to theme_void in ggplot. Still hoverable though.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">hc_theme_sparkline_vb</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="op">{</span>
   <span class="va">theme</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
     chart <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
@@ -433,11 +433,10 @@
   <span class="va">theme</span>
 <span class="op">}</span></code></pre></div>
 </div>
-</div>
 <div id="plotly-theme" class="section level2">
 <h2 class="hasAnchor">
 <a href="#plotly-theme" class="anchor"></a>Plotly theme</h2>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~  Plotly theme ----</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
@@ -456,7 +455,7 @@
 <div id="ggplot2-theme" class="section level2">
 <h2 class="hasAnchor">
 <a href="#ggplot2-theme" class="anchor"></a>ggplot2 theme</h2>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~~ ggplot2 theme ----</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>

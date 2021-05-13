@@ -15,7 +15,7 @@ data_completeness_plot <- function(contacts_df_long_transformed){
   
   contacts_df_long_transformed %>% 
     mutate(data_completeness_plot_row_id = row_number()) %>%  # long name so it does not conflict
-    {if (nrow(.) > 1000) sample_n(., 1000) else .} %>% # sample if too large
+    {if (nrow(.) > 500) sample_n(., 500) else .} %>% # sample if too large
     arrange(-data_completeness_plot_row_id) %>% 
     select(-data_completeness_plot_row_id) %>% 
     select(-any_of(x= c("sort_number", "counter", "row_id"))) %>% 
@@ -36,7 +36,7 @@ data_completeness_plot <- function(contacts_df_long_transformed){
 data_cardinality_plot <- function(contacts_df_long_transformed){
   
   contacts_df_long_transformed %>% 
-    {if (nrow(.) > 1000) sample_n(., 1000) else .} %>% # sample if too large
+    {if (nrow(.) > 500) sample_n(., 500) else .} %>% # sample if too large
     select(!matches("colors")) %>% 
     inspectdf::inspect_cat() %>% 
     show_plot(col_palette = 4)+ 
@@ -179,7 +179,7 @@ download_report_function <-
 # ~~~ main_tab_row_0 ----
 
 contacts_per_day_value_box <- 
-  function(contacts_df_long, todays_date){
+  function(contacts_df_long, todays_date, report_format = "shiny"){
     
     
     
@@ -210,52 +210,55 @@ contacts_per_day_value_box <-
         format.Date("%b %d")
       
       
-      highchart_to_plot <- 
-        data_to_plot %>% 
-        hchart("column", hcaes(x = follow_up_start_date, y = n), name = "No. contacts") %>% 
-        hc_size(height = 85) %>% 
-        hc_credits(enabled = FALSE) %>% 
-        hc_add_theme(hc_theme_sparkline_vb()) 
+      if (report_format == "shiny"){
+        
+        highchart_to_plot <- 
+          data_to_plot %>% 
+          hchart("column", hcaes(x = follow_up_start_date, y = n), name = "No. contacts") %>% 
+          hc_size(height = 85) %>% 
+          hc_credits(enabled = FALSE) %>% 
+          hc_add_theme(hc_theme_sparkline_vb()) 
       
-      shiny_valuebox <- 
-        valueBoxSpark(
-        value = HTML(glue("{cases_last_day} <font size='1'> in past day ({date_last_day}) </font>")),
-        title = toupper(glue("New contacts")),
-        sparkobj = highchart_to_plot,
-        info = "Bars show the no. of new contacts per day (based on first date of follow-up)",
-        subtitle = HTML("<font size='1'> </font>"),
-        #icon = icon("calendar-day"),
-        width = 2,
-        color = "aqua",
-        href = NULL)
+        output_valuebox <- 
+          valueBoxSpark(
+          value = HTML(glue("{cases_last_day} <font size='1'> in past day ({date_last_day}) </font>")),
+          title = toupper(glue("New contacts")),
+          sparkobj = highchart_to_plot,
+          info = "Bars show the no. of new contacts per day (based on first date of follow-up)",
+          subtitle = HTML("<font size='1'> </font>"),
+          #icon = icon("calendar-day"),
+          width = 2,
+          color = "aqua",
+          href = NULL)
+      
+      } else {
+        
+        output_valuebox <- 
+          data_to_plot %>% 
+          ggplot() + 
+          geom_col(aes(x= follow_up_start_date, y = n), fill = "white") + 
+          labs(title = "**NEW CONTACTS**", 
+               subtitle = glue::glue("**{cases_last_day}** in past day ({date_last_day})"), 
+               x = "",
+               y = "") + 
+          scale_x_date(breaks = c(min(data_to_plot$follow_up_start_date),  
+                                  max(data_to_plot$follow_up_start_date)), 
+                       labels = function(.x) format.Date(.x, format = "%b %d, '%y")) +
+          theme_classic() +
+          theme(panel.background = element_rect("#00BAEA"), 
+                plot.background = element_rect("#00BAEA"), 
+                plot.title = ggtext::element_textbox(color = "white", size = 15),
+                plot.subtitle = ggtext::element_textbox(color = "white", size = 13), 
+                panel.grid.major = element_blank(), 
+                axis.line = element_blank(), 
+                axis.text = element_text(size = 10, color = "white", face = "bold"), 
+                axis.text.x = element_text(hjust = .8),
+                axis.ticks.length = unit(.2, "cm"), 
+                axis.ticks = element_line(color = "white", size = 1)) 
+      }
       
       
-      ## ggplot version for rmarkdown
-      ggplot_valuebox <- 
-        data_to_plot %>% 
-        ggplot() + 
-        geom_col(aes(x= follow_up_start_date, y = n), fill = "white") + 
-        labs(title = "**NEW CONTACTS**", 
-             subtitle = glue::glue("**{cases_last_day}** in past day ({date_last_day})"), 
-             x = "",
-             y = "") + 
-        scale_x_date(breaks = c(min(data_to_plot$follow_up_start_date),  
-                                max(data_to_plot$follow_up_start_date)), 
-                     labels = function(.x) format.Date(.x, format = "%b %d, '%y")) +
-        theme_classic() +
-        theme(panel.background = element_rect("#00BAEA"), 
-              plot.background = element_rect("#00BAEA"), 
-              plot.title = ggtext::element_textbox(color = "white", size = 15),
-              plot.subtitle = ggtext::element_textbox(color = "white", size = 13), 
-              panel.grid.major = element_blank(), 
-              axis.line = element_blank(), 
-              axis.text = element_text(size = 10, color = "white", face = "bold"), 
-              axis.text.x = element_text(hjust = .8),
-              axis.ticks.length = unit(.2, "cm"), 
-              axis.ticks = element_line(color = "white", size = 1)) 
-      
-      return(list(shiny_valuebox = shiny_valuebox, 
-                  ggplot_valuebox = ggplot_valuebox))
+      return(output_valuebox)
       
       
     
@@ -263,7 +266,7 @@ contacts_per_day_value_box <-
 
 
 cumulative_contacts_value_box <- 
-  function(contacts_df_long, todays_date){
+  function(contacts_df_long, todays_date, report_format = "shiny"){
   
     
     data_to_plot <- 
@@ -291,28 +294,32 @@ cumulative_contacts_value_box <-
       format.Date("%b %d")
     
     
-    highchart_to_plot <- 
-      data_to_plot %>% 
-      hchart("column", hcaes(x = follow_up_start_date, y = cum_n), name = "Cumul. contacts") %>% 
-      hc_size(height = 85) %>% 
-      hc_credits(enabled = FALSE) %>% 
-      hc_add_theme(hc_theme_sparkline_vb()) 
+    if (report_format == "shiny"){
+      
+      highchart_to_plot <- 
+        data_to_plot %>% 
+        hchart("column", hcaes(x = follow_up_start_date, y = cum_n), name = "Cumul. contacts") %>% 
+        hc_size(height = 85) %>% 
+        hc_credits(enabled = FALSE) %>% 
+        hc_add_theme(hc_theme_sparkline_vb()) 
     
-    shiny_valuebox <- 
-      valueBoxSpark(
-      value = HTML(glue("{cases_last_day} <font size='1'> by {date_last_day} </font>")),
-      title = toupper(glue("Cumul. contacts")),
-      sparkobj = highchart_to_plot,
-      info = "Bars show the cumulative contacts as at each day.",
-      subtitle = HTML(" <font size='1'> </font>"),
-      #icon = icon("calendar-alt"),
-      width = 2,
-      color = "teal",
-      href = NULL)
+      output_valuebox <- 
+        valueBoxSpark(
+        value = HTML(glue("{cases_last_day} <font size='1'> by {date_last_day} </font>")),
+        title = toupper(glue("Cumul. contacts")),
+        sparkobj = highchart_to_plot,
+        info = "Bars show the cumulative contacts as at each day.",
+        subtitle = HTML(" <font size='1'> </font>"),
+        #icon = icon("calendar-alt"),
+        width = 2,
+        color = "teal",
+        href = NULL)
+    
+    } else {
     
     
     ## ggplot version for rmarkdown
-    ggplot_valuebox <- 
+    output_valuebox <- 
       data_to_plot %>% 
       ggplot() + 
       geom_col(aes(x= follow_up_start_date, y = cum_n), fill = "white") + 
@@ -334,17 +341,16 @@ cumulative_contacts_value_box <-
             axis.text.x = element_text(hjust = .8),
             axis.ticks.length = unit(.2, "cm"), 
             axis.ticks = element_line(color = "white", size = 1)) 
+    }
     
-    return(list(shiny_valuebox = shiny_valuebox, 
-                ggplot_valuebox = ggplot_valuebox))
+    return(output_valuebox)
     
   }
 
 
 contacts_under_surveillance_value_box <- 
-  function(contacts_df_long, todays_date){
+  function(contacts_df_long, todays_date, report_format = "shiny"){
     
-      
     data_to_plot <- 
       contacts_df_long %>%
       count(follow_up_date) %>% 
@@ -365,6 +371,7 @@ contacts_under_surveillance_value_box <-
       todays_date %>% 
       format.Date("%b %d")
     
+    if (report_format == "shiny"){
 
     highchart_to_plot <- 
       data_to_plot %>% 
@@ -373,7 +380,7 @@ contacts_under_surveillance_value_box <-
       hc_credits(enabled = FALSE) %>% 
       hc_add_theme(hc_theme_sparkline_vb()) 
     
-    shiny_valuebox <- 
+    output_valuebox <- 
       valueBoxSpark(
       value = HTML(glue("{cases_last_day} <font size='1'> as at {date_last_day} </font>")),
       title = toupper(glue("No. under surveillance")),
@@ -385,8 +392,10 @@ contacts_under_surveillance_value_box <-
       color = "purple",
       href = NULL)
     
+    } else {
+    
     ## ggplot version for rmarkdown
-    ggplot_valuebox <- 
+      output_valuebox <- 
       data_to_plot %>% 
       ggplot() + 
       geom_col(aes(x= follow_up_date, y = n), fill = "white") + 
@@ -408,9 +417,9 @@ contacts_under_surveillance_value_box <-
             axis.text.x = element_text(hjust = .8),
             axis.ticks.length = unit(.2, "cm"), 
             axis.ticks = element_line(color = "white", size = 1)) 
+    }
     
-    return(list(shiny_valuebox = shiny_valuebox, 
-                ggplot_valuebox = ggplot_valuebox))
+    return(output_valuebox)
     
     
   }
@@ -418,7 +427,7 @@ contacts_under_surveillance_value_box <-
 
 
 pct_contacts_followed_value_box <- 
-  function(contacts_df_long, todays_date){
+  function(contacts_df_long, todays_date, report_format = "shiny"){
     
 
     data_to_plot <- 
@@ -458,6 +467,8 @@ pct_contacts_followed_value_box <-
       todays_date %>% 
       format.Date("%b %d")
     
+    if (report_format == "shiny"){
+      
     highchart_to_plot <- 
       data_to_plot %>%  
       hchart("area", hcaes(x = follow_up_date, y = pct)) %>% 
@@ -466,7 +477,7 @@ pct_contacts_followed_value_box <-
       hc_credits(enabled = FALSE) %>% 
       hc_add_theme(hc_theme_sparkline_vb()) 
     
-    shiny_valuebox <- 
+    output_valuebox <- 
       valueBoxSpark(
       value = HTML(glue("{pct_last_day} <font size='1'> on {date_last_day} </font>")),
       title = toupper("% contacts followed"),
@@ -478,8 +489,10 @@ pct_contacts_followed_value_box <-
       color = "yellow",
       href = NULL)
     
+    } else {
+    
     ## ggplot version for rmarkdown
-    ggplot_valuebox <- 
+    output_valuebox <- 
       data_to_plot %>% 
       ggplot() + 
       geom_line(aes(x= follow_up_date, y = pct), color = "white", 
@@ -502,11 +515,9 @@ pct_contacts_followed_value_box <-
             axis.text.x = element_text(hjust = .8),
             axis.ticks.length = unit(.2, "cm"), 
             axis.ticks = element_line(color = "white", size = 1)) 
+    }
     
-    return(list(shiny_valuebox = shiny_valuebox, 
-                ggplot_valuebox = ggplot_valuebox))
-    
-    
+    return(output_valuebox)
   }
 
 
@@ -866,7 +877,7 @@ all_contacts_per_admin_1_text <-
 # ~~~ main_tab_row_2 ----
 
 
-contacts_under_surveillance_per_admin_1_over_time_bar_chart <- 
+contacts_surveilled_admin_1_bar_chart <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
     # filter out dates that are past the input days date
@@ -936,7 +947,7 @@ contacts_under_surveillance_per_admin_1_over_time_bar_chart <-
 
 
 
-contacts_under_surveillance_per_admin_1_over_time_bar_chart_relative <- 
+contacts_surveilled_admin_1_bar_chart_relative <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
     # filter out dates that are past the input days date
@@ -1008,7 +1019,7 @@ contacts_under_surveillance_per_admin_1_over_time_bar_chart_relative <-
 
 
 
-contacts_under_surveillance_per_admin_1_over_time_text <- 
+contacts_surveilled_admin_1_text <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
     # filter out dates that are past the input days date
