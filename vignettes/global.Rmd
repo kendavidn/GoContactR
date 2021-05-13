@@ -9,7 +9,11 @@ output:
 The global.R file is run once before your app starts. 
 Any R objects created here global.R file become available to the app.R file, 
 the ui.R and the server.R files. 
-<br>
+
+```{r }
+#
+```
+
 # Main parameters
 The application has been built to work with two main data sources: 
 contact tracing data from KoboCollect-exported csv files,
@@ -35,9 +39,9 @@ PARAMS$testing_mode <- FALSE
 PARAMS$fake_data <- TRUE
 ```
 
-# Packages
-I would normally load packages with `pacman::p_load` but I had some trouble with this
-when deploying to shiny 
+# Packages 
+I would normally load packages with `pacman::p_load` 
+but I had some trouble with this when deploying to shiny 
 
 ```{r message=FALSE, warning=FALSE, fig.width=7}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,8 +52,9 @@ if (!webshot::is_phantomjs_installed()) webshot::install_phantomjs()
 library(webshot)  ##  for screenshots of htmlwidgets when outputting
 library(here) 
 library(paletteer) ## for palettes
-library(highcharter)  ## for most charts ## remotes::install_github("jbkunst/highcharter")
-library(plotly) ## for the active contacts snake plot. highcharter renders this plot too slowly
+# remotes::install_github("jbkunst/highcharter")
+library(highcharter)  ## most charts 
+library(plotly) ## for the snake plot. highcharter renders this plot too slowly
 library(shiny)
 library(shinyjs)
 library(shinyWidgets)
@@ -264,7 +269,9 @@ newtheme <-
       ),
       colors = highcharter_palette,
       labels = list(style = list(lineHeight = "100px")),
-      plotOptions = list(series = list(label = list(style = list(lineHeight = "100px")))),
+      plotOptions = list(series = list(label = list(
+        style = list(lineHeight = "100px")
+      ))),
       exporting = list(buttons = list(contextButton = list(menuItems = myMenuItems)))
     )
   )

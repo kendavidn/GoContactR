@@ -10,9 +10,8 @@
 #' The global.R file is run once before your app starts. 
 #' Any R objects created here global.R file become available to the app.R file, 
 #' the ui.R and the server.R files. 
-#' <br>
 
-
+#
 #' # Main parameters
 #' The application has been built to work with two main data sources: 
 #' contact tracing data from KoboCollect-exported csv files,
