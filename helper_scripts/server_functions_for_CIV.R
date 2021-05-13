@@ -1,4 +1,128 @@
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  Read in preloaded data ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+contacts_list_sample <-
+  rio::import(here("data/liste_contacts_sample.xlsx"))
+
+follow_up_list_sample <-
+  rio::import(here("data/suivi_contacts_sample.xlsx"))
+
+tracing_data_sample <- list(
+  contacts_list = contacts_list_sample,
+  follow_up_list = follow_up_list_sample
+)
+
+# called by data_input UI element on page 1 of app
+preloaded_data_options <-
+  list(`Sample tracing data` = tracing_data_sample)
+
+
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  UI Outputs ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# ~~ data_to_use_picker ---------------------------
+
+
+output$data_to_use_picker <- renderUI({
+  radioButtons(inputId = "data_to_use",
+               label = "Input Data",
+               choices = c("Use preloaded data",
+                           "Use uploaded data"))
+})
+
+# ~~ data_to_use_input ---------------------------
+
+output$data_to_use_input <- renderUI({
+  
+  req(input$data_to_use)
+  
+  if (input$data_to_use == "Use preloaded data") {
+    
+    selectInput("preloaded_data_choice",
+                label = "Use preloaded data",
+                choices = c("Sample tracing data"
+                            #,
+                            #"Sample contacts list"
+                ),
+                selected = NULL,
+                multiple = FALSE)
+    
+  } else if (input$data_to_use == "Use uploaded data") {
+    
+    tagList(fileInput(inputId = "uploaded_data_contacts_list",
+                      label = "Upload the list of contacts",
+                      multiple = FALSE,
+                      accept = c("text/csv",
+                                 "text/comma-separated-values,text/plain",
+                                 ".csv",
+                                 ".xlsx",
+                                 ".xls")),
+            fileInput(inputId = "uploaded_data_follow_up_list",
+                      label = "Upload the follow-up list",
+                      multiple = FALSE,
+                      accept = c("text/csv",
+                                 "text/comma-separated-values,text/plain",
+                                 ".csv",
+                                 ".xlsx",
+                                 ".xls")))
+  }
+})
+
+
+output$analyze_action_bttn <- renderUI({
+  
+  req(input$data_to_use)
+  
+  if(input$data_to_use == "Use uploaded data") {
+    req(input$uploaded_data_contacts_list)
+    req(input$uploaded_data_follow_up_list)
+    
+  }
+  
+  if(input$data_to_use == "Use preloaded data") {
+    req(input$preloaded_data_choice)
+  }
+
+  
+  tagList(HTML("<p style='font-size:4px'>  <br><br>  </p>"),
+          
+          actionBttn(inputId = "analyze_action_bttn", label = "Analyze",
+                     style = "jelly", color = "primary"),
+          
+          HTML("<br>
+            <span style='color: rgb(97, 189, 109);'>ℹ:</span>
+            <font size='1'>
+            After analyses have been triggered once,
+            the app must be reloaded before triggering again on a new dataset.
+            </font>")
+  )
+})
+
+
+output$country_specific_data_to_use_section <- 
+  renderUI({
+    tagList(column(width = 3, 
+                   uiOutput("data_to_use_picker")),
+            column(width = 6, 
+                   uiOutput("data_to_use_input")), 
+            column(width = 3,
+                   uiOutput("analyze_action_bttn"))
+    )
+  })
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  Read file reactives ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
 read_file_raw <- function(){
   
   

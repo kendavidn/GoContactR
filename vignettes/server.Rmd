@@ -1,17 +1,33 @@
-#'---
-#'title: "Server.R"
-#'output:
-#'  rmarkdown::html_document:
-#'  toc: yes
-#'  toc_depth: 2
-#'  toc_float: yes
-#'--- #tag_to_pull
+---
+title: "Server.R"
+output:
+ rmarkdown::html_document:
+ toc: yes
+ toc_depth: 2
+ toc_float: yes
+---
+
+```{r }
+              #' The lines below are added to the script temporarily to make it knittable.
+
+              #' They are not actually present in the real app
+
+              source(here::here('global.R'))
+
+              output <- list()
+
+              input <- list()
+
 
 # Initialize
-#' Increase upload size. See https://shiny.rstudio.com/articles/upload.html
+```
+
+Increase upload size. See https://shiny.rstudio.com/articles/upload.html
+
+```{r }
 options(shiny.maxRequestSize=50*1024^2)
 
-server <- function(input, output) {  
+  
   
   
   source(here("helper_scripts/server_functions.R"), local = T)
@@ -781,12 +797,5 @@ output$lost_contacts_linelist_text <- renderUI({
     todays_date = todays_date_reactive()
   )
 })
-  
-  
-  
-  
-  
-}
-
-
+```
 

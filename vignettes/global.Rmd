@@ -1,30 +1,29 @@
-#'---
-#'title: "Global.R"
-#'output:
-#'  rmarkdown::html_document:
-#'  toc: yes
-#'  toc_depth: 2
-#'  toc_float: yes
-#'---
+---
+title: "Global.R"
+output:
+ rmarkdown::html_document:
+ toc: yes
+ toc_depth: 2
+ toc_float: yes
+---
+The global.R file is run once before your app starts. 
+Any R objects created here global.R file become available to the app.R file, 
+the ui.R and the server.R files. 
+<br>
+# Main parameters
+The application has been built to work with two main data sources: 
+contact tracing data from KoboCollect-exported csv files,
+and contact tracing data from a Go.Data instance (by direct API connection)
+Here, at the beginning of the global.R file, 
+we set the PARAMS$country_code variable to the country being worked on. 
+This ensures that the correct data import elements are loaded in the app, 
+either the elements for KoboCollect csv import and processing, 
+or the elements for connecting to, and downloading from the Go.Data instance.
 
-#' The global.R file is run once before your app starts. 
-#' Any R objects created here global.R file become available to the app.R file, 
-#' the ui.R and the server.R files. 
-#' <br>
 
 
-#' # Main parameters
-#' The application has been built to work with two main data sources: 
-#' contact tracing data from KoboCollect-exported csv files,
-#' and contact tracing data from a Go.Data instance (by direct API connection)
-#' Here, at the beginning of the global.R file, 
-#' we set the PARAMS$country_code variable to the country being worked on. 
-#' This ensures that the correct data import elements are loaded in the app, 
-#' either the elements for KoboCollect csv import and processing, 
-#' or the elements for connecting to, and downloading from the Go.Data instance.
-#' 
-#' 
-#' 
+
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Main parameters ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -34,13 +33,13 @@ PARAMS <- list()
 PARAMS$country_code <- "CIV" 
 PARAMS$testing_mode <- FALSE
 PARAMS$fake_data <- TRUE
+```
 
+# Packages
+I would normally load packages with `pacman::p_load` but I had some trouble with this
+when deploying to shiny 
 
-
-#' # Packages 
-#' I would normally load packages with `pacman::p_load` 
-#' but I had some trouble with this when deploying to shiny 
-#+ message=FALSE, warning=FALSE, fig.width=7
+```{r message=FALSE, warning=FALSE, fig.width=7}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Packages ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,9 +48,8 @@ if (!webshot::is_phantomjs_installed()) webshot::install_phantomjs()
 library(webshot)  ##  for screenshots of htmlwidgets when outputting
 library(here) 
 library(paletteer) ## for palettes
-# remotes::install_github("jbkunst/highcharter")
-library(highcharter)  ## most charts 
-library(plotly) ## for the snake plot. highcharter renders this plot too slowly
+library(highcharter)  ## for most charts ## remotes::install_github("jbkunst/highcharter")
+library(plotly) ## for the active contacts snake plot. highcharter renders this plot too slowly
 library(shiny)
 library(shinyjs)
 library(shinyWidgets)
@@ -92,32 +90,41 @@ library(jsonlite) ## convert json files to data frames
 # remotes::install_github("amirmasoudabdol/preferably")
 library(preferably) ## theme for documentation site
 library(tidyverse) ## tidyverse called last to avoid masking
+```
 
+# Misc options
+A few miscellaneous settings
 
-
-#' # Misc options
-#' A few miscellaneous settings
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Misc options ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 options(scipen = 999) # turn off scientific notation
 set.seed(1) # fix seed
 options(tibble.print_max = 35, tibble.print_min = 35) # personal preference
+```
 
-#' # Misc functions
-#' Random functions used throughout the application
+# Misc functions
+Random functions used throughout the application
+
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~ Misc functions ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 source(here("helper_scripts/misc_functions.R"), local = T)
+```
 
+# Set colors and themes
 
-
-#' # Set colors and themes
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~ Set colors and themes ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Save some hex codes as named colors for use in app
+```
+
+Save some hex codes as named colors for use in app
+
+```{r }
 space_cadet <- "#1C2541"
 white <- "#FFFFFF"
 alice_blue <- "#D9F0FE"
@@ -127,11 +134,12 @@ coral <- "#ff7a4a"
 peach <- "#FCDC9C"
 bright_yellow_crayola <- "#FFB238"
 spinner_color <- burnt_sienna <- "#EE6C4D"
+```
 
+Here we set the params for the `fresh` theme. 
+The `fresh` package permits easy customization of shinydashboard colors.
 
-
-#' Here we set the params for the `fresh` theme. 
-#' The `fresh` package permits easy customization of shinydashboard colors.
+```{r }
 my_fresh_theme <-
   fresh::create_theme(
     fresh::adminlte_color(
@@ -148,12 +156,12 @@ my_fresh_theme <-
       info_box_bg = light_gray
     )
   )
+```
 
+Set a color legend for each country/ app version.
+This feeds the colors on active contacts plots (app tab 2)
 
-
-#' Set a color legend for each country/ app version.
-#' This feeds the colors on active contacts plots (app tab 2)
-
+```{r }
 if (PARAMS$country_code == "CIV"){
   
 legend_df <-
@@ -192,8 +200,11 @@ legend_df <-
   mutate(breaks = fct_inorder(breaks)) %>%
   mutate(legend_index = row_number())
 }
+```
 
-#' ## Highcharter theme
+## Highcharter theme
+
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~ highcharter themes ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -216,8 +227,11 @@ new_colors <-
   rev()
 ## combine to final palette
 highcharter_palette <- c(highcharter_palette_initial, new_colors)
+```
 
-#' ### Menu items for highcharter
+### Menu items for highcharter
+
+```{r }
 # ~~~~ Menu items for highcharter ----
 myMenuItems <-
   c(
@@ -232,8 +246,11 @@ myMenuItems <-
     "downloadCSV",
     "downloadXLS"
   )
+```
 
-#' ### Combine into final theme
+### Combine into final theme
+
+```{r }
 # ~~~~ Combine into final theme ----
 newtheme <-
   hc_theme_merge(
@@ -247,9 +264,7 @@ newtheme <-
       ),
       colors = highcharter_palette,
       labels = list(style = list(lineHeight = "100px")),
-      plotOptions = list(series = list(label = list(
-        style = list(lineHeight = "100px")
-      ))),
+      plotOptions = list(series = list(label = list(style = list(lineHeight = "100px")))),
       exporting = list(buttons = list(contextButton = list(menuItems = myMenuItems)))
     )
   )
@@ -258,9 +273,12 @@ options(highcharter.theme = newtheme)
 
 
 # ~~~ theme for sparklines in value boxes ----
-#' This theme is very minimalist. Equivalent to theme_void in ggplot. 
-#' Still hoverable though.
+```
 
+This theme is very minimalist. Equivalent to theme_void in ggplot. 
+Still hoverable though.
+
+```{r }
 hc_theme_sparkline_vb <- function(...) {
   theme <- list(
     chart = list(
@@ -326,8 +344,11 @@ hc_theme_sparkline_vb <- function(...) {
 
   theme
 }
+```
 
-#' ## Plotly theme
+## Plotly theme
+
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Plotly theme ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -342,8 +363,11 @@ label <- list(
   bordercolor = "transparent",
   font = font
 )
+```
 
-#' ## ggplot2 theme
+## ggplot2 theme
+
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~ ggplot2 theme ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -364,3 +388,5 @@ my_theme <- theme_classic() +
   )
 
 theme_set(my_theme)
+```
+

@@ -65,15 +65,10 @@ load_data_tab_row_1 <-
                                "Choose dataset to analyse"), 
                closable = F, 
                collapsible = T,
-               fluidRow(column(width = 3, 
-                               uiOutput("data_to_use_picker")),
-                        column(width = 6, 
-                               uiOutput("data_to_use_input")), 
-                        column(width = 3, 
-                               uiOutput("analyze_action_bttn")))
+               uiOutput("country_specific_data_to_use_section")
+               )
 
                )
-  )
 
 
 # ~~~ load_data_tab_row_2 ----

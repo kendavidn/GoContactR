@@ -6,9 +6,6 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-source(here(paste0("helper_scripts/read_file_functions_", PARAMS$country_code, ".R")), local = TRUE)
- 
-
 
 # ~~~ data overview plots ----
 

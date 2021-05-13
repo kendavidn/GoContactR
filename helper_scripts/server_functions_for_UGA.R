@@ -4,17 +4,42 @@
 # ~  UI Outputs ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
+# ~~ data_to_use_picker ---------------------------
+
 output$data_to_use_picker <- renderUI({
   radioButtons(inputId = "data_to_use", 
                label = "Input Data", 
                choices = c("Connect to Go.Data"))
 })
 
-output$input_data_preloaded_or_uploaded <- 
+# ~~ data_to_use_input ---------------------------
+
+output$data_to_use_input <- 
+  renderUI({
+    tagList(textInput("go_data_url",
+                    "URL for your instance:",
+                    value = "https://godata-r13.who.int/"), 
+          textInput("go_data_username", 
+                    "Username:",
+                    value = "godata_api@who.int"),
+          passwordInput("go_data_password", 
+                        "Password:"), 
+          textInput("go_data_outbreak_id", 
+                    "Outbreak ID:", 
+                    value = "3b5554d7-2c19-41d0-b9af-475ad25a382b"),
+          actionBttn("go_data_request_access_button",
+                     "Request access", 
+                     style = "jelly", 
+                     color = "primary"
+          ), 
+          uiOutput("access_permitted_or_not"))
+    })
 
 
-request_access_reactive <- reactive({
+access_token_reactive <- reactive({
   
+  req(input$data_to_use)
   req(input$go_data_url)
   req(input$go_data_username)
   req(input$go_data_password)
@@ -41,6 +66,56 @@ request_access_reactive <- reactive({
 })
 
 
+output$access_permitted_or_not <- renderUI({
+  
+  req(input$data_to_use)
+  req(input$go_data_url)
+  req(input$go_data_username)
+  req(input$go_data_password)
+  req(input$go_data_outbreak_id)
+  req(input$go_data_request_access_button)
+  
+  if(is.character(access_token_reactive())){
+    c("Successful!")
+  } else {
+    c("Access not permitted. Try again or contact developers.")
+  }
+  
+  
+})
+
+output$analyze_action_bttn <- renderUI({
+  
+  req(input$data_to_use)
+  req(input$go_data_url)
+  req(input$go_data_username)
+  req(input$go_data_password)
+  req(input$go_data_outbreak_id)
+  req(input$go_data_request_access_button)
+  
+  tagList(HTML("<p style='font-size:4px'>  <br><br>  </p>"),
+          
+          actionBttn(inputId = "analyze_action_bttn", label = "Analyze", 
+                     style = "jelly", color = "primary")
+  )
+})
+
+output$country_specific_data_to_use_section <- 
+  renderUI({
+    tagList(column(width = 3, 
+                 uiOutput("data_to_use_picker")),
+          column(width = 6, 
+                 uiOutput("data_to_use_input")), 
+          column(width = 3,
+                 uiOutput("analyze_action_bttn"))
+          )
+  })
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  Read file reactives ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 read_file_raw <- function(){
   
     
@@ -52,21 +127,13 @@ read_file_raw <- function(){
     # ## here for testing
     # url <- "https://godata-r13.who.int/"
     # username <- "godata_api@who.int"
-    # password <- "godata_api@who"
-    # password <- "bad_password"
+    # password <- "this_is_not_the_password"
     # outbreak_id <- "3b5554d7-2c19-41d0-b9af-475ad25a382b"
 
 
     # ~~~~ get access token for API calls ----    
 
-    access_token <- 
-    paste0(url,"api/oauth/token?access_token=123") %>% 
-      POST(body = list(username = username,
-                            password = password),
-                 encode = "json") %>% 
-      content(as = "text") %>%
-      fromJSON(flatten = TRUE) %>%
-      .$access_token
+    access_token <- access_token_reactive()
     
     # ~~~~ import relevant api collections----    
     
@@ -290,6 +357,7 @@ read_file_filtered <- function(){
             temp <- temp[ temp[,all_cols[j]] %in% input[[all_cols[j]]], ]
           }
           
+          ## character
         } else if (is.character(col)) {
           
           ## if na_input ui element exists and is TRUE, include NAs
@@ -303,6 +371,7 @@ read_file_filtered <- function(){
             temp <- temp[ temp[,all_cols[j]] %in% input[[all_cols[j]]], ]
           }
           
+          ## numeric
         } else if (is.numeric(col)) {
           
           
@@ -323,7 +392,7 @@ read_file_filtered <- function(){
             temp <- temp[temp[,all_cols[j]] <= input[[all_cols[j]]][2], ]
           }
           
-          
+          ## date
         } else if(lubridate::is.Date(col)) {
           ## if na_input ui element exists and is TRUE, include NAs
           if (  (!is.null(input[[ paste0("na_", all_cols[j]  )  ]])) &&
