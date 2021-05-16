@@ -3,6 +3,7 @@ pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   global: global.html
-  knitr_spin_test: knitr_spin_test.html
-last_built: 2021-05-12T20:26Z
+  server: server.html
+  server_functions: server_functions.html
+last_built: 2021-05-16T21:56Z
 
