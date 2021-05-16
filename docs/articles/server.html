@@ -76,6 +76,9 @@
     <li>
       <a href="../articles/server.html">Server.R</a>
     </li>
+    <li>
+      <a href="../articles/server_functions.html">server_functions.R</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -183,7 +186,6 @@
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R">  <span class="va">read_file_filtered_reactive</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/reactive.html">reactive</a></span><span class="op">(</span><span class="op">{</span>
     <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">analyze_action_bttn</span><span class="op">)</span>
-    <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">filter_or_not</span><span class="op">)</span>
 
     <span class="fu">read_file_filtered</span><span class="op">(</span><span class="op">)</span>
   <span class="op">}</span><span class="op">)</span></code></pre></div>
@@ -191,9 +193,9 @@
 </div>
 <div id="action-button-observer" class="section level1">
 <h1 class="hasAnchor">
-<a href="#action-button-observer" class="anchor"></a>action button observer</h1>
+<a href="#action-button-observer" class="anchor"></a>Action button observer</h1>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># ~~~~  action button observer ---------------------------</span></code></pre></div>
+<code class="sourceCode R"><span class="co"># ~~~~  Action button observer ---------------------------</span></code></pre></div>
 <p>This observer simply triggers or re-triggers ‘read_file_transformed_reactive’ whenever the analyze action button is pressed</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R">  <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/observeEvent.html">observeEvent</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">analyze_action_bttn</span>, <span class="op">{</span>
@@ -312,7 +314,7 @@
       <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">follow_up_status</span> <span class="op">!=</span> <span class="st">"Suivi futur"</span> <span class="op">&amp;</span>
                <span class="va">follow_up_status</span> <span class="op">!=</span> <span class="st">"Manquant"</span> <span class="op">&amp;</span>
                <span class="va">follow_up_status</span> <span class="op">!=</span> <span class="st">"Future follow-up"</span> <span class="op">&amp;</span>
-               <span class="va">follow_up_statis</span> <span class="op">!=</span> <span class="st">"NA"</span> <span class="op">&amp;</span>
+               <span class="va">follow_up_status</span> <span class="op">!=</span> <span class="st">"NA"</span> <span class="op">&amp;</span>
                <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">follow_up_status</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
       <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">follow_up_date</span><span class="op">)</span> <span class="op">%&gt;%</span>
       <span class="fu">pull</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -386,12 +388,11 @@
     <span class="op">)</span>
   <span class="op">}</span><span class="op">)</span></code></pre></div>
 </div>
-<div id="download_report_button-1" class="section level2">
+<div id="download_report_function" class="section level2">
 <h2 class="hasAnchor">
-<a href="#download_report_button-1" class="anchor"></a>download_report_button</h2>
-<p>This is placed within a renderUI context so that we can hide it conditionally</p>
+<a href="#download_report_function" class="anchor"></a>download_report_function</h2>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># ~~~~ download_report_button---------------------------</span>
+<code class="sourceCode R"><span class="co"># ~~~~ download_report_function---------------------------</span>
 
 <span class="va">output</span><span class="op">$</span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu">download_report_function</span><span class="op">(</span><span class="op">)</span></code></pre></div>
 </div>
@@ -429,7 +430,7 @@
                          <span class="co">## Franck mentioned not printing names to app for privacy</span>
                          <span class="st">"first_name"</span>, <span class="st">"last_name"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
         <span class="co">## no filters for columns that are all NA</span>
-        <span class="fu">janitor</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/janitor/man/remove_empty.html">remove_empty</a></span><span class="op">(</span>which <span class="op">=</span> <span class="st">"columns"</span><span class="op">)</span>
+        <span class="fu">janitor</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/janitor/man/remove_empty.html">remove_empty</a></span><span class="op">(</span>which <span class="op">=</span> <span class="st">"cols"</span><span class="op">)</span>
       
       
       <span class="va">selected_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">my_data</span><span class="op">)</span>
@@ -570,9 +571,11 @@
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~ Value boxes  --------------------</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
-<p>Below we call the value-box functions and return their outputs. These functions return an HTML Shiny value-box when the report_format parameter is “shiny”, and a ggplot-based value-box otherwise. Like most of the remaining functions that the app uses, these take in two primary inputs: the long contacts dataframe (one row per follow-up-day), and the date of review.</p>
+<p>Below we call the value-box functions and return their outputs. These functions return an HTML Shiny value-box when the report_format parameter is “shiny”, and a ggplot-based value-box otherwise. Like most of the remaining functions that the app uses, these take in two primary inputs: the long contacts dataframe (one row per follow-up-day), and the date of review. ## contacts_per_day_value_box</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
-<code class="sourceCode R">  <span class="va">output</span><span class="op">$</span><span class="va">contacts_per_day_value_box</span> <span class="op">&lt;-</span>
+<code class="sourceCode R"><span class="co"># ~~~~ contacts_per_day_value_box ----</span>
+  
+  <span class="va">output</span><span class="op">$</span><span class="va">contacts_per_day_value_box</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://rdrr.io/pkg/shinydashboard/man/renderValueBox.html">renderValueBox</a></span><span class="op">(</span><span class="op">{</span>
       
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -584,8 +587,13 @@
       <span class="fu">contacts_per_day_value_box</span><span class="op">(</span>
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+<div id="cumulative_contacts_value_box" class="section level2">
+<h2 class="hasAnchor">
+<a href="#cumulative_contacts_value_box" class="anchor"></a>cumulative_contacts_value_box</h2>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ cumulative_contacts_value_box ----</span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">cumulative_contacts_value_box</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://rdrr.io/pkg/shinydashboard/man/renderValueBox.html">renderValueBox</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -596,8 +604,14 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
       
-    <span class="op">}</span><span class="op">)</span>
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="contacts_under_surveillance_value_box" class="section level2">
+<h2 class="hasAnchor">
+<a href="#contacts_under_surveillance_value_box" class="anchor"></a>contacts_under_surveillance_value_box</h2>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ contacts_under_surveillance_value_box ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">contacts_under_surveillance_value_box</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://rdrr.io/pkg/shinydashboard/man/renderValueBox.html">renderValueBox</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -608,8 +622,14 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
       
-    <span class="op">}</span><span class="op">)</span>
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="pct_contacts_followed_value_box" class="section level2">
+<h2 class="hasAnchor">
+<a href="#pct_contacts_followed_value_box" class="anchor"></a>pct_contacts_followed_value_box</h2>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ pct_contacts_followed_value_box ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">pct_contacts_followed_value_box</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://rdrr.io/pkg/shinydashboard/man/renderValueBox.html">renderValueBox</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -622,16 +642,19 @@
       
     <span class="op">}</span><span class="op">)</span></code></pre></div>
 </div>
+</div>
 <div id="contacts-per-region" class="section level1">
 <h1 class="hasAnchor">
 <a href="#contacts-per-region" class="anchor"></a>Contacts per region</h1>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~ Contacts per region  --------------------</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
-<p>Below we call the contacts_per_admin_1 functions. These show the distribution of contacts over admin level 1 and admin level 2.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
-<code class="sourceCode R">  <span class="va">output</span><span class="op">$</span><span class="va">all_contacts_per_admin_1_table</span> <span class="op">&lt;-</span>
+<p>Below we call the contacts_per_admin_1 functions. These show the distribution of contacts over admin level 1 and admin level 2. ## all_contacts_per_admin_1_table</p>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ all_contacts_per_admin_1_table ----  </span>
+  
+  <span class="va">output</span><span class="op">$</span><span class="va">all_contacts_per_admin_1_table</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://glin.github.io/reactable/reference/reactable-shiny.html">renderReactable</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
 
@@ -639,9 +662,13 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+<div id="all_contacts_per_admin_1_sunburst_plot" class="section level2">
+<h2 class="hasAnchor">
+<a href="#all_contacts_per_admin_1_sunburst_plot" class="anchor"></a>all_contacts_per_admin_1_sunburst_plot</h2>
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ all_contacts_per_admin_1_sunburst_plot ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">all_contacts_per_admin_1_sunburst_plot</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="http://jkunst.com/highcharter/reference/renderHighchart.html">renderHighchart</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -650,8 +677,14 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="all_contacts_per_admin_1_bar_chart" class="section level2">
+<h2 class="hasAnchor">
+<a href="#all_contacts_per_admin_1_bar_chart" class="anchor"></a>all_contacts_per_admin_1_bar_chart</h2>
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ all_contacts_per_admin_1_bar_chart ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">all_contacts_per_admin_1_bar_chart</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="http://jkunst.com/highcharter/reference/renderHighchart.html">renderHighchart</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -660,9 +693,14 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
-  <span class="co">## dynamic text element</span>
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="all_contacts_per_admin_1_text" class="section level2">
+<h2 class="hasAnchor">
+<a href="#all_contacts_per_admin_1_text" class="anchor"></a>all_contacts_per_admin_1_text</h2>
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ all_contacts_per_admin_1_text ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">all_contacts_per_admin_1_text</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderUI.html">renderUI</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -673,16 +711,19 @@
       <span class="op">)</span>
     <span class="op">}</span><span class="op">)</span></code></pre></div>
 </div>
+</div>
 <div id="contacts-surveilled-over-time" class="section level1">
 <h1 class="hasAnchor">
 <a href="#contacts-surveilled-over-time" class="anchor"></a>Contacts surveilled over time</h1>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~ Contacts surveilled over time  -----------</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
-<p>Functions showing how many contacts were under surveillance at each time point, segregated by region.</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
-<code class="sourceCode R">  <span class="va">output</span><span class="op">$</span><span class="va">contacts_surveilled_admin_1_bar_chart</span> <span class="op">&lt;-</span>
+<p>Functions showing how many contacts were under surveillance at each time point, segregated by region. ## contacts_surveilled_admin_1_bar_chart</p>
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ contacts_surveilled_admin_1_bar_chart ----  </span>
+  
+  <span class="va">output</span><span class="op">$</span><span class="va">contacts_surveilled_admin_1_bar_chart</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="http://jkunst.com/highcharter/reference/renderHighchart.html">renderHighchart</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
 
@@ -690,8 +731,13 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+<div id="contacts_surveilled_admin_1_bar_chart_relative" class="section level2">
+<h2 class="hasAnchor">
+<a href="#contacts_surveilled_admin_1_bar_chart_relative" class="anchor"></a>contacts_surveilled_admin_1_bar_chart_relative</h2>
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ contacts_surveilled_admin_1_bar_chart_relative ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">contacts_surveilled_admin_1_bar_chart_relative</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="http://jkunst.com/highcharter/reference/renderHighchart.html">renderHighchart</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -700,8 +746,14 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="contacts_surveilled_admin_1_text" class="section level2">
+<h2 class="hasAnchor">
+<a href="#contacts_surveilled_admin_1_text" class="anchor"></a>contacts_surveilled_admin_1_text</h2>
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ contacts_surveilled_admin_1_text ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">contacts_surveilled_admin_1_text</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderUI.html">renderUI</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -712,16 +764,19 @@
       <span class="op">)</span>
     <span class="op">}</span><span class="op">)</span></code></pre></div>
 </div>
+</div>
 <div id="contacts-per-case" class="section level1">
 <h1 class="hasAnchor">
 <a href="#contacts-per-case" class="anchor"></a>Contacts per case</h1>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~ Contacts per case  -----------</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
-<p>Functions that output the number of contacts linked to each case At the moment (May 13, 2021), the Go.Data app version has no information for this column.</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
-<code class="sourceCode R">  <span class="va">output</span><span class="op">$</span><span class="va">total_contacts_per_case_donut_plot</span> <span class="op">&lt;-</span>
+<p>Functions that output the number of contacts linked to each case At the moment (May 13, 2021), the Go.Data app version has no information for this column. ## total_contacts_per_case_donut_plot</p>
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ total_contacts_per_case_donut_plot ----  </span>
+  
+  <span class="va">output</span><span class="op">$</span><span class="va">total_contacts_per_case_donut_plot</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="http://jkunst.com/highcharter/reference/renderHighchart.html">renderHighchart</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
 
@@ -729,9 +784,13 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+<div id="total_contacts_per_case_bar_chart" class="section level2">
+<h2 class="hasAnchor">
+<a href="#total_contacts_per_case_bar_chart" class="anchor"></a>total_contacts_per_case_bar_chart</h2>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ total_contacts_per_case_bar_chart ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">total_contacts_per_case_bar_chart</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="http://jkunst.com/highcharter/reference/renderHighchart.html">renderHighchart</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -740,9 +799,14 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="total_contacts_per_case_text" class="section level2">
+<h2 class="hasAnchor">
+<a href="#total_contacts_per_case_text" class="anchor"></a>total_contacts_per_case_text</h2>
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ total_contacts_per_case_text ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">total_contacts_per_case_text</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderUI.html">renderUI</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -753,16 +817,19 @@
       <span class="op">)</span>
     <span class="op">}</span><span class="op">)</span></code></pre></div>
 </div>
+</div>
 <div id="contacts-per-link-type" class="section level1">
 <h1 class="hasAnchor">
 <a href="#contacts-per-link-type" class="anchor"></a>Contacts per link type</h1>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~ Contacts per link type  -----------</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
-<p>Functions that output the number of contacts for each type of link (e.g. family) At the moment (May 13, 2021), the Go.Data app version has no information for this column.</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
-<code class="sourceCode R">  <span class="va">output</span><span class="op">$</span><span class="va">total_contacts_per_link_type_donut_plot</span> <span class="op">&lt;-</span>
+<p>Functions that output the number of contacts for each type of link (e.g. family) At the moment (May 13, 2021), the Go.Data app version has no information for this column. ## total_contacts_per_link_type_donut_plot</p>
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ total_contacts_per_link_type_donut_plot ----  </span>
+  
+  <span class="va">output</span><span class="op">$</span><span class="va">total_contacts_per_link_type_donut_plot</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="http://jkunst.com/highcharter/reference/renderHighchart.html">renderHighchart</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
 
@@ -770,8 +837,13 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+<div id="total_contacts_per_link_type_bar_chart" class="section level2">
+<h2 class="hasAnchor">
+<a href="#total_contacts_per_link_type_bar_chart" class="anchor"></a>total_contacts_per_link_type_bar_chart</h2>
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ total_contacts_per_link_type_bar_chart ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">total_contacts_per_link_type_bar_chart</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="http://jkunst.com/highcharter/reference/renderHighchart.html">renderHighchart</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -780,9 +852,14 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="total_contacts_per_link_type_text" class="section level2">
+<h2 class="hasAnchor">
+<a href="#total_contacts_per_link_type_text" class="anchor"></a>total_contacts_per_link_type_text</h2>
+<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ total_contacts_per_link_type_text ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">total_contacts_per_link_type_text</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderUI.html">renderUI</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -793,24 +870,74 @@
       <span class="op">)</span>
     <span class="op">}</span><span class="op">)</span></code></pre></div>
 </div>
-<div id="outputs-pertaining-to-all-contacts-1" class="section level1">
+</div>
+<div id="outputs-pertaining-to-active-contacts" class="section level1">
 <h1 class="hasAnchor">
-<a href="#outputs-pertaining-to-all-contacts-1" class="anchor"></a>OUTPUTS PERTAINING TO ALL CONTACTS</h1>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<a href="#outputs-pertaining-to-active-contacts" class="anchor"></a>OUTPUTS PERTAINING TO ACTIVE CONTACTS</h1>
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
-<span class="co"># ~ OUTPUTS PERTAINING TO ALL CONTACTS ----</span>
+<span class="co"># ~ OUTPUTS PERTAINING TO ACTIVE CONTACTS ----</span>
 <span class="co">#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
 </div>
-<div id="active-contacts-snake-plot-and-bar-chart" class="section level1">
+<div id="active-contacts-bar-chart" class="section level1">
 <h1 class="hasAnchor">
-<a href="#active-contacts-snake-plot-and-bar-chart" class="anchor"></a>Active contacts snake plot and bar chart</h1>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<a href="#active-contacts-bar-chart" class="anchor"></a>Active contacts bar chart</h1>
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
-<span class="co"># ~ Active contacts snake plot and bar chart  ------</span>
+<span class="co"># ~ Active contacts bar chart  ------</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
-<p>tbc</p>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
-<code class="sourceCode R">  <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_timeline_snake_plot</span> <span class="op">&lt;-</span>
+<p>Graphs showing active contacts by status ## active_contacts_breakdown_bar_chart</p>
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ active_contacts_breakdown_bar_chart ----  </span>
+  
+  <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_breakdown_bar_chart</span> <span class="op">&lt;-</span>
+    <span class="fu"><a href="https://docs.ropensci.org/plotly/reference/plotly-shiny.html">renderPlotly</a></span><span class="op">(</span><span class="op">{</span>
+      <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
+      
+      <span class="fu">active_contacts_breakdown_bar_chart</span><span class="op">(</span>
+        contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
+        todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>,
+        legend_df <span class="op">=</span> <span class="va">legend_df</span>
+      <span class="op">)</span>
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+<div id="active_contacts_breakdown_table" class="section level2">
+<h2 class="hasAnchor">
+<a href="#active_contacts_breakdown_table" class="anchor"></a>active_contacts_breakdown_table</h2>
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ active_contacts_breakdown_table ----  </span>
+  
+  <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_breakdown_table</span> <span class="op">&lt;-</span>
+    <span class="fu"><a href="https://glin.github.io/reactable/reference/reactable-shiny.html">renderReactable</a></span><span class="op">(</span><span class="op">{</span>
+      <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
+      
+      <span class="fu">active_contacts_breakdown_table</span><span class="op">(</span>
+        contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
+        todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
+      <span class="op">)</span>
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="active_contacts_breakdown_table_download" class="section level2">
+<h2 class="hasAnchor">
+<a href="#active_contacts_breakdown_table_download" class="anchor"></a>active_contacts_breakdown_table_download</h2>
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ active_contacts_breakdown_table_download ---- </span>
+  
+  <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_breakdown_table_download</span> <span class="op">&lt;-</span>
+    <span class="fu">active_contacts_breakdown_table_download</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+</div>
+</div>
+<div id="active-contacts-snake-plot" class="section level1">
+<h1 class="hasAnchor">
+<a href="#active-contacts-snake-plot" class="anchor"></a>Active contacts snake plot</h1>
+<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="co"># ~ Active contacts snake plot  ------</span>
+<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
+<p>The snake plot shows the status of each active contact. The user can drag to select contacts, and download the list of selected contacts. ## active_contacts_timeline_snake_plot</p>
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ active_contacts_timeline_snake_plot ----  </span>
+  
+  <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_timeline_snake_plot</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://docs.ropensci.org/plotly/reference/plotly-shiny.html">renderPlotly</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
 
@@ -819,9 +946,14 @@
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>,
         legend_df <span class="op">=</span> <span class="va">legend_df</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+<div id="active_contacts_snake_plot_selected_table" class="section level2">
+<h2 class="hasAnchor">
+<a href="#active_contacts_snake_plot_selected_table" class="anchor"></a>active_contacts_snake_plot_selected_table</h2>
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ active_contacts_snake_plot_selected_table ----  </span>
+  
+  <span class="co">## table with the contacts that were selected</span>
   <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_snake_plot_selected_table</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://glin.github.io/reactable/reference/reactable-shiny.html">renderReactable</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -830,12 +962,25 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         <span class="fu"><a href="https://docs.ropensci.org/plotly/reference/event_data.html">event_data</a></span><span class="op">(</span><span class="st">"plotly_selecting"</span><span class="op">)</span><span class="op">$</span><span class="va">customdata</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="active_contacts_snake_plot_selected_table_download" class="section level2">
+<h2 class="hasAnchor">
+<a href="#active_contacts_snake_plot_selected_table_download" class="anchor"></a>active_contacts_snake_plot_selected_table_download</h2>
+<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ active_contacts_snake_plot_selected_table_download ----  </span>
+  
+  <span class="co">## download handler for the selected table</span>
   <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_snake_plot_selected_table_download</span> <span class="op">&lt;-</span>
-    <span class="fu">active_contacts_snake_plot_selected_table_download</span><span class="op">(</span><span class="op">)</span>
-
-
+    <span class="fu">active_contacts_snake_plot_selected_table_download</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="active_contacts_timeline_table" class="section level2">
+<h2 class="hasAnchor">
+<a href="#active_contacts_timeline_table" class="anchor"></a>active_contacts_timeline_table</h2>
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ active_contacts_timeline_table ----  </span>
+  
+  <span class="co">## This is the tabular version of the data shown with the bar chart</span>
   <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_timeline_table</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://glin.github.io/reactable/reference/reactable-shiny.html">renderReactable</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -844,38 +989,24 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="active_contacts_timeline_table_download" class="section level2">
+<h2 class="hasAnchor">
+<a href="#active_contacts_timeline_table_download" class="anchor"></a>active_contacts_timeline_table_download</h2>
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ active_contacts_timeline_table_download ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_timeline_table_download</span> <span class="op">&lt;-</span>
-    <span class="fu">active_contacts_timeline_table_download</span><span class="op">(</span><span class="op">)</span>
-
-
-  <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_breakdown_bar_chart</span> <span class="op">&lt;-</span>
-    <span class="fu"><a href="https://docs.ropensci.org/plotly/reference/plotly-shiny.html">renderPlotly</a></span><span class="op">(</span><span class="op">{</span>
-      <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
-
-      <span class="fu">active_contacts_breakdown_bar_chart</span><span class="op">(</span>
-        contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
-        todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>,
-        legend_df <span class="op">=</span> <span class="va">legend_df</span>
-      <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
-
-  <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_breakdown_table</span> <span class="op">&lt;-</span>
-    <span class="fu"><a href="https://glin.github.io/reactable/reference/reactable-shiny.html">renderReactable</a></span><span class="op">(</span><span class="op">{</span>
-      <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
-
-      <span class="fu">active_contacts_breakdown_table</span><span class="op">(</span>
-        contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
-        todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
-      <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
-  <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_breakdown_table_download</span> <span class="op">&lt;-</span>
-    <span class="fu">active_contacts_breakdown_table_download</span><span class="op">(</span><span class="op">)</span>
-
-
+    <span class="fu">active_contacts_timeline_table_download</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="active_contacts_timeline_text" class="section level2">
+<h2 class="hasAnchor">
+<a href="#active_contacts_timeline_text" class="anchor"></a>active_contacts_timeline_text</h2>
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ active_contacts_timeline_text ----  </span>
+  
+  <span class="co">## text highlighting the number of active contacts</span>
   <span class="va">output</span><span class="op">$</span><span class="va">active_contacts_timeline_text</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderUI.html">renderUI</a></span><span class="op">(</span><span class="op">{</span>
     <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
 
@@ -885,16 +1016,19 @@
     <span class="op">)</span>
   <span class="op">}</span><span class="op">)</span></code></pre></div>
 </div>
+</div>
 <div id="contacts-lost-to-follow-up" class="section level1">
 <h1 class="hasAnchor">
 <a href="#contacts-lost-to-follow-up" class="anchor"></a>Contacts lost to follow-up</h1>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~ Contacts lost to follow-up  ------</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
-<p>tbc</p>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
-<code class="sourceCode R">  <span class="va">output</span><span class="op">$</span><span class="va">contacts_lost_24_to_72_hours_table</span> <span class="op">&lt;-</span>
+<p>Tables (and their download handlers) summarizing the number of individuals lost to follow-up ## contacts_lost_24_to_72_hours_table</p>
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ contacts_lost_24_to_72_hours_table ----  </span>
+  
+  <span class="va">output</span><span class="op">$</span><span class="va">contacts_lost_24_to_72_hours_table</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://rdrr.io/pkg/gt/man/render_gt.html">render_gt</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
 
@@ -902,11 +1036,22 @@
         contacts_df_long <span class="op">=</span> <span class="fu">read_file_filtered_reactive</span><span class="op">(</span><span class="op">)</span>,
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span>
-    <span class="op">}</span><span class="op">)</span>
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+<div id="contacts_lost_24_to_72_hours_table_download" class="section level2">
+<h2 class="hasAnchor">
+<a href="#contacts_lost_24_to_72_hours_table_download" class="anchor"></a>contacts_lost_24_to_72_hours_table_download</h2>
+<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ contacts_lost_24_to_72_hours_table_download ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">contacts_lost_24_to_72_hours_table_download</span> <span class="op">&lt;-</span>
-    <span class="fu">contacts_lost_24_to_72_hours_table_download</span><span class="op">(</span><span class="op">)</span>
-
+    <span class="fu">contacts_lost_24_to_72_hours_table_download</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="lost_contacts_linelist_table" class="section level2">
+<h2 class="hasAnchor">
+<a href="#lost_contacts_linelist_table" class="anchor"></a>lost_contacts_linelist_table</h2>
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ lost_contacts_linelist_table ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">lost_contacts_linelist_table</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://glin.github.io/reactable/reference/reactable-shiny.html">renderReactable</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
@@ -916,13 +1061,25 @@
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span> <span class="op">%&gt;%</span>
         <span class="va">.</span><span class="op">$</span><span class="va">output_table</span>
-    <span class="op">}</span><span class="op">)</span>
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="lost_contacts_linelist_table_download" class="section level2">
+<h2 class="hasAnchor">
+<a href="#lost_contacts_linelist_table_download" class="anchor"></a>lost_contacts_linelist_table_download</h2>
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ lost_contacts_linelist_table_download ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">lost_contacts_linelist_table_download</span> <span class="op">&lt;-</span>
-    <span class="fu">lost_contacts_linelist_table_download</span><span class="op">(</span><span class="op">)</span>
-
-
-  <span class="va">output</span><span class="op">$</span><span class="va">lost_contacts_linelist_table_title</span> <span class="op">&lt;-</span>
+    <span class="fu">lost_contacts_linelist_table_download</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="lost_contacts_linelist_table_title" class="section level2">
+<h2 class="hasAnchor">
+<a href="#lost_contacts_linelist_table_title" class="anchor"></a>lost_contacts_linelist_table_title</h2>
+<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ lost_contacts_linelist_table_title ----  </span></code></pre></div>
+<p>The title needs to be dynamic because at database inception, there may only be one or two days of follow-up in total. In such cases, we cannot call the table "number lost to follow-up over the past three days</p>
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<code class="sourceCode R">  <span class="va">output</span><span class="op">$</span><span class="va">lost_contacts_linelist_table_title</span> <span class="op">&lt;-</span>
     <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderUI.html">renderUI</a></span><span class="op">(</span><span class="op">{</span>
       <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
 
@@ -931,8 +1088,14 @@
         todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
       <span class="op">)</span> <span class="op">%&gt;%</span>
         <span class="va">.</span><span class="op">$</span><span class="va">table_title</span>
-    <span class="op">}</span><span class="op">)</span>
-
+    <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="lost_contacts_linelist_table_title-1" class="section level2">
+<h2 class="hasAnchor">
+<a href="#lost_contacts_linelist_table_title-1" class="anchor"></a>lost_contacts_linelist_table_title</h2>
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~ lost_contacts_linelist_table_title ----  </span>
+  
   <span class="va">output</span><span class="op">$</span><span class="va">lost_contacts_linelist_text</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderUI.html">renderUI</a></span><span class="op">(</span><span class="op">{</span>
     <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/req.html">req</a></span><span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
 
@@ -941,6 +1104,7 @@
       todays_date <span class="op">=</span> <span class="fu">todays_date_reactive</span><span class="op">(</span><span class="op">)</span>
     <span class="op">)</span>
   <span class="op">}</span><span class="op">)</span></code></pre></div>
+</div>
 </div>
   </div>
 

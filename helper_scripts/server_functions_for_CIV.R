@@ -4,6 +4,7 @@
 # ~  Read in preloaded data ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#'Here we load in simulated data
 
 contacts_list_sample <-
   rio::import(here("data/liste_contacts_sample.xlsx"))
@@ -27,7 +28,9 @@ preloaded_data_options <-
 # ~  UI Outputs ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#' ## data_to_use_picker
 # ~~ data_to_use_picker ---------------------------
+#' Options for data source
 
 
 output$data_to_use_picker <- renderUI({
@@ -37,7 +40,9 @@ output$data_to_use_picker <- renderUI({
                            "Use uploaded data"))
 })
 
+#' ## data_to_use_input
 # ~~ data_to_use_input ---------------------------
+#' Loads in the data.
 
 output$data_to_use_input <- renderUI({
   
@@ -76,6 +81,11 @@ output$data_to_use_input <- renderUI({
 })
 
 
+#' ## analyze_action_bttn
+# ~~ analyze_action_bttn ---------------------------
+#' Renders when requisites elements have been loaded. 
+
+
 output$analyze_action_bttn <- renderUI({
   
   req(input$data_to_use)
@@ -105,6 +115,9 @@ output$analyze_action_bttn <- renderUI({
   )
 })
 
+#' ## country_specific_data_to_use_section
+# ~~ country_specific_data_to_use_section ---------------------------
+#' Combine different UI elements into single output
 
 output$country_specific_data_to_use_section <- 
   renderUI({
@@ -117,10 +130,16 @@ output$country_specific_data_to_use_section <-
     )
   })
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~  Read file reactives ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  Read file functions ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' # Read file functions
+
+#' ## read_file_raw
+#' The read_file_raw function does either of two things.
+#' - For countries using Go.Data, it takes in the input credentials, logs into a Go.Data session, and returns a list with the requisite dataframes.
+#' - For countries using KoboCollect, it takes in the two uploaded csv files, (contact list and follow-up list), and returns them as a list of a dataframes.
 
 
 read_file_raw <- function(){
@@ -171,6 +190,11 @@ read_file_raw <- function(){
   
   return(tracing_data_raw)
 }
+
+#' ## read_file_transformed
+#' The 'read_file_transformed' function takes in data from read_file_raw_reactive, 
+#' and 'transforms' it into a single, 'long' dataframe,
+#' with one row per contact-follow-up-day
 
 
 read_file_transformed <- function(tracing_data_raw){
@@ -277,7 +301,13 @@ read_file_transformed <- function(tracing_data_raw){
   
 }
 
-
+#' ## read_file_filtered
+#' The 'read_file_filtered' function takes in data from read_file_transformed_reactive 
+#' It also takes in a date_of_review variable.
+#' It filters out contacts who had not begun followup by the selected date_of_review 
+#' Also, for contacts being followed, "future" are relabelled as such. 
+#' The output of read_file_filtered is a df that feed most graphs in the app. 
+#' 
 read_file_filtered <- function(){
   ## takes no inputs for now
   
@@ -290,98 +320,89 @@ read_file_filtered <- function(){
     names()
   
   cols_to_filter <- 
-    contacts_df_long_transformed %>% 
-    ## remember to use this in the ui generating code as well
-    select(-any_of(c("follow_up_date", 
-                     "first_name", 
-                     "last_name", 
-                     "row_id", 
-                     "row_number"))) %>% 
-    janitor::remove_constant() %>% 
+    contacts_df_long_transformed %>%
+    as.data.frame() %>% ## not sure why but tibble doesn't work
+    ## filters not created for rows that change across each contact
+    select(-any_of(c("follow_up_date", "follow_up_day", "follow_up_status",
+                     ## no filters for synthetic columns either
+                     "row_id","row_number","sort_number", 
+                     ## and no filters on names. 
+                     ## Franck mentioned not printing names to app for privacy
+                     "first_name", "last_name"))) %>%
+    ## no filters for columns that are all NA
+    janitor::remove_empty(which = "cols") %>% 
     names()
   
-  
-  filter_or_not <-  input$filter_or_not
-  todays_date <-  todays_date_reactive()
-  
-  if ((!is.null(input$filter_or_not)) && input$filter_or_not == "Yes"){
+  if ((!is.null(input$filter_or_not)) && input$filter_or_not == TRUE){
+
     
     temp <- 
       contacts_df_long_transformed %>% 
       as.data.frame()
     
-    for(j in 1:length(all_cols)) {
+    
+    for (j in 1:length(all_cols)) {
       
-      col <- temp[ ,all_cols[j]]
+      col <- temp[, all_cols[j]]
       
-      if (all_cols[[j]] %in% cols_to_filter){
-        
-        
+      if (all_cols[[j]] %in% cols_to_filter) {
         ## factor
         if (is.factor(col)) {
-          
           ## if na_input ui element exists and is TRUE, include NAs
-          if (  (!is.null(input[[ paste0("na_", all_cols[j]  )  ]])) &&
-                input[[ paste0("na_", all_cols[j]  )  ]] == TRUE ){
-            
-            temp <- temp[ temp[,all_cols[j]] %in% input[[all_cols[j]]] |
-                            is.na(temp[all_cols[j]]  ), ]
+          if ((!is.null(input[[paste0("na_", all_cols[j])]])) &&
+              input[[paste0("na_", all_cols[j])]] == TRUE) {
+            temp <- temp[temp[, all_cols[j]] %in% input[[all_cols[j]]] |
+                           is.na(temp[all_cols[j]]),]
             ## otherwise, exclude NAs
           } else {
-            temp <- temp[ temp[,all_cols[j]] %in% input[[all_cols[j]]], ]
+            temp <- temp[temp[, all_cols[j]] %in% input[[all_cols[j]]],]
           }
           
         } else if (is.character(col)) {
-          
           ## if na_input ui element exists and is TRUE, include NAs
-          if (  (!is.null(input[[ paste0("na_", all_cols[j]  )  ]])) &&
-                input[[ paste0("na_", all_cols[j]  )  ]] == TRUE ){
-            
-            temp <- temp[ temp[,all_cols[j]] %in% input[[all_cols[j]]] |
-                            is.na(temp[all_cols[j]]  ), ]
+          if ((!is.null(input[[paste0("na_", all_cols[j])]])) &&
+              input[[paste0("na_", all_cols[j])]] == TRUE) {
+            temp <- temp[temp[, all_cols[j]] %in% input[[all_cols[j]]] |
+                           is.na(temp[all_cols[j]]),]
             ## otherwise, exclude NAs
           } else {
-            temp <- temp[ temp[,all_cols[j]] %in% input[[all_cols[j]]], ]
+            temp <- temp[temp[, all_cols[j]] %in% input[[all_cols[j]]],]
           }
           
         } else if (is.numeric(col)) {
-          
-          
           ## if na_input ui element exists and is TRUE, include NAs
-          if (  (!is.null(input[[ paste0("na_", all_cols[j]  )  ]])) &&
-                input[[ paste0("na_", all_cols[j]  )  ]] == TRUE ){
-            
-            
-            temp <- temp[temp[,all_cols[j]] >= input[[all_cols[j]]][1] | 
-                           is.na(temp[all_cols[j]]) ,  ]
-            temp <- temp[temp[,all_cols[j]] <= input[[all_cols[j]]][2] | 
-                           is.na(temp[all_cols[j]]), ]
+          if ((!is.null(input[[paste0("na_", all_cols[j])]])) &&
+              input[[paste0("na_", all_cols[j])]] == TRUE) {
+            temp <- temp[temp[, all_cols[j]] >= input[[all_cols[j]]][1] |
+                           is.na(temp[all_cols[j]]) ,]
+            temp <-
+              temp[temp[, all_cols[j]] <= input[[all_cols[j]]][2] |
+                     is.na(temp[all_cols[j]]),]
             
             ## otherwise, exclude NAs
           } else {
-            
-            temp <- temp[temp[,all_cols[j]] >= input[[all_cols[j]]][1], ]
-            temp <- temp[temp[,all_cols[j]] <= input[[all_cols[j]]][2], ]
+            temp <- temp[temp[, all_cols[j]] >= input[[all_cols[j]]][1],]
+            temp <-
+              temp[temp[, all_cols[j]] <= input[[all_cols[j]]][2],]
           }
           
           
-        } else if(lubridate::is.Date(col)) {
+        } else if (lubridate::is.Date(col)) {
           ## if na_input ui element exists and is TRUE, include NAs
-          if (  (!is.null(input[[ paste0("na_", all_cols[j]  )  ]])) &&
-                input[[ paste0("na_", all_cols[j]  )  ]] == TRUE ){
+          if ((!is.null(input[[paste0("na_", all_cols[j])]])) &&
+              input[[paste0("na_", all_cols[j])]] == TRUE) {
+            temp <- temp[temp[, all_cols[j]] >= input[[all_cols[j]]][1] |
+                           is.na(temp[all_cols[j]]) ,]
             
-            
-            temp <- temp[temp[,all_cols[j]] >= input[[all_cols[j]]][1] | 
-                           is.na(temp[all_cols[j]]) ,  ]
-            
-            temp <- temp[temp[,all_cols[j]] <= input[[all_cols[j]]][2] | 
-                           is.na(temp[all_cols[j]]), ]
+            temp <-
+              temp[temp[, all_cols[j]] <= input[[all_cols[j]]][2] |
+                     is.na(temp[all_cols[j]]),]
             
             ## otherwise, exclude NAs
           } else {
-            
-            temp <- temp[temp[,all_cols[j]] >= input[[all_cols[j]]][1], ]
-            temp <- temp[temp[,all_cols[j]] <= input[[all_cols[j]]][2], ]
+            temp <- temp[temp[, all_cols[j]] >= input[[all_cols[j]]][1],]
+            temp <-
+              temp[temp[, all_cols[j]] <= input[[all_cols[j]]][2],]
           }
         }
       }
@@ -400,6 +421,8 @@ read_file_filtered <- function(){
                       as.Date()))
   }
   
+  
+  todays_date <-  todays_date_reactive()
   
   ## return
   contacts_df_long_transformed %>%

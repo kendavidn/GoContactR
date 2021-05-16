@@ -46,7 +46,7 @@ split_long_df <- function(df, max_rows) {
     clipped_numbers_vec <- repeated_numbers[1:num_rows]
     df_labeled <- df %>% bind_cols(clipped_numbers = clipped_numbers_vec)
     
-    ## add NA rows so that the last table has the same number as all others
+    ## add NA rows so that the last table has the same number as all others ---
     
     ## count how many rows are in last table
     final_table_row_count <- 

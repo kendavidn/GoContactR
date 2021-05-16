@@ -1,11 +1,10 @@
 #'---
-#'title: "Global.R"
+#'title: "global.R"
 #'output:
 #'  rmarkdown::html_document:
-#'  toc: yes
-#'  toc_depth: 2
-#'  toc_float: yes
-#'  number_sections: true
+#'    toc: yes
+#'    toc_depth: 2
+#'    toc_float: yes
 #'---
 
 #' The global.R file is run once before your app starts. 
@@ -167,6 +166,7 @@ legend_df <-
     "Not generated", col2hex("wheat4"),
     "Fin du suivi", col2hex("dodgerblue3"),
     "Suivi futur", col2hex("goldenrod"),
+    "Future follow-up", col2hex("goldenrod"),
     "Decede", col2hex("purple3")
   ) %>%
   arrange(breaks) %>%

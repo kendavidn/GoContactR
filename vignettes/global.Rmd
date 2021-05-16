@@ -1,11 +1,12 @@
 ---
-title: "Global.R"
+title: "global.R"
 output:
  rmarkdown::html_document:
- toc: yes
- toc_depth: 2
- toc_float: yes
- number_sections: true
+   toc: yes
+   toc_depth: 2
+   toc_float: yes
+   number_sections: true
+   code_folding: hide
 ---
 The global.R file is run once before your app starts. 
 Any R objects created here global.R file become available to the app.R file, 

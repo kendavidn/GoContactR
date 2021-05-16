@@ -139,14 +139,17 @@ load_data_tab <- tabItem(tabName = "load_data_tab",
                          load_data_tab_row_3)
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~ main_tab ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' #  MAIN TAB
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ MAIN TAB ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
+#' #  Date and download
+# ~~~~ date_and_download  --------------------
 
-# ~~~ main_tab_row_00_admin_1---- 
-main_tab_row_00 <- 
+
+date_and_download <- 
   fluidRow(box(width = 4,
                title = tagList(icon("hand-pointer"), 
                                "Date of review"), 
@@ -170,10 +173,10 @@ main_tab_row_00 <-
                )
            )
 
+#' #  Additional filters
+# ~~~~ additional_filters  --------------------
 
-# ~~~ main_tab_select_columns---- 
-
-main_tab_select_columns <- 
+additional_filters <- 
   fluidRow(box(width = 12,
                title = tagList(icon("filter"), 
                                "Additional filters"), 
@@ -194,25 +197,15 @@ main_tab_select_columns <-
                                )
                         )
                )
-           # ,
-           # box(width = 8,
-           #     title = tagList(icon("file-download"), 
-           #                    "Download report"),
-           #     closable = FALSE,
-           #     collapsible = TRUE,
-           #     fluidRow(column(width = 5,
-           #                    uiOutput("select_format", style = "height: 4.7em;")
-           #     ),
-           #     column(width = 7, 
-           #           uiOutput("download_report_button"))
-           #     )
-  #)
   )
 
 
-# ~~~ main_tab_row_0 ----
 
-main_tab_row_0 <-
+#' #  Value boxes
+# ~~~~ value_boxes  --------------------
+
+
+value_boxes <-
   fluidRow(valueBoxOutput("contacts_per_day_value_box", width = 3),
            valueBoxOutput("cumulative_contacts_value_box", width = 3),
            valueBoxOutput("contacts_under_surveillance_value_box", width = 3),
@@ -221,11 +214,11 @@ main_tab_row_0 <-
 
 
 
+#' #  Contacts per region
+# ~~~~ contacts_per_region ----
 
-# ~~~ main_tab_row_1 ----
 
-
-main_tab_row_1 <-
+contacts_per_region <-
   tagList(
   h1("  "), 
   icon("map", "fa-2x"),
@@ -259,10 +252,10 @@ main_tab_row_1 <-
   )
 
 
+#' #  Contacts surveilled over time
+# ~~~~ contacts_surveilled_over_time ----
 
-# ~~~ main_tab_row_2 ----
-
-main_tab_row_2 <-
+contacts_surveilled_over_time <-
   tagList(
     h1("  "), 
     icon("calendar-alt", "fa-2x"),
@@ -292,10 +285,10 @@ main_tab_row_2 <-
   hr()
   )
 
+#' #  Contacts per case
+# ~~~~ contacts_per_case ----
 
-# ~~~ main_tab_row_3 ----
-
-main_tab_row_3 <-
+contacts_per_case <-
   tagList(
     h1("  "), 
     icon("users", "fa-2x"),
@@ -330,9 +323,10 @@ main_tab_row_3 <-
   hr()
   )
 
-# ~~~ main_tab_row_4 ----
+#' #  Contacts per link type
+# ~~~~ contacts_per_link_type ----
 
-main_tab_row_4 <-
+contacts_per_link_type <-
   tagList(
     h1("  "), 
     icon("link", "fa-2x"),
@@ -362,299 +356,35 @@ main_tab_row_4 <-
   hr()
   )
 
-# ~~~ main_tab_combine_rows----
+# ~~~~ main_tab_combine_rows----
 
 
 main_tab <- tabItem("main_tab",
-                    main_tab_row_00,
-                    main_tab_select_columns,
-                    main_tab_row_0,
+                    date_and_download,
+                    additional_filters,
+                    value_boxes,
                     h1("All contacts", align = "center"), 
                     hr(),
-                    main_tab_row_1, 
-                    main_tab_row_2,
-                    main_tab_row_3, 
-                    main_tab_row_4
+                    contacts_per_region, 
+                    contacts_surveilled_over_time,
+                    contacts_per_case, 
+                    contacts_per_link_type
                     )
 
 
 
-# 
-# #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# # ~~ main_tab_admin_1  ----
-# #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# 
-# 
-# # ~~~ main_tab_row_00_admin_1---- 
-# main_tab_row_00_admin_1 <- 
-#   fluidRow(box(width = 12,
-#                title = tagList(icon("hand-pointer"), 
-#                                "Select admin level 1 and date"), 
-#                closable = F, 
-#                collapsible = T,
-#                fluidRow(column(width = 6, 
-#                                uiOutput("select_admin_1"), 
-#                                uiOutput("select_date_of_review_admin_1"))
-#                         )
-#   ))
-# 
-# 
-# main_tab_row_0_admin_1 <-
-#   fluidRow(
-#     valueBoxOutput("contacts_per_day_value_box_admin_1", width = 3),
-#            valueBoxOutput("cumulative_contacts_value_box_admin_1", width = 3),
-#            valueBoxOutput("contacts_under_surveillance_value_box_admin_1", width = 3),
-#            valueBoxOutput("pct_contacts_followed_value_box_admin_1", width = 3)
-#   )
-# 
-# 
-# # ~~~ main_tab_row_1_admin_1 ----
-# 
-# 
-# main_tab_row_1_admin_1 <-
-#   tagList(
-#     h1("  "), 
-#     icon("map", "fa-2x"),
-#     h3("Total contacts per admin level 2", 
-#        style = "display: inline; line-height: 50px;"),
-#   fluidRow(column(width = 12,
-#                column(width = 9,
-#                       tabsetPanel(tabPanel(title = "Table",
-#                                            reactableOutput("all_contacts_per_admin_1_table_admin_1") %>%
-#                                              withSpinner(type = 6, color = burnt_sienna)),
-#                                   tabPanel(title = "Plot",
-#                                            highchartOutput("all_contacts_per_admin_1_sunburst_plot_admin_1", 
-#                                                            height = "350px"
-#                                            ) %>%
-#                                              withSpinner(type = 6, color = burnt_sienna))
-#                       )
-#                ),
-#                column(width = 3,
-#                       tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
-#                                                            "Description"),
-#                                            style = "overflow-y:auto",
-#                                            htmlOutput("all_contacts_per_admin_1_text_admin_1") %>% 
-#                                              withSpinner(type = 1, color = burnt_sienna))
-#                       )
-#                )
-#   )
-#   ), 
-#   hr()
-#   )
-# 
-# 
-# 
-# 
-# 
-# 
-# # ~~~ main_tab_row_2_admin_1 ----
-# 
-# main_tab_row_2_admin_1 <-
-#   tagList(
-#     h1("  "), 
-#     icon("calendar-alt", "fa-2x"),
-#     h3("Contacts under surveillance per admin level 2 over time", 
-#        style = "display: inline; line-height: 50px;"),
-#   fluidRow(column(width = 12,
-#                column(width = 9,
-#                       tabsetPanel(tabPanel(title = "Absolute numbers",
-#                                            highchartOutput("contacts_surveilled_admin_1_bar_chart_admin_1") %>%
-#                                              withSpinner(type = 6, color = burnt_sienna)),
-#                                   tabPanel(title = "Relative proportions",
-#                                            highchartOutput("contacts_surveilled_admin_1_bar_chart_relative_admin_1") %>%
-#                                              withSpinner(type = 6, color = burnt_sienna)) 
-#                                   
-#                       )
-#                ),
-#                column(width = 3,
-#                       tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
-#                                                            "Description"),
-#                                            style = "overflow-y:auto",
-#                                            htmlOutput("contacts_surveilled_admin_1_text_admin_1") %>% 
-#                                              withSpinner(type = 1, color = burnt_sienna))
-#                       )
-#                )
-#   )
-#   ), 
-#   hr()
-#   )
-# 
-# 
-# 
-# 
-# # ~~~ main_tab_row_3_admin_1 ----
-# 
-# main_tab_row_3_admin_1 <-
-#   tagList(
-#     h1("  "), 
-#     icon("users", "fa-2x"),
-#     h3("Number of contacts per case", 
-#        style = "display: inline; line-height: 50px;"),
-#   fluidRow(column(width = 12,
-#                column(width = 9,
-#                       tabsetPanel(tabPanel(title = "Plot",
-#                                            highchartOutput("total_contacts_per_case_donut_plot_admin_1") %>%
-#                                              withSpinner(type = 6, color = burnt_sienna))
-#                                   
-#                       )
-#                ),
-#                column(width = 3,
-#                       tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
-#                                                            "Description"),
-#                                            style = "overflow-y:auto",
-#                                            htmlOutput("total_contacts_per_case_text_admin_1") %>% 
-#                                              withSpinner(type = 1, color = burnt_sienna))
-#                       )
-#                )
-#   )
-#   ), 
-#   hr()
-#   )
-# 
-# # ~~~ main_tab_row_4_admin_1 ----
-# 
-# main_tab_row_4_admin_1 <-
-#   tagList(
-#     h1("  "), 
-#     icon("link", "fa-2x"),
-#     h3("Case-contact relationships", 
-#        style = "display: inline; line-height: 50px;"),
-#   fluidRow(column(width = 12,
-#                column(width = 9,
-#                       tabsetPanel(tabPanel(title = "Plot",
-#                                            highchartOutput("total_contacts_per_link_type_donut_plot_admin_1") %>%
-#                                              withSpinner(type = 6, color = burnt_sienna))
-#                                   
-#                       )
-#                ),
-#                column(width = 3,
-#                       tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
-#                                                            "Description"),
-#                                            style = "overflow-y:auto",
-#                                            htmlOutput("total_contacts_per_link_type_text_admin_1") %>% 
-#                                              withSpinner(type = 1, color = burnt_sienna))
-#                       )
-#                )
-#   )
-#   ), 
-#   hr()
-#   )
-# 
-# 
-# # ~~~ main_tab_row_6_admin_1 ----
-# 
-# 
-# main_tab_row_6_admin_1 <-
-#   tagList(
-#     h1("  "),
-#     icon("user-clock", "fa-2x"),
-#     h3("Follow-up state",
-#        style = "display: inline; line-height: 50px;"),
-#     fluidRow(column(width = 12,
-#                     column(width = 9,
-#                            tabsetPanel(tabPanel(title = "Plots",
-#                                                 plotlyOutput("active_contacts_timeline_snake_plot_admin_1",height = 700) %>%
-#                                                   withSpinner(type = 6, color = burnt_sienna),
-#                                                 plotlyOutput("active_contacts_breakdown_bar_chart_admin_1") %>%
-#                                                   withSpinner(type = 6, color = burnt_sienna)
-#                            ),
-#                            tabPanel(title = "Table",
-#                                     reactableOutput("active_contacts_breakdown_table_admin_1") %>%
-#                                       withSpinner(type = 6, color = burnt_sienna))
-# 
-#                            )
-#                     ),
-#                     column(width = 3,
-#                            tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
-#                                                                 "Description"),
-#                                                 tagList(HTML("<br>
-#                                                         <span style='color: rgb(97, 189, 109);'>ℹ:</span>
-#                                                         <font size='1'>
-#                                                         The bar chart and snake plot show the follow-up states of currently active contacts,
-#                                                         (contacts that should be currently under surveillance).
-#                                                         <br>
-#                                                         </font>")),
-#                                                 htmlOutput("active_contacts_timeline_text_admin_1")
-# 
-# 
-#                            )
-#                            )
-#                     )
-#     )
-#     ),
-#     hr()
-#   )
-# 
-# 
-# 
-# 
-# # ~~~ main_tab_row_7_admin_1 ----
-# 
-# main_tab_row_7_admin_1 <-
-#   tagList(
-#     h1("  "),
-#     icon("low-vision", "fa-2x"),
-#     h3("Contacts not seen recently",
-#        style = "display: inline; line-height: 50px;"),
-#     fluidRow(column(width = 12,
-#                     column(width = 9,
-#                            tabsetPanel(tabPanel(title = "Summary",
-#                                                 gt_output("contacts_lost_24_to_72_hours_table_admin_1") %>%
-#                                                   withSpinner(type = 6, color = burnt_sienna)),
-#                                        tabPanel(title = "List of contacts not seen",
-#                                                 htmlOutput("lost_contacts_linelist_table_title_admin_1"),
-#                                                 reactableOutput("lost_contacts_linelist_table_admin_1") %>%
-#                                                   withSpinner(type = 6, color = burnt_sienna))
-# 
-#                            )
-#                     ),
-#                     column(width = 3,
-#                            tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
-#                                                                 "Description"),
-#                                                 style = "overflow-y:auto",
-#                                                 HTML("<br>
-#                                                  <span style='color: rgb(97, 189, 109);'>ℹ:</span>
-#                                                  <font size='1'>
-#                                                  The tables track the contacts who should be under surveillance but have not been followed for an extended period.
-#                                                             </font>"
-#                                                 )
-#                            )
-#                            )
-#                     )
-#     )
-#     ),
-#     hr()
-#   )
 
 
 
-# ~~~ main_tab_admin_1_combine_rows----
-
-# 
-# 
-# main_tab_admin_1 <- tabItem("main_tab_admin_1",
-#                                      main_tab_row_00_admin_1, 
-#                                      main_tab_row_0_admin_1, 
-#                                      h1("All contacts", align = "center"), 
-#                                      hr(),
-#                                      main_tab_row_1_admin_1, 
-#                                      main_tab_row_2_admin_1, 
-#                                      main_tab_row_3_admin_1,
-#                                      main_tab_row_4_admin_1, 
-#                                      h1("Active contacts", align = "center"), 
-#                                      hr(),
-#                                      main_tab_row_6_admin_1, 
-#                                      main_tab_row_7_admin_1
-#                                      )
-
-# #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# # ~~ active_contacts_tab  ----
-# #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' #  ACTIVE CONTACTS TAB
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ ACTIVE CONTACTS TAB ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # ~~~ active_contacts_row ----
 
 
-active_contacts_row <- 
+active_contacts_bar_and_snake <- 
   tagList(
     h1("  "), 
     icon("user-clock", "fa-2x"),
@@ -708,7 +438,7 @@ active_contacts_row <-
 
 # ~~~ lost_contacts_row ----
 
-lost_contacts_row <- 
+lost_contacts <- 
   tagList(
     h1("  "), 
     icon("low-vision", "fa-2x"),
@@ -750,8 +480,8 @@ lost_contacts_row <-
 active_contacts_tab <- tabItem(tabName = "active_contacts_tab",
                                h1("Active contacts", align = "center"), 
                                hr(),
-                               active_contacts_row, 
-                               lost_contacts_row
+                               active_contacts_bar_and_snake, 
+                               lost_contacts
 )
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -794,12 +524,6 @@ body <-
                 tags$head(tags$style(HTML(".main-header .logo {
                                           text-align:left !important;
                                           padding: 2px 0px 8px 6px !important;}"))),
-                # reduce box padding
-                #tags$head(tags$style(HTML('.box {padding: 4px !important;}'))),
-                #tags$head(tags$style(HTML('.box {margin: 4px !important;}'))),
-                # value boxes
-                #tags$head(tags$style(HTML('.col-sm-3 {padding: 5 5 5 10px !important;}'))),
-                
                 # error color
                 tags$head(tags$style(".shiny-output-error{color: grey;}")),
                 # for FAQs
@@ -810,9 +534,8 @@ body <-
                                    shinydashboard = TRUE),
                 tabItems(load_data_tab,
                          main_tab,
-                         active_contacts_tab
-                         #, 
-                         #help_tab
+                         active_contacts_tab, 
+                         help_tab
                          )
   )
 

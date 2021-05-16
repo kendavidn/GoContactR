@@ -4,8 +4,9 @@
 # ~  UI Outputs ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
+#' ## data_to_use_picker
 # ~~ data_to_use_picker ---------------------------
+#' Options for data source
 
 output$data_to_use_picker <- renderUI({
   radioButtons(inputId = "data_to_use", 
@@ -13,7 +14,9 @@ output$data_to_use_picker <- renderUI({
                choices = c("Connect to Go.Data"))
 })
 
+#' ## data_to_use_input
 # ~~ data_to_use_input ---------------------------
+#' Loads in the data.
 
 output$data_to_use_input <- 
   renderUI({
@@ -36,6 +39,10 @@ output$data_to_use_input <-
           uiOutput("access_permitted_or_not"))
     })
 
+
+#' ## access_token_reactive
+# ~~ access_token_reactive ---------------------------
+#' Specific to Go.Data version Returns access token
 
 access_token_reactive <- reactive({
   
@@ -65,6 +72,10 @@ access_token_reactive <- reactive({
   
 })
 
+#' ## access_permitted_or_not
+# ~~ access_permitted_or_not ---------------------------
+#' Specific to Go.Data version.  
+#' If access_token is not successfully retrieded, returns error. 
 
 output$access_permitted_or_not <- renderUI({
   
@@ -84,6 +95,10 @@ output$access_permitted_or_not <- renderUI({
   
 })
 
+#' ## analyze_action_bttn
+# ~~ analyze_action_bttn ---------------------------
+#' Renders when requisites elements have been loaded. 
+
 output$analyze_action_bttn <- renderUI({
   
   req(input$data_to_use)
@@ -100,6 +115,11 @@ output$analyze_action_bttn <- renderUI({
   )
 })
 
+#' ## country_specific_data_to_use_section
+# ~~ country_specific_data_to_use_section ---------------------------
+#' Combine different UI elements into single output
+
+
 output$country_specific_data_to_use_section <- 
   renderUI({
     tagList(column(width = 3, 
@@ -111,9 +131,17 @@ output$country_specific_data_to_use_section <-
           )
   })
 
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~  Read file reactives ----
+# ~  Read file functions ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' # Read file functions
+
+#' ## read_file_raw
+#' The read_file_raw function does either of two things.
+#' - For countries using Go.Data, it takes in the input credentials, logs into a Go.Data session, and returns a list with the requisite dataframes.
+#' - For countries using KoboCollect, it takes in the two uploaded csv files, (contact list and follow-up list), and returns them as a list of a dataframes.
 
 
 read_file_raw <- function(){
@@ -131,11 +159,11 @@ read_file_raw <- function(){
     # outbreak_id <- "3b5554d7-2c19-41d0-b9af-475ad25a382b"
 
 
-    # ~~~~ get access token for API calls ----    
+    # ~~~~ get access token for API calls ---
 
     access_token <- access_token_reactive()
     
-    # ~~~~ import relevant api collections----    
+    # ~~~~ import relevant api collections---    
     
     # import contact follow-ups
     follow_up_list <- 
@@ -162,6 +190,12 @@ read_file_raw <- function(){
   
   return(tracing_data_raw)
 }
+
+
+#' ## read_file_transformed
+#' The 'read_file_transformed' function takes in data from read_file_raw_reactive, 
+#' and 'transforms' it into a single, 'long' dataframe,
+#' with one row per contact-follow-up-day
 
 
 read_file_transformed <- function(tracing_data_raw){
@@ -303,159 +337,4 @@ read_file_transformed <- function(tracing_data_raw){
   return(contacts_df_long_transformed)
   
 }
-
-
-read_file_filtered <- function(){
-  ## takes no inputs for now
-  
-  
-  contacts_df_long_transformed <-  read_file_transformed_reactive()
-  
-  
-  all_cols <- 
-    contacts_df_long_transformed %>% 
-    names()
-  
-  cols_to_filter <- 
-    contacts_df_long_transformed %>% 
-    select(-any_of(c("follow_up_date", 
-                     "first_name", 
-                     "last_name", 
-                     "row_id", 
-                     "row_number"))) %>% 
-    janitor::remove_constant() %>% 
-    names()
-  
-  
-  filter_or_not <-  input$filter_or_not
-  todays_date <-  todays_date_reactive()
-  
-  if ((!is.null(input$filter_or_not)) && input$filter_or_not == "Yes"){
-    
-    temp <- 
-      contacts_df_long_transformed %>% 
-      as.data.frame()
-    
-    for(j in 1:length(all_cols)) {
-      
-      col <- temp[ ,all_cols[j]]
-      
-      if (all_cols[[j]] %in% cols_to_filter){
-        
-        
-        ## factor
-        if (is.factor(col)) {
-          
-          ## if na_input ui element exists and is TRUE, include NAs
-          if (  (!is.null(input[[ paste0("na_", all_cols[j]  )  ]])) &&
-                input[[ paste0("na_", all_cols[j]  )  ]] == TRUE ){
-            
-            temp <- temp[ temp[,all_cols[j]] %in% input[[all_cols[j]]] |
-                            is.na(temp[all_cols[j]]  ), ]
-            ## otherwise, exclude NAs
-          } else {
-            temp <- temp[ temp[,all_cols[j]] %in% input[[all_cols[j]]], ]
-          }
-          
-          ## character
-        } else if (is.character(col)) {
-          
-          ## if na_input ui element exists and is TRUE, include NAs
-          if (  (!is.null(input[[ paste0("na_", all_cols[j]  )  ]])) &&
-                input[[ paste0("na_", all_cols[j]  )  ]] == TRUE ){
-            
-            temp <- temp[ temp[,all_cols[j]] %in% input[[all_cols[j]]] |
-                            is.na(temp[all_cols[j]]  ), ]
-            ## otherwise, exclude NAs
-          } else {
-            temp <- temp[ temp[,all_cols[j]] %in% input[[all_cols[j]]], ]
-          }
-          
-          ## numeric
-        } else if (is.numeric(col)) {
-          
-          
-          ## if na_input ui element exists and is TRUE, include NAs
-          if (  (!is.null(input[[ paste0("na_", all_cols[j]  )  ]])) &&
-                input[[ paste0("na_", all_cols[j]  )  ]] == TRUE ){
-            
-            
-            temp <- temp[temp[,all_cols[j]] >= input[[all_cols[j]]][1] | 
-                           is.na(temp[all_cols[j]]) ,  ]
-            temp <- temp[temp[,all_cols[j]] <= input[[all_cols[j]]][2] | 
-                           is.na(temp[all_cols[j]]), ]
-            
-            ## otherwise, exclude NAs
-          } else {
-            
-            temp <- temp[temp[,all_cols[j]] >= input[[all_cols[j]]][1], ]
-            temp <- temp[temp[,all_cols[j]] <= input[[all_cols[j]]][2], ]
-          }
-          
-          ## date
-        } else if(lubridate::is.Date(col)) {
-          ## if na_input ui element exists and is TRUE, include NAs
-          if (  (!is.null(input[[ paste0("na_", all_cols[j]  )  ]])) &&
-                input[[ paste0("na_", all_cols[j]  )  ]] == TRUE ){
-            
-            
-            temp <- temp[temp[,all_cols[j]] >= input[[all_cols[j]]][1] | 
-                           is.na(temp[all_cols[j]]) ,  ]
-            
-            temp <- temp[temp[,all_cols[j]] <= input[[all_cols[j]]][2] | 
-                           is.na(temp[all_cols[j]]), ]
-            
-            ## otherwise, exclude NAs
-          } else {
-            
-            temp <- temp[temp[,all_cols[j]] >= input[[all_cols[j]]][1], ]
-            temp <- temp[temp[,all_cols[j]] <= input[[all_cols[j]]][2], ]
-          }
-        }
-      }
-      
-    }
-    
-    contacts_df_long_transformed <- 
-      temp %>% 
-      as_tibble() %>% 
-      ## not sure if necessary again
-      # convert dates to dates
-      mutate(across(.cols = matches("date|Date"),
-                    .fns = 
-                      ~ .x %>% 
-                      str_replace_all(" UTC", "") %>% 
-                      as.Date()))
-  }
-  
-  
-  contacts_df_long <- 
-    contacts_df_long_transformed %>%
-    ## add future follow-up. 
-    mutate(follow_up_status = if_else(follow_up_date > todays_date, 
-                                      "Future follow-up",
-                                      follow_up_status)) %>% 
-    mutate(follow_up_status_simple = if_else(follow_up_date > todays_date, 
-                                             "Future follow-up",
-                                             follow_up_status_simple)) %>% 
-    # keep only those for whom follow-up had begun by the date of review
-    group_by(row_id) %>% 
-    filter(min(follow_up_date) <= todays_date) %>%
-    ungroup() %>% 
-    # add legend colors
-    # legend_df is defined in global.R 
-    left_join(legend_df, by = c("follow_up_status" = "breaks"))
-  
-  ## return
-  contacts_df_long
-}
-
-
-
-
-
-
-
-
-
 

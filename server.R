@@ -1,11 +1,10 @@
 #' ---
-#' title: "Server.R"
+#' title: "server.R"
 #' output:
 #'  rmarkdown::html_document:
-#'  toc: yes
-#'  toc_depth: 2
-#'  toc_float: yes
-#'  number_sections: true
+#'    toc: yes
+#'    toc_depth: 2
+#'    toc_float: yes
 #' --- #tag_to_pull
 
 ## NOTE: Section headers on this file are duplicated. 
@@ -26,21 +25,6 @@ server <- function(input, output) {
 #' Load in the primary functions that will be called within server.R
   source(here("helper_scripts/server_functions.R"), local = T)
 
-  
-  
-#' # Source country-specific server functions
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~  Source country-specific server functions -----
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Here we source a set of functions related to reading in and transforming the source data.
-#' This is the only part of the app that changes between countries.
-#' There are currently two versions of functions/reactives/UI elements that are sourced in this script.
-#' - One version creates UI elements to enter Go.Data credentials and fetches the Go.Data data
-#' - The other version creates UI elements to upload KoboCollect csvs.
-#' 
-  source(here(paste0("helper_scripts/server_functions_for_",
-                     PARAMS$country_code, ".R")), local = T)
-
 
 #' # Load data reactives
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,14 +32,17 @@ server <- function(input, output) {
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #' Each of the "read_file-" reactives sources its namesake function.
-#' These functions are called in a reactive context to ensure that if the input data changes, all the output graphs will change as well.
+#' These functions are called in a reactive context to ensure that if the input data changes, 
+#' all the output graphs will change as well.
   
   
 #' ## read_file_raw_reactive
 # ~~~~ read_file_raw_reactive --------------------
 #' The read_file_raw function does either of two things.
-#' - For countries using Go.Data, it takes in the input credentials, logs into a Go.Data session, and returns a list with the requisite dataframes.
-#' - For countries using KoboCollect, it takes in the two uploaded csv files, (contact list and follow-up list), and returns them as a list of a dataframes.
+#' - For countries using Go.Data, it takes in the input credentials, 
+#' logs into a Go.Data session, and returns a list with the requisite dataframes.
+#' - For countries using KoboCollect, it takes in the two uploaded csv files, 
+#' (contact list and follow-up list), and returns them as a list of a dataframes.
 
   read_file_raw_reactive <- reactive({
     req(input$data_to_use)
@@ -67,7 +54,8 @@ server <- function(input, output) {
 
 #' ## read_file_transformed_reactive
 # ~~~~ read_file_transformed_reactive -----------------
-#' The 'read_file_transformed' function takes in data from read_file_raw_reactive, and 'transforms' it into a single, 'long' dataframe,
+#' The 'read_file_transformed' function takes in data from read_file_raw_reactive, 
+#' and 'transforms' it into a single, 'long' dataframe,
 #' with one row per contact-follow-up-day
   
   read_file_transformed_reactive <- reactive({
@@ -78,25 +66,26 @@ server <- function(input, output) {
   })
 
 
-#' ## read_file_filtered_reactive
-# ~~~~ read_file_filtered_reactive ------------------------
-#' The 'read_file_filtered' function takes in data from read_file_transformed_reactive, as well as a date_of_review variable.
-#' All contacts who had not begun follow-up by he selected date_of_review are removed from the dataframe.
-#' In addition, for contacts in the midst of follow-up, follow-up days that are past the selected date_of_review will have their status changed to "Future follow-up" or "Suivi futur"
-#' The output of read_file_filtered (which becomes the output of 'read_file_filtered_reactive') is the dataframe that feeds most graphs in the application.
+  #' ## read_file_filtered_reactive
+  # ~~~~ read_file_filtered_reactive ------------------------
+  #' The 'read_file_filtered' function takes in data from read_file_transformed_reactive 
+  #' It also takes in a date_of_review variable.
+  #' It filters out contacts who had not begun followup by the selected date_of_review 
+  #' Also, for contacts being followed, "future" are relabelled as such. 
+  #' The output of read_file_filtered is a df that feed most graphs in the app. 
 
   read_file_filtered_reactive <- reactive({
     req(input$analyze_action_bttn)
-    req(input$filter_or_not)
 
     read_file_filtered()
   })
   
   
 
-#' # action button observer
-# ~~~~  action button observer ---------------------------
-#' This observer simply triggers or re-triggers 'read_file_transformed_reactive' whenever the analyze action button is pressed
+#' # Action button observer
+# ~~~~  Action button observer ---------------------------
+#' This observer simply triggers or re-triggers 'read_file_transformed_reactive' 
+#' whenever the analyze action button is pressed
   
   observeEvent(input$analyze_action_bttn, {
     read_file_transformed_reactive()
@@ -108,8 +97,10 @@ server <- function(input, output) {
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Data overview section----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' The plots below take in data from 'read_file_transformed_reactive' and output summary graphics.
-#' Recall that the output of 'read_file_transformed_reactive' is the unfiltered, full, "long" dataframe, with one row per contact-follow-up-day.
+#' The plots below take in data from 'read_file_transformed_reactive' 
+#' and output summary graphics.
+#' Recall that the output of 'read_file_transformed_reactive' is 
+#' the unfiltered, full, "long" dataframe, with one row per contact-follow-up-day.
 
 
 
@@ -224,7 +215,7 @@ server <- function(input, output) {
       filter(follow_up_status != "Suivi futur" &
                follow_up_status != "Manquant" &
                follow_up_status != "Future follow-up" &
-               follow_up_statis != "NA" &
+               follow_up_status != "NA" &
                !is.na(follow_up_status)) %>%
       select(follow_up_date) %>%
       pull(1) %>%
@@ -296,9 +287,8 @@ server <- function(input, output) {
   })
   
   
-#' ## download_report_button
-#' This is placed within a renderUI context so that we can hide it conditionally
-# ~~~~ download_report_button---------------------------
+#' ## download_report_function
+# ~~~~ download_report_function---------------------------
 
 output$report <- download_report_function()
   
@@ -332,14 +322,12 @@ output$report <- download_report_function()
                          ## Franck mentioned not printing names to app for privacy
                          "first_name", "last_name"))) %>%
         ## no filters for columns that are all NA
-        janitor::remove_empty(which = "columns")
+        janitor::remove_empty(which = "cols")
       
       
-      selected_cols <- names(my_data)
-
-      ## column names for each column
-      labels <- lapply(1:length(selected_cols), function(x) {selected_cols[x]} )
-
+      labels <- selected_cols <- sort(names(my_data))
+      
+      
       ## unique values of each column
       choices <- lapply(1:length(selected_cols), function(x) {
         unique(my_data[, selected_cols[x]])
@@ -362,20 +350,19 @@ output$report <- download_report_function()
           if (is.character(col) | is.factor(col)) {
             ## create pickerInput. 
             ## this would be accessed as input$gender, input$region and so on
-            input_UI_element <-  pickerInput(id = labels[[i]],
+            input_UI_element <-  pickerInput(inputId = labels[[i]],
                                              label = labels[[i]],
                                              choices = na.omit(choices[[i]]),
                                              selected = na.omit(choices[[i]]),
                                              options = list(`actions-box` = TRUE),
                                              multiple = TRUE)
-            ## if col has NA values, checkboxinput asking whether to keep these
+            ## if col has NA values, add checkboxinput asking whether to keep these
             if (any(is.na(col))) {
-              tagList(input_UI_element, 
-                      checkboxInput(id = paste0("na_", labels[[i]]),
-                                    label = paste0(
-                                      "Include contacts w. missing values for ",
-                                      labels[[i]], "?"),
-                                    value = TRUE))
+              tagList(
+                input_UI_element, 
+                checkboxInput(inputId = paste0("na_", labels[[i]]),
+                              label = paste0("Include contacts w. missing values for ",labels[[i]], "?"),
+                              value = TRUE))
               ## otherwise, print/return just the primary input picker
               } else { input_UI_element }
             
@@ -383,40 +370,38 @@ output$report <- download_report_function()
             ## NUMERIC COLUMNS  ~~~~~~~~~~~~~~~~~~~
             ## same procedure as with character columns
           } else if (is.numeric(col)) {
-            input_UI_element <- sliderInput(labels[[i]],
+            input_UI_element <- sliderInput(inputId = labels[[i]],
                                             label = labels[[i]],
                                             min = min(col, na.rm = TRUE),
                                             max = max(col, na.rm = TRUE),
                                             value = c(min(col, na.rm = TRUE), 
                                                       max(col, na.rm = TRUE)))
-            ## if col has NA values, checkboxinput asking whether to keep these
+            ## if col has NA values, add checkboxinput asking whether to keep these
             if (any(is.na(col))) {
-              tagList(input_UI_element, 
-                      checkboxInput(id = paste0("na_", labels[[i]]),
-                                    label = paste0(
-                                      "Include contacts w. missing values for ",
-                                      labels[[i]], "?"),
-                                    value = TRUE))
+              tagList(
+                input_UI_element, 
+                checkboxInput(inputId = paste0("na_", labels[[i]]),
+                              label = paste0("Include contacts w. missing values for ",labels[[i]], "?"),
+                              value = TRUE))
               ## otherwise, print/return just the primary input picker
             } else { input_UI_element }
             
             
             ## DATE COLUMNS  ~~~~~~~~~~~~~~~~~~~
           } else if (lubridate::is.Date(col)) {
-            input_UI_element <- dateRangeInput(labels[[i]],
+            input_UI_element <- dateRangeInput(inputId = labels[[i]],
                                                label = labels[[i]],
                                                min = min(col, na.rm = TRUE),
                                                max = max(col, na.rm = TRUE),
                                                start = min(col, na.rm = TRUE),
                                                end = max(col, na.rm = TRUE))
-            ## if col has NA values, checkboxinput asking whether to keep these
+            ## if col has NA values, add checkboxinput asking whether to keep these
             if (any(is.na(col))) {
-              tagList(input_UI_element, 
-                      checkboxInput(id = paste0("na_", labels[[i]]),
-                                    label = paste0(
-                                      "Include contacts w. missing values for ",
-                                      labels[[i]], "?"),
-                                    value = TRUE))
+              tagList(
+                input_UI_element, 
+                checkboxInput(inputId = paste0("na_", labels[[i]]),
+                              label = paste0("Include contacts w. missing values for ",labels[[i]], "?"),
+                              value = TRUE))
               ## otherwise, print/return just the primary input picker
             } else { input_UI_element }
             
@@ -476,6 +461,9 @@ output$report <- download_report_function()
 #' two primary inputs: the long contacts dataframe (one row per follow-up-day), 
 #' and the date of review.
 
+#' ## contacts_per_day_value_box
+# ~~~~ contacts_per_day_value_box ----
+  
   output$contacts_per_day_value_box <-
     renderValueBox({
       
@@ -490,6 +478,9 @@ output$report <- download_report_function()
         todays_date = todays_date_reactive())
     })
 
+#' ## cumulative_contacts_value_box
+# ~~~~ cumulative_contacts_value_box ----
+  
   output$cumulative_contacts_value_box <-
     renderValueBox({
       req(input$select_date_of_review)
@@ -502,6 +493,10 @@ output$report <- download_report_function()
       
     })
 
+
+#' ## contacts_under_surveillance_value_box
+# ~~~~ contacts_under_surveillance_value_box ----  
+  
   output$contacts_under_surveillance_value_box <-
     renderValueBox({
       req(input$select_date_of_review)
@@ -514,6 +509,9 @@ output$report <- download_report_function()
       
     })
 
+#' ## pct_contacts_followed_value_box
+# ~~~~ pct_contacts_followed_value_box ----  
+  
   output$pct_contacts_followed_value_box <-
     renderValueBox({
       req(input$select_date_of_review)
@@ -533,6 +531,9 @@ output$report <- download_report_function()
 #' Below we call the contacts_per_admin_1 functions. These show the distribution 
 #' of contacts over admin level 1 and admin level 2.
 
+#' ## all_contacts_per_admin_1_table
+# ~~~~ all_contacts_per_admin_1_table ----  
+  
   output$all_contacts_per_admin_1_table <-
     renderReactable({
       req(input$select_date_of_review)
@@ -544,6 +545,9 @@ output$report <- download_report_function()
     })
 
 
+#' ## all_contacts_per_admin_1_sunburst_plot
+# ~~~~ all_contacts_per_admin_1_sunburst_plot ----  
+  
   output$all_contacts_per_admin_1_sunburst_plot <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -554,6 +558,9 @@ output$report <- download_report_function()
       )
     })
 
+#' ## all_contacts_per_admin_1_bar_chart
+# ~~~~ all_contacts_per_admin_1_bar_chart ----  
+  
   output$all_contacts_per_admin_1_bar_chart <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -564,7 +571,9 @@ output$report <- download_report_function()
       )
     })
 
-  ## dynamic text element
+#' ## all_contacts_per_admin_1_text
+# ~~~~ all_contacts_per_admin_1_text ----  
+  
   output$all_contacts_per_admin_1_text <-
     renderUI({
       req(input$select_date_of_review)
@@ -575,6 +584,7 @@ output$report <- download_report_function()
       )
     })
 
+  
 #' #  Contacts surveilled over time
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ Contacts surveilled over time  -----------
@@ -582,6 +592,9 @@ output$report <- download_report_function()
 #' Functions showing how many contacts were under surveillance at each time point, 
 #' segregated by region.
 
+#' ## contacts_surveilled_admin_1_bar_chart
+# ~~~~ contacts_surveilled_admin_1_bar_chart ----  
+  
   output$contacts_surveilled_admin_1_bar_chart <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -592,6 +605,9 @@ output$report <- download_report_function()
       )
     })
 
+#' ## contacts_surveilled_admin_1_bar_chart_relative
+# ~~~~ contacts_surveilled_admin_1_bar_chart_relative ----  
+  
   output$contacts_surveilled_admin_1_bar_chart_relative <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -602,6 +618,9 @@ output$report <- download_report_function()
       )
     })
 
+#' ## contacts_surveilled_admin_1_text
+# ~~~~ contacts_surveilled_admin_1_text ----  
+  
   output$contacts_surveilled_admin_1_text <-
     renderUI({
       req(input$select_date_of_review)
@@ -620,6 +639,9 @@ output$report <- download_report_function()
 #' Functions that output the number of contacts linked to each case
 #' At the moment (May 13, 2021), the Go.Data app version has no information for this column.
 
+#' ## total_contacts_per_case_donut_plot
+# ~~~~ total_contacts_per_case_donut_plot ----  
+  
   output$total_contacts_per_case_donut_plot <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -630,7 +652,9 @@ output$report <- download_report_function()
       )
     })
 
-
+#' ## total_contacts_per_case_bar_chart
+# ~~~~ total_contacts_per_case_bar_chart ----  
+  
   output$total_contacts_per_case_bar_chart <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -641,7 +665,9 @@ output$report <- download_report_function()
       )
     })
 
-
+#' ## total_contacts_per_case_text
+# ~~~~ total_contacts_per_case_text ----  
+  
   output$total_contacts_per_case_text <-
     renderUI({
       req(input$select_date_of_review)
@@ -659,6 +685,9 @@ output$report <- download_report_function()
 #' Functions that output the number of contacts for each type of link (e.g. family)
 #' At the moment (May 13, 2021), the Go.Data app version has no information for this column.
   
+#' ## total_contacts_per_link_type_donut_plot
+# ~~~~ total_contacts_per_link_type_donut_plot ----  
+  
   output$total_contacts_per_link_type_donut_plot <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -669,6 +698,9 @@ output$report <- download_report_function()
       )
     })
 
+#' ## total_contacts_per_link_type_bar_chart
+# ~~~~ total_contacts_per_link_type_bar_chart ----  
+  
   output$total_contacts_per_link_type_bar_chart <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -679,7 +711,9 @@ output$report <- download_report_function()
       )
     })
 
-
+#' ## total_contacts_per_link_type_text
+# ~~~~ total_contacts_per_link_type_text ----  
+  
   output$total_contacts_per_link_type_text <-
     renderUI({
       req(input$select_date_of_review)
@@ -696,13 +730,57 @@ output$report <- download_report_function()
 # ~ OUTPUTS PERTAINING TO ACTIVE CONTACTS ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-#' #  Active contacts snake plot and bar chart
+  
+#' #  Active contacts bar chart
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Active contacts snake plot and bar chart  ------
+# ~ Active contacts bar chart  ------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' tbc
+#' Graphs showing active contacts by status
+  
+#' ## active_contacts_breakdown_bar_chart
+# ~~~~ active_contacts_breakdown_bar_chart ----  
+  
+  output$active_contacts_breakdown_bar_chart <-
+    renderPlotly({
+      req(input$select_date_of_review)
+      
+      active_contacts_breakdown_bar_chart(
+        contacts_df_long = read_file_filtered_reactive(),
+        todays_date = todays_date_reactive(),
+        legend_df = legend_df
+      )
+    })
+  
+#' ## active_contacts_breakdown_table
+# ~~~~ active_contacts_breakdown_table ----  
+  
+  output$active_contacts_breakdown_table <-
+    renderReactable({
+      req(input$select_date_of_review)
+      
+      active_contacts_breakdown_table(
+        contacts_df_long = read_file_filtered_reactive(),
+        todays_date = todays_date_reactive()
+      )
+    })
+  
+#' ## active_contacts_breakdown_table_download
+# ~~~~ active_contacts_breakdown_table_download ---- 
+  
+  output$active_contacts_breakdown_table_download <-
+    active_contacts_breakdown_table_download()
+  
+  
+#' #  Active contacts snake plot
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ Active contacts snake plot  ------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' The snake plot shows the status of each active contact.
+#' The user can drag to select contacts, and download the list of selected contacts.
 
+#' ## active_contacts_timeline_snake_plot
+# ~~~~ active_contacts_timeline_snake_plot ----  
+  
   output$active_contacts_timeline_snake_plot <-
     renderPlotly({
       req(input$select_date_of_review)
@@ -714,7 +792,10 @@ output$report <- download_report_function()
       )
     })
 
-
+#' ## active_contacts_snake_plot_selected_table
+# ~~~~ active_contacts_snake_plot_selected_table ----  
+  
+  ## table with the contacts that were selected
   output$active_contacts_snake_plot_selected_table <-
     renderReactable({
       req(input$select_date_of_review)
@@ -724,11 +805,19 @@ output$report <- download_report_function()
         event_data("plotly_selecting")$customdata
       )
     })
-
+  
+#' ## active_contacts_snake_plot_selected_table_download
+# ~~~~ active_contacts_snake_plot_selected_table_download ----  
+  
+  ## download handler for the selected table
   output$active_contacts_snake_plot_selected_table_download <-
     active_contacts_snake_plot_selected_table_download()
 
 
+#' ## active_contacts_timeline_table
+# ~~~~ active_contacts_timeline_table ----  
+  
+  ## This is the tabular version of the data shown with the bar chart
   output$active_contacts_timeline_table <-
     renderReactable({
       req(input$select_date_of_review)
@@ -738,37 +827,18 @@ output$report <- download_report_function()
         todays_date = todays_date_reactive()
       )
     })
-
+  
+#' ## active_contacts_timeline_table_download
+# ~~~~ active_contacts_timeline_table_download ----  
+  
   output$active_contacts_timeline_table_download <-
     active_contacts_timeline_table_download()
 
-
-  output$active_contacts_breakdown_bar_chart <-
-    renderPlotly({
-      req(input$select_date_of_review)
-
-      active_contacts_breakdown_bar_chart(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive(),
-        legend_df = legend_df
-      )
-    })
-
-
-  output$active_contacts_breakdown_table <-
-    renderReactable({
-      req(input$select_date_of_review)
-
-      active_contacts_breakdown_table(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
-      )
-    })
-
-  output$active_contacts_breakdown_table_download <-
-    active_contacts_breakdown_table_download()
-
-
+    
+#' ## active_contacts_timeline_text
+# ~~~~ active_contacts_timeline_text ----  
+  
+  ## text highlighting the number of active contacts
   output$active_contacts_timeline_text <- renderUI({
     req(input$select_date_of_review)
 
@@ -782,7 +852,11 @@ output$report <- download_report_function()
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ Contacts lost to follow-up  ------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' tbc
+#' Tables (and their download handlers) summarizing the number of individuals lost to follow-up
+  
+  
+#' ## contacts_lost_24_to_72_hours_table
+# ~~~~ contacts_lost_24_to_72_hours_table ----  
   
   output$contacts_lost_24_to_72_hours_table <-
     render_gt({
@@ -794,9 +868,15 @@ output$report <- download_report_function()
       )
     })
 
+#' ## contacts_lost_24_to_72_hours_table_download
+# ~~~~ contacts_lost_24_to_72_hours_table_download ----  
+  
   output$contacts_lost_24_to_72_hours_table_download <-
     contacts_lost_24_to_72_hours_table_download()
 
+#' ## lost_contacts_linelist_table
+# ~~~~ lost_contacts_linelist_table ----  
+  
   output$lost_contacts_linelist_table <-
     renderReactable({
       req(input$select_date_of_review)
@@ -808,9 +888,18 @@ output$report <- download_report_function()
         .$output_table
     })
 
+#' ## lost_contacts_linelist_table_download
+# ~~~~ lost_contacts_linelist_table_download ----  
+  
   output$lost_contacts_linelist_table_download <-
     lost_contacts_linelist_table_download()
 
+
+#' ## lost_contacts_linelist_table_title
+# ~~~~ lost_contacts_linelist_table_title ----  
+#' The title needs to be dynamic because at database inception, there may only be 
+#' one or two days of follow-up in total. In such cases, we cannot call the table
+#' "number lost to follow-up over the past three days
 
   output$lost_contacts_linelist_table_title <-
     renderUI({
@@ -823,6 +912,10 @@ output$report <- download_report_function()
         .$table_title
     })
 
+  
+#' ## lost_contacts_linelist_text
+# ~~~~ lost_contacts_linelist_text ----  
+  
   output$lost_contacts_linelist_text <- renderUI({
     req(input$select_date_of_review)
 

@@ -2,10 +2,10 @@
 title: "Server.R"
 output:
  rmarkdown::html_document:
- toc: yes
- toc_depth: 2
- toc_float: yes
- number_sections: true
+   toc: yes
+   toc_depth: 2
+   toc_float: yes
+   number_sections: true
 ---
 
 ```{r echo = FALSE, message = FALSE, warning = FALSE}
@@ -128,16 +128,15 @@ The output of read_file_filtered (which becomes the output of 'read_file_filtere
 ```{r }
   read_file_filtered_reactive <- reactive({
     req(input$analyze_action_bttn)
-    req(input$filter_or_not)
 
     read_file_filtered()
   })
 ```
 
-# action button observer
+# Action button observer
 
 ```{r }
-# ~~~~  action button observer ---------------------------
+# ~~~~  Action button observer ---------------------------
 ```
 
 This observer simply triggers or re-triggers 'read_file_transformed_reactive' whenever the analyze action button is pressed
@@ -291,7 +290,7 @@ and assumes this is the date on which the user would like to view the data.
       filter(follow_up_status != "Suivi futur" &
                follow_up_status != "Manquant" &
                follow_up_status != "Future follow-up" &
-               follow_up_statis != "NA" &
+               follow_up_status != "NA" &
                !is.na(follow_up_status)) %>%
       select(follow_up_date) %>%
       pull(1) %>%
@@ -376,11 +375,10 @@ This is placed within a renderUI context so that we can hide it conditionally
   })
 ```
 
-## download_report_button
-This is placed within a renderUI context so that we can hide it conditionally
+## download_report_function
 
 ```{r }
-# ~~~~ download_report_button---------------------------
+# ~~~~ download_report_function---------------------------
 
 output$report <- download_report_function()
 ```
@@ -419,7 +417,7 @@ column in the dataset. The code is quite hairy, but we have tried to comment it 
                          ## Franck mentioned not printing names to app for privacy
                          "first_name", "last_name"))) %>%
         ## no filters for columns that are all NA
-        janitor::remove_empty(which = "columns")
+        janitor::remove_empty(which = "cols")
       
       
       selected_cols <- names(my_data)
@@ -568,8 +566,11 @@ is "shiny", and a ggplot-based value-box otherwise.
 Like most of the remaining functions that the app uses, these take in 
 two primary inputs: the long contacts dataframe (one row per follow-up-day), 
 and the date of review.
+## contacts_per_day_value_box
 
 ```{r }
+# ~~~~ contacts_per_day_value_box ----
+  
   output$contacts_per_day_value_box <-
     renderValueBox({
       
@@ -583,7 +584,13 @@ and the date of review.
         contacts_df_long = read_file_filtered_reactive(),
         todays_date = todays_date_reactive())
     })
+```
 
+## cumulative_contacts_value_box
+
+```{r }
+# ~~~~ cumulative_contacts_value_box ----
+  
   output$cumulative_contacts_value_box <-
     renderValueBox({
       req(input$select_date_of_review)
@@ -595,7 +602,13 @@ and the date of review.
         todays_date = todays_date_reactive())
       
     })
+```
 
+## contacts_under_surveillance_value_box
+
+```{r }
+# ~~~~ contacts_under_surveillance_value_box ----  
+  
   output$contacts_under_surveillance_value_box <-
     renderValueBox({
       req(input$select_date_of_review)
@@ -607,7 +620,13 @@ and the date of review.
         todays_date = todays_date_reactive())
       
     })
+```
 
+## pct_contacts_followed_value_box
+
+```{r }
+# ~~~~ pct_contacts_followed_value_box ----  
+  
   output$pct_contacts_followed_value_box <-
     renderValueBox({
       req(input$select_date_of_review)
@@ -631,8 +650,11 @@ and the date of review.
 
 Below we call the contacts_per_admin_1 functions. These show the distribution 
 of contacts over admin level 1 and admin level 2.
+## all_contacts_per_admin_1_table
 
 ```{r }
+# ~~~~ all_contacts_per_admin_1_table ----  
+  
   output$all_contacts_per_admin_1_table <-
     renderReactable({
       req(input$select_date_of_review)
@@ -642,8 +664,13 @@ of contacts over admin level 1 and admin level 2.
         todays_date = todays_date_reactive()
       )
     })
+```
 
+## all_contacts_per_admin_1_sunburst_plot
 
+```{r }
+# ~~~~ all_contacts_per_admin_1_sunburst_plot ----  
+  
   output$all_contacts_per_admin_1_sunburst_plot <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -653,7 +680,13 @@ of contacts over admin level 1 and admin level 2.
         todays_date = todays_date_reactive()
       )
     })
+```
 
+## all_contacts_per_admin_1_bar_chart
+
+```{r }
+# ~~~~ all_contacts_per_admin_1_bar_chart ----  
+  
   output$all_contacts_per_admin_1_bar_chart <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -663,8 +696,13 @@ of contacts over admin level 1 and admin level 2.
         todays_date = todays_date_reactive()
       )
     })
+```
 
-  ## dynamic text element
+## all_contacts_per_admin_1_text
+
+```{r }
+# ~~~~ all_contacts_per_admin_1_text ----  
+  
   output$all_contacts_per_admin_1_text <-
     renderUI({
       req(input$select_date_of_review)
@@ -686,8 +724,11 @@ of contacts over admin level 1 and admin level 2.
 
 Functions showing how many contacts were under surveillance at each time point, 
 segregated by region.
+## contacts_surveilled_admin_1_bar_chart
 
 ```{r }
+# ~~~~ contacts_surveilled_admin_1_bar_chart ----  
+  
   output$contacts_surveilled_admin_1_bar_chart <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -697,7 +738,13 @@ segregated by region.
         todays_date = todays_date_reactive()
       )
     })
+```
 
+## contacts_surveilled_admin_1_bar_chart_relative
+
+```{r }
+# ~~~~ contacts_surveilled_admin_1_bar_chart_relative ----  
+  
   output$contacts_surveilled_admin_1_bar_chart_relative <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -707,7 +754,13 @@ segregated by region.
         todays_date = todays_date_reactive()
       )
     })
+```
 
+## contacts_surveilled_admin_1_text
+
+```{r }
+# ~~~~ contacts_surveilled_admin_1_text ----  
+  
   output$contacts_surveilled_admin_1_text <-
     renderUI({
       req(input$select_date_of_review)
@@ -729,8 +782,11 @@ segregated by region.
 
 Functions that output the number of contacts linked to each case
 At the moment (May 13, 2021), the Go.Data app version has no information for this column.
+## total_contacts_per_case_donut_plot
 
 ```{r }
+# ~~~~ total_contacts_per_case_donut_plot ----  
+  
   output$total_contacts_per_case_donut_plot <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -740,8 +796,13 @@ At the moment (May 13, 2021), the Go.Data app version has no information for thi
         todays_date = todays_date_reactive()
       )
     })
+```
 
+## total_contacts_per_case_bar_chart
 
+```{r }
+# ~~~~ total_contacts_per_case_bar_chart ----  
+  
   output$total_contacts_per_case_bar_chart <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -751,8 +812,13 @@ At the moment (May 13, 2021), the Go.Data app version has no information for thi
         todays_date = todays_date_reactive()
       )
     })
+```
 
+## total_contacts_per_case_text
 
+```{r }
+# ~~~~ total_contacts_per_case_text ----  
+  
   output$total_contacts_per_case_text <-
     renderUI({
       req(input$select_date_of_review)
@@ -774,8 +840,11 @@ At the moment (May 13, 2021), the Go.Data app version has no information for thi
 
 Functions that output the number of contacts for each type of link (e.g. family)
 At the moment (May 13, 2021), the Go.Data app version has no information for this column.
+## total_contacts_per_link_type_donut_plot
 
 ```{r }
+# ~~~~ total_contacts_per_link_type_donut_plot ----  
+  
   output$total_contacts_per_link_type_donut_plot <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -785,7 +854,13 @@ At the moment (May 13, 2021), the Go.Data app version has no information for thi
         todays_date = todays_date_reactive()
       )
     })
+```
 
+## total_contacts_per_link_type_bar_chart
+
+```{r }
+# ~~~~ total_contacts_per_link_type_bar_chart ----  
+  
   output$total_contacts_per_link_type_bar_chart <-
     renderHighchart({
       req(input$select_date_of_review)
@@ -795,8 +870,13 @@ At the moment (May 13, 2021), the Go.Data app version has no information for thi
         todays_date = todays_date_reactive()
       )
     })
+```
 
+## total_contacts_per_link_type_text
 
+```{r }
+# ~~~~ total_contacts_per_link_type_text ----  
+  
   output$total_contacts_per_link_type_text <-
     renderUI({
       req(input$select_date_of_review)
@@ -808,25 +888,80 @@ At the moment (May 13, 2021), the Go.Data app version has no information for thi
     })
 ```
 
-#  OUTPUTS PERTAINING TO ALL CONTACTS
+#  OUTPUTS PERTAINING TO ACTIVE CONTACTS
 
 ```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ OUTPUTS PERTAINING TO ALL CONTACTS ----
+# ~ OUTPUTS PERTAINING TO ACTIVE CONTACTS ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
-#  Active contacts snake plot and bar chart
+#  Active contacts bar chart
 
 ```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Active contacts snake plot and bar chart  ------
+# ~ Active contacts bar chart  ------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
-tbc
+Graphs showing active contacts by status
+## active_contacts_breakdown_bar_chart
 
 ```{r }
+# ~~~~ active_contacts_breakdown_bar_chart ----  
+  
+  output$active_contacts_breakdown_bar_chart <-
+    renderPlotly({
+      req(input$select_date_of_review)
+      
+      active_contacts_breakdown_bar_chart(
+        contacts_df_long = read_file_filtered_reactive(),
+        todays_date = todays_date_reactive(),
+        legend_df = legend_df
+      )
+    })
+```
+
+## active_contacts_breakdown_table
+
+```{r }
+# ~~~~ active_contacts_breakdown_table ----  
+  
+  output$active_contacts_breakdown_table <-
+    renderReactable({
+      req(input$select_date_of_review)
+      
+      active_contacts_breakdown_table(
+        contacts_df_long = read_file_filtered_reactive(),
+        todays_date = todays_date_reactive()
+      )
+    })
+```
+
+## active_contacts_breakdown_table_download
+
+```{r }
+# ~~~~ active_contacts_breakdown_table_download ---- 
+  
+  output$active_contacts_breakdown_table_download <-
+    active_contacts_breakdown_table_download()
+```
+
+#  Active contacts snake plot
+
+```{r }
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ Active contacts snake plot  ------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+The snake plot shows the status of each active contact.
+The user can drag to select contacts, and download the list of selected contacts.
+## active_contacts_timeline_snake_plot
+
+```{r }
+# ~~~~ active_contacts_timeline_snake_plot ----  
+  
   output$active_contacts_timeline_snake_plot <-
     renderPlotly({
       req(input$select_date_of_review)
@@ -837,8 +972,14 @@ tbc
         legend_df = legend_df
       )
     })
+```
 
+## active_contacts_snake_plot_selected_table
 
+```{r }
+# ~~~~ active_contacts_snake_plot_selected_table ----  
+  
+  ## table with the contacts that were selected
   output$active_contacts_snake_plot_selected_table <-
     renderReactable({
       req(input$select_date_of_review)
@@ -848,11 +989,24 @@ tbc
         event_data("plotly_selecting")$customdata
       )
     })
+```
 
+## active_contacts_snake_plot_selected_table_download
+
+```{r }
+# ~~~~ active_contacts_snake_plot_selected_table_download ----  
+  
+  ## download handler for the selected table
   output$active_contacts_snake_plot_selected_table_download <-
     active_contacts_snake_plot_selected_table_download()
+```
 
+## active_contacts_timeline_table
 
+```{r }
+# ~~~~ active_contacts_timeline_table ----  
+  
+  ## This is the tabular version of the data shown with the bar chart
   output$active_contacts_timeline_table <-
     renderReactable({
       req(input$select_date_of_review)
@@ -862,37 +1016,23 @@ tbc
         todays_date = todays_date_reactive()
       )
     })
+```
 
+## active_contacts_timeline_table_download
+
+```{r }
+# ~~~~ active_contacts_timeline_table_download ----  
+  
   output$active_contacts_timeline_table_download <-
     active_contacts_timeline_table_download()
+```
 
+## active_contacts_timeline_text
 
-  output$active_contacts_breakdown_bar_chart <-
-    renderPlotly({
-      req(input$select_date_of_review)
-
-      active_contacts_breakdown_bar_chart(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive(),
-        legend_df = legend_df
-      )
-    })
-
-
-  output$active_contacts_breakdown_table <-
-    renderReactable({
-      req(input$select_date_of_review)
-
-      active_contacts_breakdown_table(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
-      )
-    })
-
-  output$active_contacts_breakdown_table_download <-
-    active_contacts_breakdown_table_download()
-
-
+```{r }
+# ~~~~ active_contacts_timeline_text ----  
+  
+  ## text highlighting the number of active contacts
   output$active_contacts_timeline_text <- renderUI({
     req(input$select_date_of_review)
 
@@ -911,9 +1051,12 @@ tbc
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
-tbc
+Tables (and their download handlers) summarizing the number of individuals lost to follow-up
+## contacts_lost_24_to_72_hours_table
 
 ```{r }
+# ~~~~ contacts_lost_24_to_72_hours_table ----  
+  
   output$contacts_lost_24_to_72_hours_table <-
     render_gt({
       req(input$select_date_of_review)
@@ -923,10 +1066,22 @@ tbc
         todays_date = todays_date_reactive()
       )
     })
+```
 
+## contacts_lost_24_to_72_hours_table_download
+
+```{r }
+# ~~~~ contacts_lost_24_to_72_hours_table_download ----  
+  
   output$contacts_lost_24_to_72_hours_table_download <-
     contacts_lost_24_to_72_hours_table_download()
+```
 
+## lost_contacts_linelist_table
+
+```{r }
+# ~~~~ lost_contacts_linelist_table ----  
+  
   output$lost_contacts_linelist_table <-
     renderReactable({
       req(input$select_date_of_review)
@@ -937,11 +1092,28 @@ tbc
       ) %>%
         .$output_table
     })
+```
 
+## lost_contacts_linelist_table_download
+
+```{r }
+# ~~~~ lost_contacts_linelist_table_download ----  
+  
   output$lost_contacts_linelist_table_download <-
     lost_contacts_linelist_table_download()
+```
 
+## lost_contacts_linelist_table_title
 
+```{r }
+# ~~~~ lost_contacts_linelist_table_title ----  
+```
+
+The title needs to be dynamic because at database inception, there may only be 
+one or two days of follow-up in total. In such cases, we cannot call the table
+"number lost to follow-up over the past three days
+
+```{r }
   output$lost_contacts_linelist_table_title <-
     renderUI({
       req(input$select_date_of_review)
@@ -952,7 +1124,13 @@ tbc
       ) %>%
         .$table_title
     })
+```
 
+## lost_contacts_linelist_table_title
+
+```{r }
+# ~~~~ lost_contacts_linelist_table_title ----  
+  
   output$lost_contacts_linelist_text <- renderUI({
     req(input$select_date_of_review)
 
