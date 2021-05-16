@@ -1273,6 +1273,79 @@ contacts_surveilled_admin_1_text <-
 #' Functions that output the number of contacts linked to each case
 #' At the moment (May 13, 2021), the Go.Data app version has no information for this column.
 
+
+#' ## total_contacts_per_case_table
+
+total_contacts_per_case_table <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+    # filter out dates that are past the input days date
+    contacts_df_long <- 
+      contacts_df_long %>% 
+      filter(follow_up_date <= todays_date)
+    
+    data_to_plot <- 
+      contacts_df_long %>%
+      group_by(row_id) %>% 
+      # slice long frame
+      slice_head() %>% 
+      # count cases per linked_case_id
+      ungroup() %>% 
+      select(linked_case_id) %>% 
+      mutate(linked_case_id = fct_lump_n(linked_case_id, 10, ties.method = "random")) %>% 
+      count(linked_case_id) %>% 
+      arrange(-n) %>% 
+      arrange(linked_case_id == "Other") %>% 
+      rename(`Case ID` = linked_case_id,
+             `Total linked contacts` = n)
+    
+    number_of_cases <- nrow(data_to_plot) - 1
+
+    
+    if (report_format %in% c("shiny","html (page)", "html (slides)", "pdf")){
+      
+      output_table <-  
+        data_to_plot %>%
+        reactable(
+          columns = list(
+          `Total contacts` = colDef(cell = data_bars_gradient(data_to_plot,
+                                                              colors = c(peach, bright_yellow_crayola),
+                                                              background = "transparent"),
+                                                           style = list(fontFamily = "Courier", whiteSpace = "pre", fontSize = 13)), 
+          `Admin level 1` = colDef(style = JS("function(rowInfo, colInfo, state) {
+                                              var firstSorted = state.sorted[0]
+                                              // Merge cells if unsorted or sorting by admin_1
+                                              if (!firstSorted || firstSorted.id === 'Admin level 1') {
+                                              var prevRow = state.pageRows[rowInfo.viewIndex - 1]
+                                              if (prevRow && rowInfo.row['Admin level 1'] === prevRow['Admin level 1']) {
+                                              return { visibility: 'hidden' }
+                                              }
+                                              }}"))),
+                  striped = TRUE,
+                  highlight = TRUE,
+                  theme = reactableTheme(stripedColor = "#f0f1fc70",
+                                         backgroundColor = "#FFFFFF00",
+                                         highlightColor = "#DADEFB"),
+                  defaultPageSize = 15)
+    }
+    
+    
+    if (report_format %in% c("pptx","docx", "pdf")){
+      
+      output_table <- 
+        data_to_plot %>% 
+        janitor::adorn_totals() %>% 
+        huxtable() %>% 
+        set_all_padding(0.5) %>%
+        merge_repeated_rows(col = "Admin level 1") %>% 
+        theme_blue()
+      
+    }
+    
+    return(output_table)
+    
+  }
+
 #' ## total_contacts_per_case_donut_plot
 
 total_contacts_per_case_donut_plot <- 

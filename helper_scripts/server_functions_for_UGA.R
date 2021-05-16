@@ -1,4 +1,11 @@
-
+#'---
+#'title: "server_functions_for_UGA.R"
+#'output:
+#'  rmarkdown::html_document:
+#'    toc: yes
+#'    toc_depth: 2
+#'    toc_float: yes
+#'---
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  UI Outputs ----

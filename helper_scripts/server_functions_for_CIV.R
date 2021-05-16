@@ -1,5 +1,13 @@
+#'---
+#'title: "server_functions_for_CIV.R"
+#'output:
+#'  rmarkdown::html_document:
+#'    toc: yes
+#'    toc_depth: 2
+#'    toc_float: yes
+#'---
 
-
+#' # Read in preloaded data
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Read in preloaded data ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
