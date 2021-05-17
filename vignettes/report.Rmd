@@ -1,0 +1,432 @@
+---
+title: "05_report.Rmd"
+always_allow_html: true
+output:
+  rmarkdown::html_document:
+    theme: cerulean
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+  rmarkdown::slidy_presentation:
+    slide_level: 3
+  pagedreport::paged_windmill:
+    logo: "logo.svg"
+    front_img: "front_img.jpg"
+    img_to_dark: TRUE
+    logo_to_white: TRUE
+  officedown::rdocx_document:
+    reference_docx: docx_template.docx
+    toc: yes
+  officedown::rpptx_document:
+    reference_doc: pptx_template.pptx
+    slide_level: 2
+mainfont: Avenir
+geometry: left=2cm,right=2cm,top=2.5cm,bottom=2cm
+params:
+  rendered_by_shiny: false
+  todays_date: NA
+  contacts_df_long: NA
+  report_format: NA
+#knit: pagedown::chrome_print
+google-font: TRUE
+main-font: "Open Sans"
+fontsize: 10pt
+main-color: "#3391CF"
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = F, message = F, dpi = 300)
+
+
+number_of_chunks <- 22
+current_chunk <- 0
+
+update_rmd_progress <- function(){
+  if (params$rendered_by_shiny) {
+  current_chunk <<- current_chunk + 1
+  shiny::setProgress(current_chunk/number_of_chunks, 
+                     detail = paste0("Building section ", 
+                                      current_chunk, 
+                                      " of ", 
+                                      number_of_chunks ))
+  }
+  
+  if(current_chunk == number_of_chunks){
+    
+     shiny::setProgress(1, 
+                        detail = "Finalizing report"
+                        )
+    
+  }
+  
+}
+
+## turn off highcharter animations
+library(highcharter)
+
+myMenuItems <-
+  c(
+    "printChart",
+    "separator",
+    "downloadPNG",
+    "downloadJPEG",
+    "downloadPDF",
+    "downloadSVG",
+    "separator",
+    "viewData",
+    "downloadCSV",
+    "downloadXLS"
+  )
+
+newtheme <-
+  hc_theme_merge(
+    getOption("highcharter.theme"),
+    hc_theme(plotOptions = list(series = list(animation = FALSE)),
+             exporting = list(buttons = list(contextButton = list(menuItems = myMenuItems))))
+
+    )
+  
+
+options(highcharter.theme = newtheme)
+
+
+update_rmd_progress()
+```
+
+
+```{css}
+h1 {
+  text - align:center
+}
+body {
+  background - color:#f0f2fa
+}
+
+.tab - content{
+  margin - bottom:70px
+}
+```
+
+
+
+```{r paramsSetNonShiny}
+## if we are knitting outside of shiny, we cannot rely on reactives.
+## Thus, we run the functions manually
+## At the end, we will output the cleaned dataframe for visualization
+
+if (params$rendered_by_shiny == FALSE){
+  
+
+  output <- list()
+  input <- list()
+  
+  source(here::here("global.R"))
+  source(here::here("helper_scripts/server_functions.R")) 
+
+
+  
+  input$data_to_use <- "Use preloaded data"
+  preloaded_data_options <-  preloaded_data_options ## defined in global file
+  input$preloaded_data_choice <- "Sample tracing data"
+  cols_to_exclude_from_filters <- c("placeholder_non_column")
+  input$uploaded_data_contacts_list$datapath <-
+    here::here("data/Formulaire_Identification_contact_CIV_-_latest_version_-_labels_-_2021-02-20-13-17-18.xlsx")
+  input$uploaded_data_follow_up_list$datapath <-
+    here::here("data/Formulaire_Suivi_contacts_CIV_-_latest_version_-_labels_-_2021-02-20-14-25-48.xlsx")
+  report_format <- "html (page)"
+
+  if (input$data_to_use == "Use preloaded data")   input$select_date_of_review <- as.Date("2021-04-13")
+  if (input$data_to_use == "Use uploaded data")   input$select_date_of_review <- as.Date("2021-02-20")
+  
+  todays_date <- input$select_date_of_review
+  
+      
+
+
+  # ~~~~ read_file_raw ----
+  
+   tracing_data_raw <-
+    read_file_raw()
+  
+  # ~~~~ read_file_transformed ----
+  
+  contacts_df_long_transformed <- 
+    read_file_transformed(tracing_data_raw = tracing_data_raw)
+  
+  
+# ~~~~ read_file_filtered ----
+  
+  contacts_df_long <- 
+    read_file_filtered(contacts_df_long_transformed,
+                       input$select_date_of_review)
+
+}
+  
+update_rmd_progress()
+```
+
+
+```{r paramsSetShiny}
+
+## if knitting within shiny
+if (params$rendered_by_shiny == TRUE){
+  source(here::here("global.R"))
+  source(here::here("helper_scripts/server_functions.R")) 
+
+contacts_df_long <- params$contacts_df_long
+todays_date <- params$todays_date
+report_format <- params$report_format
+}
+
+
+update_rmd_progress()
+```
+
+
+# VALUE BOX SUMMARIES
+
+```{r valueBoxes1, fig.width=3.5, fig.height=2, out.width="48%"}
+
+contacts_per_day_value_box(contacts_df_long,
+                           todays_date,
+                           report_format)
+
+
+cumulative_contacts_value_box(contacts_df_long,
+                              todays_date,
+                              report_format)
+
+update_rmd_progress()
+```
+
+
+```{r valueBoxes2, fig.width=3.5, fig.height=2, out.width="48%"}
+
+contacts_under_surveillance_value_box(contacts_df_long,
+                                      todays_date,
+                                      report_format)
+
+pct_contacts_followed_value_box(contacts_df_long,
+                                todays_date,
+                                report_format)
+
+
+update_rmd_progress()
+```
+
+
+# OUTPUTS PERTAINING TO ALL CONTACTS {.unlisted .unnumbered}
+
+# Admin level 1 breakdown
+
+## {.unlisted .unnumbered}
+
+```{r allContactsPerAdmin1Text, results = "asis"}
+all_contacts_per_admin_1_text(contacts_df_long,
+                               report_format)
+
+update_rmd_progress()
+```
+
+
+### Admin level 1 breakdown bar chart
+
+```{r allContactsPerAdmin1BarChart}
+all_contacts_per_admin_1_bar_chart(contacts_df_long,
+                                   report_format)
+
+update_rmd_progress()
+```
+
+### Admin level 1 breakdown sunburst plot
+
+```{r allContactsPerAdmin1SunburstPlot}
+all_contacts_per_admin_1_sunburst_plot(contacts_df_long,
+                                      report_format)
+
+update_rmd_progress()
+```
+
+### Admin level 1 breakdown table
+
+```{r allContactsPerAdmin1Table}
+all_contacts_per_admin_1_table(contacts_df_long,
+                              report_format)
+
+update_rmd_progress()
+```
+
+<!-- # ~~~ main_tab_row_2 ---- -->
+
+
+# Admin level 1 trends
+
+## {.unlisted .unnumbered}
+
+```{r contactsUnderSurveillancePerAdmin1OverTimeText, results = "asis"}
+contacts_surveilled_admin_1_text(contacts_df_long,
+                                 todays_date,
+                                 report_format)
+update_rmd_progress()
+```
+
+
+### Admin level 1 trends, absolute counts
+```{r contactsUnderSurveillancePerAdmin1OverTimeBarChart}
+contacts_surveilled_admin_1_bar_chart(contacts_df_long,
+                                      todays_date,
+                                      report_format)
+update_rmd_progress()
+```
+
+### Admin level 1 trends, relative proportions
+```{r contactsUnderSurveillancePerAdmin1OverTimeBarChartRelative}
+contacts_surveilled_admin_1_bar_chart_relative(contacts_df_long,
+                                               todays_date,
+                                               report_format)
+update_rmd_progress()
+```
+
+
+<!-- # ~~~ main_tab_row_3 ---- -->
+
+# Contacts per case
+
+## {.unlisted .unnumbered}
+
+```{r totalContactsPerCaseText, results = "asis"}
+total_contacts_per_case_text(contacts_df_long,
+                             report_format)
+
+update_rmd_progress()
+```
+
+
+### Contacts per case table
+
+```{r totalContactsPerCaseTable}
+total_contacts_per_case_table(contacts_df_long,
+                             report_format)
+
+update_rmd_progress()
+```
+
+
+### Contacts per case donut plot
+
+```{r totalContactsPerCaseDonutPlot}
+total_contacts_per_case_donut_plot(contacts_df_long,
+                             report_format)
+
+update_rmd_progress()
+```
+
+### Contacts per case bar chart
+
+```{r totalContactsPerCaseBarChart}
+total_contacts_per_case_bar_chart(contacts_df_long,
+                             report_format)
+
+update_rmd_progress()
+```
+
+
+
+# Case-contact relationships
+
+## {.unlisted .unnumbered}
+
+```{r totalContactsPerLinkTypeText, results = "asis"}
+total_contacts_per_link_type_text(contacts_df_long,
+                                        report_format)
+
+update_rmd_progress()
+```
+
+### Case-contact relationships donut plot
+
+```{r totalContactsPerLinkTypeDonutPlot}
+total_contacts_per_link_type_donut_plot(contacts_df_long,
+                             report_format)
+
+update_rmd_progress()
+```
+
+### Case-contact relationships bar chart
+
+```{r totalContactsPerLinkTypeBarChart}
+total_contacts_per_link_type_bar_chart(contacts_df_long,
+                             report_format)
+
+update_rmd_progress()
+```
+
+# OUTPUTS PERTAINING TO ACTIVE CONTACTS {.unlisted .unnumbered}
+
+# Follow-up timelines
+
+## {.unlisted .unnumbered}
+
+```{r activeContactsTimelineText, results = "asis"}
+active_contacts_timeline_text(contacts_df_long,
+                             todays_date,
+                             report_format)
+```
+
+### Follow-up summary bar chart
+
+```{r activeContactsBreakdownBarChart, fig.width = 7, dpi = if(report_format %in% c("html (page)", "html (slides)")) {96} else {300} }
+active_contacts_breakdown_bar_chart(contacts_df_long,
+                           todays_date,
+                           report_format,
+                           legend_df)
+
+update_rmd_progress()
+
+```
+
+### Follow-up timeline snake plot
+
+```{r activeContactsTimelineSnakePlot, fig.width = 7, dpi =  if(report_format %in% c("html (page)", "html (slides)")) {96} else {300} }
+active_contacts_timeline_snake_plot(contacts_df_long,
+                           todays_date,
+                           report_format,
+                           legend_df)
+
+update_rmd_progress()
+```
+
+
+# Contacts not seen recently
+
+## {.unlisted .unnumbered}
+
+```{r lostContactsLinelistText, results = "asis"}
+lost_contacts_linelist_text(contacts_df_long,
+                             todays_date,
+                             report_format)
+update_rmd_progress()
+```
+
+### Loss to follow-up, past 3 days
+
+```{r contactsLost24To72HoursTable}
+contacts_lost_24_to_72_hours_table(contacts_df_long,
+                             todays_date,
+                             report_format)
+```
+
+### List of contacts not seen
+
+```{r lostContactsLinelistTable, results = "asis"}
+
+lost_contacts_linelist_table(contacts_df_long,
+                             todays_date,
+                             report_format = report_format) %>%
+  .$output_table
+
+```
+
+

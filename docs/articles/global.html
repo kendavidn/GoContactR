@@ -18,7 +18,7 @@
       "<link id=\"css\" rel=\"stylesheet\" href=\"https://bootswatch.com/3/flatly/bootstrap.css\" onload=\"document.documentElement.style.display = ''\">"
     );
   }
-</script><title>global.R • GoContactR</title>
+</script><title>01: global.R • GoContactR</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- Flatly Theme - Light  --><link id="css-light" rel="stylesheet" href="https://bootswatch.com/3/flatly/bootstrap.css" media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)">
 <!-- Darkly Theme - Dark --><link id="css-dark" rel="stylesheet" href="https://bootswatch.com/3/darkly/bootstrap.css" media="(prefers-color-scheme: dark)">
 <!-- preferably CSS --><link rel="stylesheet" href="../preferably.css">
@@ -28,7 +28,7 @@
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="global.R">
+<script src="../pkgdown.js"></script><meta property="og:title" content="01: global.R">
 <meta property="og:description" content="GoContactR">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -71,13 +71,28 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/global.html">global.R</a>
+      <a href="../articles/06_video_walkthroughs.html">06: Video walkthroughs</a>
     </li>
     <li>
-      <a href="../articles/server.html">Server.R</a>
+      <a href="../articles/global.html">01: global.R</a>
     </li>
     <li>
-      <a href="../articles/server_functions.html">server_functions.R</a>
+      <a href="../articles/report.html">05_report.Rmd</a>
+    </li>
+    <li>
+      <a href="../articles/server.html">02: server.R</a>
+    </li>
+    <li>
+      <a href="../articles/server_functions.html">UNKNOWN TITLE</a>
+    </li>
+    <li>
+      <a href="../articles/server_functions_for_CIV.html">03.1: server_functions_for_CIV.R</a>
+    </li>
+    <li>
+      <a href="../articles/server_functions_for_UGA.html">03.2 server_functions_for_UGA.R</a>
+    </li>
+    <li>
+      <a href="../articles/ui.html">04: ui.R</a>
     </li>
   </ul>
 </li>
@@ -109,7 +124,7 @@
       </header><script src="global_files/header-attrs-2.7/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>global.R</h1>
+      <h1 data-toc-skip>01: global.R</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/kendavidn/GoContactR/blob/master/vignettes/global.Rmd"><code>vignettes/global.Rmd</code></a></small>
@@ -157,6 +172,7 @@
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/daattali/shinycssloaders">shinycssloaders</a></span><span class="op">)</span> <span class="co">## spinners for when app elements are loading</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dreamRs/fresh">fresh</a></span><span class="op">)</span> <span class="co">## easy theme changes</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://glin.github.io/reactable/">reactable</a></span><span class="op">)</span> <span class="co">## HTML tables</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ramnathv/htmlwidgets">htmlwidgets</a></span><span class="op">)</span> <span class="co">## for prependContent function</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://kcuilla.github.io/reactablefmtr/">reactablefmtr</a></span><span class="op">)</span> <span class="co">## additional elements for reactable tables</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://magrittr.tidyverse.org">magrittr</a></span><span class="op">)</span> <span class="co">## I sometimes use the %&lt;&gt;% operator from here</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lubridate.tidyverse.org">lubridate</a></span><span class="op">)</span> <span class="co">## date wrangling</span>
@@ -266,6 +282,7 @@
     <span class="st">"Not generated"</span>, <span class="fu">col2hex</span><span class="op">(</span><span class="st">"wheat4"</span><span class="op">)</span>,
     <span class="st">"Fin du suivi"</span>, <span class="fu">col2hex</span><span class="op">(</span><span class="st">"dodgerblue3"</span><span class="op">)</span>,
     <span class="st">"Suivi futur"</span>, <span class="fu">col2hex</span><span class="op">(</span><span class="st">"goldenrod"</span><span class="op">)</span>,
+    <span class="st">"Future follow-up"</span>, <span class="fu">col2hex</span><span class="op">(</span><span class="st">"goldenrod"</span><span class="op">)</span>,
     <span class="st">"Decede"</span>, <span class="fu">col2hex</span><span class="op">(</span><span class="st">"purple3"</span><span class="op">)</span>
   <span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">breaks</span><span class="op">)</span> <span class="op">%&gt;%</span>
@@ -309,7 +326,7 @@
   <span class="op">)</span>
 <span class="op">)</span>
 <span class="co">## for graphs with many categories</span>
-<span class="va">ramped_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/colorRamp.html">colorRampPalette</a></span><span class="op">(</span><span class="va">highcharter_palette_initial</span><span class="op">)</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span>
+<span class="va">ramped_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/colorRamp.html">colorRampPalette</a></span><span class="op">(</span><span class="va">highcharter_palette_initial</span><span class="op">)</span><span class="op">(</span><span class="fl">15</span><span class="op">)</span>
 
 <span class="co">## remove first and last colors from ramp, because these are the initial colors</span>
 <span class="va">new_colors</span> <span class="op">&lt;-</span>
@@ -479,6 +496,23 @@
   <span class="op">)</span>
 
 <span class="fu">theme_set</span><span class="op">(</span><span class="va">my_theme</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="reactable-theme" class="section level2">
+<h2 class="hasAnchor">
+<a href="#reactable-theme" class="anchor"></a>Reactable theme</h2>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="co"># ~  Reactable theme ----</span>
+<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+
+
+<span class="fu"><a href="https://rdrr.io/r/base/options.html">options</a></span><span class="op">(</span>reactable.theme <span class="op">=</span> <span class="fu"><a href="https://glin.github.io/reactable/reference/reactableTheme.html">reactableTheme</a></span><span class="op">(</span>
+  stripedColor <span class="op">=</span> <span class="st">"#f0f1fc70"</span>,
+  backgroundColor <span class="op">=</span> <span class="st">"#FFFFFF00"</span>,
+  highlightColor <span class="op">=</span> <span class="st">"#DADEFB"</span>,
+  cellPadding <span class="op">=</span> <span class="st">"4px 4px"</span>
+<span class="op">)</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
   </div>

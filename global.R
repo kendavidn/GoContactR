@@ -1,5 +1,5 @@
 #'---
-#'title: "global.R"
+#'title: "01: global.R"
 #'output:
 #'  rmarkdown::html_document:
 #'    toc: yes
@@ -57,6 +57,7 @@ library(shinydashboardPlus) ## extends shinydashboard
 library(shinycssloaders) ## spinners for when app elements are loading
 library(fresh) ## easy theme changes
 library(reactable) ## HTML tables
+library(htmlwidgets) ## for prependContent function
 library(reactablefmtr) ## additional elements for reactable tables
 library(magrittr) ## I sometimes use the %<>% operator from here
 library(lubridate) ## date wrangling
@@ -207,7 +208,7 @@ highcharter_palette_initial <- c(
   )
 )
 ## for graphs with many categories
-ramped_colors <- colorRampPalette(highcharter_palette_initial)(10)
+ramped_colors <- colorRampPalette(highcharter_palette_initial)(15)
 
 ## remove first and last colors from ramp, because these are the initial colors
 new_colors <-
@@ -364,3 +365,18 @@ my_theme <- theme_classic() +
   )
 
 theme_set(my_theme)
+
+#' ## Reactable theme
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  Reactable theme ----
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+options(reactable.theme = reactableTheme(
+  stripedColor = "#f0f1fc70",
+  backgroundColor = "#FFFFFF00",
+  highlightColor = "#DADEFB",
+  cellPadding = "4px 4px"
+))
+

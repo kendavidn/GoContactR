@@ -1,3 +1,12 @@
+#'---
+#'title: "04: ui.R"
+#'output:
+#'  rmarkdown::html_document:
+#'    toc: yes
+#'    toc_depth: 2
+#'    toc_float: yes
+#' --- #tag_to_pull
+
 
 #' # HEADER
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -311,18 +320,15 @@ contacts_per_case <-
        style = "display: inline; line-height: 50px;"),
   fluidRow(column(width = 12,
                column(width = 9,
-                      tabsetPanel(tabPanel(title = "Donut plot",
-                                           highchartOutput("total_contacts_per_case_donut_plot") %>%
-                                             withSpinner(type = 6, color = burnt_sienna)), 
-                                  tabPanel(title = "Bar chart",
+                      tabsetPanel(tabPanel(title = "Bar chart",
                                            highchartOutput("total_contacts_per_case_bar_chart") %>%
+                                             withSpinner(type = 6, color = burnt_sienna)),
+                                  tabPanel(title = "Donut plot",
+                                           highchartOutput("total_contacts_per_case_donut_plot") %>%
+                                             withSpinner(type = 6, color = burnt_sienna)),
+                                  tabPanel(title = "Table",
+                                           htmlOutput("total_contacts_per_case_table") %>%
                                              withSpinner(type = 6, color = burnt_sienna)) 
-                                  
-                                  # ,
-                                  # tabPanel(title = "Table",
-                                  #          reactableOutput("total_contacts_per_case_table") %>%
-                                  #            withSpinner(type = 6, color = burnt_sienna)) 
-                                  
                       )
                ),
                column(width = 3,
@@ -336,6 +342,39 @@ contacts_per_case <-
   )
   ), 
   hr()
+  )
+
+
+age_group <-
+  tagList(
+    h1("  "), 
+    icon("user-friends", "fa-2x"),
+    h3("Age groups of contacts", 
+       style = "display: inline; line-height: 50px;"),
+    fluidRow(column(width = 12,
+                    column(width = 9,
+                           tabsetPanel(tabPanel(title = "Bar chart",
+                                                highchartOutput("total_contacts_per_case_bar_chart") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)),
+                                       tabPanel(title = "Donut plot",
+                                                highchartOutput("total_contacts_per_case_donut_plot") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)),
+                                       tabPanel(title = "Table",
+                                                htmlOutput("total_contacts_per_case_table") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)) 
+                           )
+                    ),
+                    column(width = 3,
+                           tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
+                                                                "Description"),
+                                                style = "overflow-y:auto",
+                                                htmlOutput("total_contacts_per_case_text") %>% 
+                                                  withSpinner(type = 1, color = burnt_sienna))
+                           )
+                    )
+    )
+    ), 
+    hr()
   )
 
 #' ##  Contacts per link type
@@ -546,6 +585,8 @@ body <-
                 tags$head(tags$style(HTML(".main-header .logo {
                                           text-align:left !important;
                                           padding: 2px 0px 8px 6px !important;}"))),
+                ## force downward dropdown for selectinput
+                tags$head(tags$style(HTML(".dropdown-menu{bottom: 100%; bottom: auto;}"))),
                 # error color
                 tags$head(tags$style(".shiny-output-error{color: grey;}")),
                 # for FAQs

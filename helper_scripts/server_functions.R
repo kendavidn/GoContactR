@@ -1,16 +1,12 @@
 #'---
-#'title: "server_functions.R"
+#'title: "03: server_functions.R"
 #'output:
 #'  rmarkdown::html_document:
 #'    toc: yes
 #'    toc_depth: 2
 #'    toc_float: yes
-#'---
+#' --- #tag_to_pull
 
-#' #  Data overview plots 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~  Data overview plots ------------------
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #' # Source country-specific server functions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,8 +20,8 @@
 #' - One version creates UI elements to enter Go.Data credentials and fetches the Go.Data data
 #' - The other version creates UI elements to upload KoboCollect csvs.
 
-
-source(here(paste0("helper_scripts/server_functions_for_",
+#+ echo = FALSE, include = FALSE, eval = FALSE
+source(here::here(paste0("helper_scripts/server_functions_for_",
                    PARAMS$country_code, ".R")), local = T)
 
 
@@ -36,11 +32,10 @@ source(here(paste0("helper_scripts/server_functions_for_",
 #' Also, for contacts being followed, "future" are relabelled as such. 
 #' The output of read_file_filtered is a df that feed most graphs in the app. 
 
-read_file_filtered <- function() {
+read_file_filtered <- function(contacts_df_long_transformed, todays_date) {
   ## takes no inputs for now
   
   
-  contacts_df_long_transformed <- read_file_transformed_reactive()
   all_cols <- names(contacts_df_long_transformed)
   
   ## note that this needs to match the columns on which filters are created
@@ -49,13 +44,7 @@ read_file_filtered <- function() {
   cols_to_filter <- 
     contacts_df_long_transformed %>%
     as.data.frame() %>% ## not sure why but tibble doesn't work
-    ## filters not created for rows that change across each contact
-    select(-any_of(c("follow_up_date", "follow_up_day", "follow_up_status",
-                     ## no filters for synthetic columns either
-                     "row_id","row_number","sort_number", 
-                     ## and no filters on names. 
-                     ## Franck mentioned not printing names to app for privacy
-                     "first_name", "last_name"))) %>%
+    select(-any_of(cols_to_exclude_from_filters)) %>%
     ## no filters for columns that are all NA
     janitor::remove_empty(which = "cols") %>% 
     names()
@@ -66,55 +55,55 @@ read_file_filtered <- function() {
   if ((!is.null(input$filter_or_not)) && input$filter_or_not == TRUE) {
     
     ## the filtering syntax works for dataframes, but not tibbles, for some reason
-    temp <- contacts_df_long_transformed %>% as.data.frame()
+    temp <- contacts_df_long_transformed 
     
     
     for (i in 1:length(all_cols)) {
       
-      col_vector <- temp[all_cols[i]]
+      col_df <- temp[all_cols[i]]
+      col_name <- names(col_df)
+      col_vector <- pull(col_df)
       values_to_keep <- input[[all_cols[i]]]
       na_id <- paste0("na_", all_cols[i])
       keep_na <- input[[na_id]]
-      
+
       ## only filter on those in the cols_to_filter group.
-      if (col_vector %in% cols_to_filter) {
+      if (col_name %in% cols_to_filter) {
         
         ## FACTOR OR CHARACTER COLUMNS ~~~~~~~~~~~~~~~~~~~
         if (is.factor(col_vector) | is.character(col_vector)) {
+          
+          ## keep values selected by the respective UI element
           temp <- temp[col_vector %in% values_to_keep | is.na(col_vector), ]
+
           ## drop NAs if asked to do so
-          if (!is.null(keep_na) && keep_na == FALSE) temp <- temp[!is.na(col_vector), ]
+          if (!is.null(keep_na) && keep_na == FALSE) temp <- temp %>% drop_na(col_name)
           
           ## NUMERIC COLUMNS  ~~~~~~~~~~~~~~~~~~~
-        } else if (is.numeric(col_vector) | lubridate::is.Date(col_vector)) {
+        } else if (is.numeric(col_vector) | is.Date(col_vector) ) {
           
           ## keep values greater than the minimum and less than maximum
           ## as indicated by user on drag string
-          temp <- temp[col_vector >= values_to_keep[1] | is.na(col_vector), ]
-          temp <- temp[col_vector <= values_to_keep[2] | is.na(col_vector), ]
-          
+          temp <- temp[(col_vector >= values_to_keep[1] & 
+                         col_vector <= values_to_keep[2])
+                         | is.na(col_vector), ]
           ## drop NAs if asked to do so
-          if (!is.null(keep_na) && keep_na == FALSE) temp <- temp[!is.na(col_vector), ]
+          if (!is.null(keep_na) && keep_na == FALSE) temp <- temp %>% drop_na(col_name)
         }
-        
-        contacts_df_long_transformed <-
-          temp %>% as_tibble() %>%
-          ## not sure if necessary again
-          # convert dates to dates
-          mutate(across(
-            .cols = matches("date|Date"),
-            .fns = as.Date
-          ))
       }
     }
+   
+    contacts_df_long_transformed <- temp
   }
   
-  
-  todays_date <-  todays_date_reactive()
-  
+
   
   contacts_df_long <-
     contacts_df_long_transformed %>%
+    # keep only those for whom follow-up had begun by the date of review
+    group_by(row_id) %>%
+    filter(min(follow_up_date) <= todays_date) %>%
+    ungroup() %>%
     ## add future follow-up.
     mutate(follow_up_status = if_else(follow_up_date > todays_date,
                                       "Future follow-up",
@@ -124,10 +113,6 @@ read_file_filtered <- function() {
                                              "Future follow-up",
                                              follow_up_status_simple
     )) %>%
-    # keep only those for whom follow-up had begun by the date of review
-    group_by(row_id) %>%
-    filter(min(follow_up_date) <= todays_date) %>%
-    ungroup() %>%
     # add legend colors
     # legend_df is defined in global.R
     left_join(legend_df, by = c("follow_up_status" = "breaks"))
@@ -191,9 +176,7 @@ reactable_table <-
       reactable(searchable = TRUE,
                 striped = TRUE,
                 highlight = TRUE,
-                filterable = TRUE,
-                theme = reactableTheme(stripedColor = "#f0f1fc",
-                                       highlightColor = "#DADEFB"))
+                filterable = TRUE)
   }   
 
 
@@ -247,7 +230,7 @@ download_report_function <-
       ## but they don't seem to work when I do this
       params$rendered_by_shiny <- TRUE
       params$contacts_df_long <- read_file_filtered_reactive()
-      params$todays_date <- todays_date_reactive()
+      params$todays_date <- input$select_date_of_review
       params$report_format <- input$report_format
       
 
@@ -677,12 +660,8 @@ pct_contacts_followed_value_box <-
 #' ## all_contacts_per_admin_1_table
 
 all_contacts_per_admin_1_table <- 
-  function(contacts_df_long, todays_date, report_format = "shiny"){
-    
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date)
+  function(contacts_df_long, report_format = "shiny"){
+
     
     data_to_plot <- 
       contacts_df_long %>%
@@ -729,9 +708,6 @@ all_contacts_per_admin_1_table <-
                                                           }}"))),
                   striped = TRUE,
                   highlight = TRUE,
-                  theme = reactableTheme(stripedColor = "#f0f1fc70",
-                                         backgroundColor = "#FFFFFF00",
-                                         highlightColor = "#DADEFB"),
                   defaultPageSize = 15)
     }
     
@@ -756,13 +732,8 @@ all_contacts_per_admin_1_table <-
 #' ## all_contacts_per_admin_1_sunburst_plot
 
 all_contacts_per_admin_1_sunburst_plot <- 
-  function(contacts_df_long, todays_date, report_format = "shiny"){
-    
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date)
-    
+  function(contacts_df_long, report_format = "shiny"){
+  
     
     contact_admin_1 <-
       contacts_df_long %>%
@@ -855,13 +826,11 @@ all_contacts_per_admin_1_sunburst_plot <-
 #' ## all_contacts_per_admin_1_bar_chart
 
 all_contacts_per_admin_1_bar_chart <- 
-  function(contacts_df_long, todays_date, report_format = "shiny"){
+  function(contacts_df_long, report_format = "shiny"){
     
     
     contact_admin_1 <-
       contacts_df_long %>%
-      # filter out dates that are past the input days date
-      filter(follow_up_date <= todays_date) %>% 
       group_by(row_id) %>% 
       # slice long frame
       slice_head() %>% 
@@ -949,14 +918,8 @@ all_contacts_per_admin_1_bar_chart <-
 #' ## all_contacts_per_admin_1_text
 
 all_contacts_per_admin_1_text <- 
-  function(contacts_df_long, todays_date, report_format = "shiny"){
+  function(contacts_df_long, report_format = "shiny"){
   
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date)
-    
-    
     data_to_plot <- 
       contacts_df_long %>%
       group_by(row_id) %>% 
@@ -1273,88 +1236,11 @@ contacts_surveilled_admin_1_text <-
 #' Functions that output the number of contacts linked to each case
 #' At the moment (May 13, 2021), the Go.Data app version has no information for this column.
 
-
-#' ## total_contacts_per_case_table
-
-total_contacts_per_case_table <- 
-  function(contacts_df_long, todays_date, report_format = "shiny"){
-    
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date)
-    
-    data_to_plot <- 
-      contacts_df_long %>%
-      group_by(row_id) %>% 
-      # slice long frame
-      slice_head() %>% 
-      # count cases per linked_case_id
-      ungroup() %>% 
-      select(linked_case_id) %>% 
-      mutate(linked_case_id = fct_lump_n(linked_case_id, 10, ties.method = "random")) %>% 
-      count(linked_case_id) %>% 
-      arrange(-n) %>% 
-      arrange(linked_case_id == "Other") %>% 
-      rename(`Case ID` = linked_case_id,
-             `Total linked contacts` = n)
-    
-    number_of_cases <- nrow(data_to_plot) - 1
-
-    
-    if (report_format %in% c("shiny","html (page)", "html (slides)", "pdf")){
-      
-      output_table <-  
-        data_to_plot %>%
-        reactable(
-          columns = list(
-          `Total contacts` = colDef(cell = data_bars_gradient(data_to_plot,
-                                                              colors = c(peach, bright_yellow_crayola),
-                                                              background = "transparent"),
-                                                           style = list(fontFamily = "Courier", whiteSpace = "pre", fontSize = 13)), 
-          `Admin level 1` = colDef(style = JS("function(rowInfo, colInfo, state) {
-                                              var firstSorted = state.sorted[0]
-                                              // Merge cells if unsorted or sorting by admin_1
-                                              if (!firstSorted || firstSorted.id === 'Admin level 1') {
-                                              var prevRow = state.pageRows[rowInfo.viewIndex - 1]
-                                              if (prevRow && rowInfo.row['Admin level 1'] === prevRow['Admin level 1']) {
-                                              return { visibility: 'hidden' }
-                                              }
-                                              }}"))),
-                  striped = TRUE,
-                  highlight = TRUE,
-                  theme = reactableTheme(stripedColor = "#f0f1fc70",
-                                         backgroundColor = "#FFFFFF00",
-                                         highlightColor = "#DADEFB"),
-                  defaultPageSize = 15)
-    }
-    
-    
-    if (report_format %in% c("pptx","docx", "pdf")){
-      
-      output_table <- 
-        data_to_plot %>% 
-        janitor::adorn_totals() %>% 
-        huxtable() %>% 
-        set_all_padding(0.5) %>%
-        merge_repeated_rows(col = "Admin level 1") %>% 
-        theme_blue()
-      
-    }
-    
-    return(output_table)
-    
-  }
-
 #' ## total_contacts_per_case_donut_plot
 
 total_contacts_per_case_donut_plot <- 
-  function(contacts_df_long, todays_date, report_format = "shiny"){
+  function(contacts_df_long, report_format = "shiny"){
     
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date)
     
     data_to_plot <- 
       contacts_df_long %>%
@@ -1364,12 +1250,18 @@ total_contacts_per_case_donut_plot <-
       # count cases per linked_case_id
       ungroup() %>% 
       select(linked_case_id) %>% 
-      mutate(linked_case_id = fct_lump_n(linked_case_id, 10, ties.method = "random")) %>% 
+      mutate(linked_case_id = fct_lump_n(linked_case_id, 20, ties.method = "first")) %>% 
       count(linked_case_id) %>% 
       arrange(-n) %>% 
       arrange(linked_case_id == "Other") %>% 
+      mutate(hc_label = glue("{linked_case_id}: {n}")) %>% 
       rename(`Case ID` = linked_case_id,
              `Total linked contacts` = n)
+    
+    
+    color_df <- 
+      tibble(`Case ID` = unique(data_to_plot$`Case ID`)) %>% 
+      add_column(color_lvl_1 = highcharter_palette[1:nrow(.)])
     
     number_of_cases <- nrow(data_to_plot) - 1
     
@@ -1377,23 +1269,30 @@ total_contacts_per_case_donut_plot <-
       return(highchart() %>% hc_title(text  = "No data to plot"))
     }
     
+    
     output_highchart <- 
       data_to_plot %>%
-      hchart("pie", hcaes(name = `Case ID` , y = `Total linked contacts`),
+      filter(`Case ID` != "Other") %>% ## Franck's orders
+      left_join(color_df) %>% 
+      hchart("pie", hcaes(name = `Case ID` ,
+                             y = `Total linked contacts`, 
+                             color = color_lvl_1),
              name = "n ",
-             innerSize = "40%",
              showInLegend = TRUE,
              dataLabels = list(enabled = TRUE,
                                style = list(fontSize = 12, lineHeight = 15),
-                               format = '{point.percentage:.1f} %')) %>% 
+                               format = '{point.hc_label}')) %>% 
       hc_exporting(enabled = TRUE) %>% 
+      hc_xAxis(categories = data_to_plot$`Case ID`) %>% 
       hc_subtitle(text = glue("Contacts per case for the <b>{number_of_cases}</b> 
                               cases with the most contacts"), 
-                  useHTML = TRUE)
+                  useHTML = TRUE) %>% 
+      hc_legend(enabled = FALSE)
+    
     
     
     if (report_format %in% c("pptx", "docx", "pdf")){
-
+      
       output_highchart <-
         output_highchart %>% 
         hc_exporting(enabled = FALSE) %>%
@@ -1408,17 +1307,81 @@ total_contacts_per_case_donut_plot <-
       
     }
     
+    
   }
+
+
+#' ## total_contacts_per_case_table
+
+total_contacts_per_case_table <- 
+  function(contacts_df_long, report_format = "shiny"){
+    
+    data_to_plot <- 
+      contacts_df_long %>%
+      group_by(row_id) %>% 
+      # slice long frame
+      slice_head() %>% 
+      # count cases per linked_case_id
+      ungroup() %>% 
+      select(linked_case_id) %>% 
+      mutate(linked_case_id = fct_lump_n(linked_case_id, 20, ties.method = "first")) %>% 
+      count(linked_case_id) %>% 
+      arrange(-n) %>% 
+      arrange(linked_case_id == "Other") %>% 
+      rename(`Case ID` = linked_case_id,
+             `Total linked contacts` = n)
+    
+    number_of_cases <- nrow(data_to_plot) - 1
+    table_title <- HTML(glue("Contacts per case for the <b>{number_of_cases}</b> 
+                              cases with the most contacts"))
+
+    
+    if (report_format %in% c("shiny","html (page)", "html (slides)", "pdf")){
+      
+      output_table <-  
+        data_to_plot %>%
+        filter(`Case ID` != "Other") %>% ## Franck's orders
+        reactable(
+          columns = list(
+            `Total linked contacts` = colDef(cell = data_bars_gradient(data_to_plot,
+                                                                       colors = c(peach, bright_yellow_crayola),
+                                                                       background = "transparent"),
+                                             style = list(fontFamily = "Courier",
+                                                          whiteSpace = "pre",
+                                                          fontSize = 13))),
+          striped = TRUE,
+          highlight = TRUE,
+          defaultPageSize = 15)
+      
+      output_table <- 
+        tagList(
+          div(h5(table_title),  style = "text-align: center; font-weight: bold"),
+          output_table)
+    }
+    
+    
+    if (report_format %in% c("pptx","docx", "pdf")){
+      
+      output_table <- 
+        data_to_plot %>%
+        filter(`Case ID` != "Other") %>% 
+        huxtable() %>% 
+        set_all_padding(0.5) %>%
+        theme_blue() %>% 
+        set_caption(table_title)
+      
+      
+    }
+    
+    return(output_table)
+    
+  }
+
 
 #' ## total_contacts_per_case_bar_chart
 
 total_contacts_per_case_bar_chart <- 
-  function(contacts_df_long, todays_date, report_format = "shiny"){
-    
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date)
+  function(contacts_df_long, report_format = "shiny"){
     
     data_to_plot <- 
       contacts_df_long %>%
@@ -1428,10 +1391,10 @@ total_contacts_per_case_bar_chart <-
       # count cases per id
       ungroup() %>% 
       select(linked_case_id) %>% 
-      mutate(linked_case_id = fct_lump_n(linked_case_id, 10, ties.method = "random")) %>% 
+      mutate(linked_case_id = fct_lump_n(linked_case_id, 20, ties.method = "first")) %>% 
       count(linked_case_id) %>% 
       mutate(pct = round(100 * n/sum(n))) %>% 
-      mutate(hc_label = glue("{n}<br>({pct}%)")) %>% 
+      mutate(hc_label = glue("{n}")) %>% 
       arrange(-n) %>% 
       arrange(linked_case_id == "Other") %>% 
       rename(`Case ID` = linked_case_id,
@@ -1450,6 +1413,7 @@ total_contacts_per_case_bar_chart <-
     
     output_highchart <- 
       data_to_plot %>%
+      filter(`Case ID` != "Other") %>% ## Franck's orders
       left_join(color_df) %>% 
       hchart("column", hcaes(name = `Case ID` ,
                              y = `Total linked contacts`, 
@@ -1490,13 +1454,8 @@ total_contacts_per_case_bar_chart <-
 #' ## total_contacts_per_case_text
 
 total_contacts_per_case_text <- 
-  function(contacts_df_long, todays_date, report_format = "shiny"){
-    
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date)
-    
+  function(contacts_df_long, report_format = "shiny"){
+
     data_to_plot <- 
       contacts_df_long %>%
       group_by(row_id) %>% 
@@ -1511,15 +1470,14 @@ total_contacts_per_case_text <-
       ) %>% 
       ungroup()
     
-    mean_number_of_contacts_per_case <- 
+    median_number_of_contacts_per_case <- 
       data_to_plot$`Total linked contacts` %>% 
-      mean() %>% 
-      round(1)
+      median()
     
-    sd_number_of_contacts_per_case <- 
-      data_to_plot$`Total linked contacts` %>% 
-      sd() %>% 
-      round(1)
+    iqr_number_of_contacts_per_case <- 
+      paste0(quantile(round(data_to_plot$`Total linked contacts`)[2], 1), 
+             "-",
+             quantile(round(data_to_plot$`Total linked contacts` )[4], 1) )
     
     min_number_of_contacts_per_case <- 
       data_to_plot$`Total linked contacts` %>% 
@@ -1537,7 +1495,7 @@ total_contacts_per_case_text <-
             The plots show the number of contacts linked to each case.
             </font>")
 
-    str1 <- glue("<br>The <b>mean</b> number of contacts per case is <b>{mean_number_of_contacts_per_case}</b>, (<b>SD:{sd_number_of_contacts_per_case}</b>) 
+    str1 <- glue("<br>The <b>mean</b> number of contacts per case is <b>{median_number_of_contacts_per_case}</b>, (<b>IQR:{iqr_number_of_contacts_per_case}</b>) 
                  with a <b>minimum</b> of <b>{min_number_of_contacts_per_case}</b> and a maximum of <b>{max_number_of_contacts_per_case}</b>" )
 
     output_text <- HTML(paste(info, str1, sep = '<br/>'))
@@ -1573,12 +1531,8 @@ total_contacts_per_case_text <-
 #' ## total_contacts_per_link_type_donut_plot
 
 total_contacts_per_link_type_donut_plot <- 
-  function(contacts_df_long, todays_date, report_format = "shiny"){
+  function(contacts_df_long, report_format = "shiny"){
     
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date)
     
     data_to_plot <- 
       contacts_df_long %>%
@@ -1631,12 +1585,8 @@ total_contacts_per_link_type_donut_plot <-
 #' ## total_contacts_per_link_type_bar_chart
 
 total_contacts_per_link_type_bar_chart <- 
-  function(contacts_df_long, todays_date, report_format = "shiny"){
-    
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date)
+  function(contacts_df_long, report_format = "shiny"){
+
     
     data_to_plot <- 
       contacts_df_long %>%
@@ -1701,12 +1651,8 @@ total_contacts_per_link_type_bar_chart <-
 #' ## total_contacts_per_link_type_text
 
 total_contacts_per_link_type_text <-
-  function(contacts_df_long, todays_date, report_format = "shiny"){
-    
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
-      contacts_df_long %>% 
-      filter(follow_up_date <= todays_date)
+  function(contacts_df_long, report_format = "shiny"){
+
     
     data_to_plot <-
       contacts_df_long %>%
@@ -1924,9 +1870,6 @@ active_contacts_breakdown_table <-
       reactable(searchable = TRUE,
                 striped = TRUE,
                 highlight = TRUE,
-                theme = reactableTheme(stripedColor = "#f0f1fc70",
-                                       backgroundColor = "#FFFFFF00",
-                                       highlightColor = "#DADEFB"),
                 defaultPageSize = 10)
     
     
@@ -1942,7 +1885,7 @@ active_contacts_breakdown_table_download <-
       
       content = function(file){
         file_to_write <- active_contacts_breakdown_table(read_file_filtered_reactive(), 
-                                                         todays_date_reactive(), 
+                                                         input$select_date_of_review, 
                                                          download = TRUE)
         write.csv(file_to_write, file)}
       
@@ -2101,9 +2044,6 @@ active_contacts_snake_plot_selected_table <-
                 searchable = TRUE,
                 striped = TRUE,
                 highlight = TRUE,
-                theme = reactableTheme(stripedColor = "#f0f1fc70",
-                                       backgroundColor = "#FFFFFF00",
-                                       highlightColor = "#DADEFB"),
                 defaultPageSize = 15)
     
     
@@ -2159,9 +2099,6 @@ active_contacts_timeline_table <-
           reactable(searchable = TRUE,
                     striped = TRUE,
                     highlight = TRUE,
-                    theme = reactableTheme(stripedColor = "#f0f1fc70",
-                                           backgroundColor = "#FFFFFF00",
-                                           highlightColor = "#DADEFB"),
                     defaultPageSize = 10)
         
       }
@@ -2475,7 +2412,7 @@ contacts_lost_24_to_72_hours_table_download <-
       
       content = function(file){
         file_to_write <- contacts_lost_24_to_72_hours_table(read_file_filtered_reactive(), 
-                                                            todays_date_reactive(), 
+                                                            input$select_date_of_review, 
                                                             download = TRUE)
         write.csv(file_to_write, file)}
       
@@ -2593,11 +2530,7 @@ lost_contacts_linelist_table <-
                                ),
                 searchable = TRUE,
                 striped = TRUE,
-                highlight = TRUE,
-                theme = reactableTheme(stripedColor = "#f0f1fc70",
-                                       backgroundColor = "#FFFFFF00",
-                                       highlightColor = "#DADEFB")
-      ) 
+                highlight = TRUE) 
 
         
     ## title depending on number of days
@@ -2643,7 +2576,7 @@ lost_contacts_linelist_table_download <-
       
       content = function(file){
         file_to_write <- lost_contacts_linelist_table(read_file_filtered_reactive(), 
-                                                      todays_date_reactive(), 
+                                                      input$select_date_of_review, 
                                                       download = TRUE)
         write.csv(file_to_write, file)}
       

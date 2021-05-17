@@ -1,12 +1,10 @@
 ---
-title: "global.R"
+title: "01: global.R"
 output:
  rmarkdown::html_document:
    toc: yes
    toc_depth: 2
    toc_float: yes
-   number_sections: true
-   code_folding: hide
 ---
 The global.R file is run once before your app starts. 
 Any R objects created here global.R file become available to the app.R file, 
@@ -65,6 +63,7 @@ library(shinydashboardPlus) ## extends shinydashboard
 library(shinycssloaders) ## spinners for when app elements are loading
 library(fresh) ## easy theme changes
 library(reactable) ## HTML tables
+library(htmlwidgets) ## for prependContent function
 library(reactablefmtr) ## additional elements for reactable tables
 library(magrittr) ## I sometimes use the %<>% operator from here
 library(lubridate) ## date wrangling
@@ -191,6 +190,7 @@ legend_df <-
     "Not generated", col2hex("wheat4"),
     "Fin du suivi", col2hex("dodgerblue3"),
     "Suivi futur", col2hex("goldenrod"),
+    "Future follow-up", col2hex("goldenrod"),
     "Decede", col2hex("purple3")
   ) %>%
   arrange(breaks) %>%
@@ -234,7 +234,7 @@ highcharter_palette_initial <- c(
   )
 )
 ## for graphs with many categories
-ramped_colors <- colorRampPalette(highcharter_palette_initial)(10)
+ramped_colors <- colorRampPalette(highcharter_palette_initial)(15)
 
 ## remove first and last colors from ramp, because these are the initial colors
 new_colors <-
@@ -409,5 +409,22 @@ my_theme <- theme_classic() +
   )
 
 theme_set(my_theme)
+```
+
+## Reactable theme
+
+```{r }
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  Reactable theme ----
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+options(reactable.theme = reactableTheme(
+  stripedColor = "#f0f1fc70",
+  backgroundColor = "#FFFFFF00",
+  highlightColor = "#DADEFB",
+  cellPadding = "4px 4px"
+))
 ```
 

@@ -1,18 +1,21 @@
 #'---
-#'title: "server_functions_for_UGA.R"
+#'title: "03.2: server_functions_for_UGA.R"
 #'output:
 #'  rmarkdown::html_document:
 #'    toc: yes
 #'    toc_depth: 2
 #'    toc_float: yes
-#'---
+#' --- #tag_to_pull
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~  UI Outputs ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#' # UI Outputs
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  UI Outputs --------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 #' ## data_to_use_picker
-# ~~ data_to_use_picker ---------------------------
+# ~~~~ data_to_use_picker ---------------------------
 #' Options for data source
 
 output$data_to_use_picker <- renderUI({
@@ -22,33 +25,33 @@ output$data_to_use_picker <- renderUI({
 })
 
 #' ## data_to_use_input
-# ~~ data_to_use_input ---------------------------
+# ~~~~ data_to_use_input ---------------------------
 #' Loads in the data.
 
 output$data_to_use_input <- 
   renderUI({
     tagList(textInput("go_data_url",
-                    "URL for your instance:",
-                    value = "https://godata-r13.who.int/"), 
-          textInput("go_data_username", 
-                    "Username:",
-                    value = "godata_api@who.int"),
-          passwordInput("go_data_password", 
-                        "Password:"), 
-          textInput("go_data_outbreak_id", 
-                    "Outbreak ID:", 
-                    value = "3b5554d7-2c19-41d0-b9af-475ad25a382b"),
-          actionBttn("go_data_request_access_button",
-                     "Request access", 
-                     style = "jelly", 
-                     color = "primary"
-          ), 
-          uiOutput("access_permitted_or_not"))
-    })
+                      "URL for your instance:",
+                      value = "https://godata-r13.who.int/"), 
+            textInput("go_data_username", 
+                      "Username:",
+                      value = "godata_api@who.int"),
+            passwordInput("go_data_password", 
+                          "Password:"), 
+            textInput("go_data_outbreak_id", 
+                      "Outbreak ID:", 
+                      value = "3b5554d7-2c19-41d0-b9af-475ad25a382b"),
+            actionBttn("go_data_request_access_button",
+                       "Request access", 
+                       style = "jelly", 
+                       color = "primary"
+            ), 
+            uiOutput("access_permitted_or_not"))
+  })
 
 
 #' ## access_token_reactive
-# ~~ access_token_reactive ---------------------------
+# ~~~~ access_token_reactive ---------------------------
 #' Specific to Go.Data version Returns access token
 
 access_token_reactive <- reactive({
@@ -80,8 +83,8 @@ access_token_reactive <- reactive({
 })
 
 #' ## access_permitted_or_not
-# ~~ access_permitted_or_not ---------------------------
-#' Specific to Go.Data version.  
+# ~~~~ access_permitted_or_not ---------------------------
+#' Specific to Go.Data version.  
 #' If access_token is not successfully retrieded, returns error. 
 
 output$access_permitted_or_not <- renderUI({
@@ -103,7 +106,7 @@ output$access_permitted_or_not <- renderUI({
 })
 
 #' ## analyze_action_bttn
-# ~~ analyze_action_bttn ---------------------------
+# ~~~~ analyze_action_bttn ---------------------------
 #' Renders when requisites elements have been loaded. 
 
 output$analyze_action_bttn <- renderUI({
@@ -115,7 +118,7 @@ output$analyze_action_bttn <- renderUI({
   req(input$go_data_outbreak_id)
   req(input$go_data_request_access_button)
   
-  tagList(HTML("<p style='font-size:4px'>  <br><br>  </p>"),
+  tagList(HTML("<p style='font-size:4px'>  <br><br>  </p>"),
           
           actionBttn(inputId = "analyze_action_bttn", label = "Analyze", 
                      style = "jelly", color = "primary")
@@ -123,29 +126,29 @@ output$analyze_action_bttn <- renderUI({
 })
 
 #' ## country_specific_data_to_use_section
-# ~~ country_specific_data_to_use_section ---------------------------
+# ~~~~ country_specific_data_to_use_section ---------------------------
 #' Combine different UI elements into single output
 
 
 output$country_specific_data_to_use_section <- 
   renderUI({
     tagList(column(width = 3, 
-                 uiOutput("data_to_use_picker")),
-          column(width = 6, 
-                 uiOutput("data_to_use_input")), 
-          column(width = 3,
-                 uiOutput("analyze_action_bttn"))
-          )
+                   uiOutput("data_to_use_picker")),
+            column(width = 6, 
+                   uiOutput("data_to_use_input")), 
+            column(width = 3,
+                   uiOutput("analyze_action_bttn"))
+    )
   })
 
-
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~  Read file functions ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' # Read file functions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ Read file functions --------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 #' ## read_file_raw
+# ~~~~ read_file_raw ---------------------------
 #' The read_file_raw function does either of two things.
 #' - For countries using Go.Data, it takes in the input credentials, logs into a Go.Data session, and returns a list with the requisite dataframes.
 #' - For countries using KoboCollect, it takes in the two uploaded csv files, (contact list and follow-up list), and returns them as a list of a dataframes.
@@ -200,6 +203,7 @@ read_file_raw <- function(){
 
 
 #' ## read_file_transformed
+# ~~~~ read_file_transformed ---------------------------
 #' The 'read_file_transformed' function takes in data from read_file_raw_reactive, 
 #' and 'transforms' it into a single, 'long' dataframe,
 #' with one row per contact-follow-up-day

@@ -1,11 +1,11 @@
 #'---
-#'title: "server_functions_for_CIV.R"
+#'title: "03.1: server_functions_for_CIV.R"
 #'output:
 #'  rmarkdown::html_document:
 #'    toc: yes
 #'    toc_depth: 2
 #'    toc_float: yes
-#'---
+#' --- #tag_to_pull
 
 #' # Read in preloaded data
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,10 +15,10 @@
 #'Here we load in simulated data
 
 contacts_list_sample <-
-  rio::import(here("data/liste_contacts_sample.xlsx"))
+  rio::import(here::here("data/liste_contacts_sample.xlsx"))
 
 follow_up_list_sample <-
-  rio::import(here("data/suivi_contacts_sample.xlsx"))
+  rio::import(here::here("data/suivi_contacts_sample.xlsx"))
 
 tracing_data_sample <- list(
   contacts_list = contacts_list_sample,
@@ -30,14 +30,14 @@ preloaded_data_options <-
   list(`Sample tracing data` = tracing_data_sample)
 
 
+#' # UI Outputs
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  UI Outputs --------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~  UI Outputs ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #' ## data_to_use_picker
-# ~~ data_to_use_picker ---------------------------
+# ~~~~ data_to_use_picker ---------------------------
 #' Options for data source
 
 
@@ -49,7 +49,7 @@ output$data_to_use_picker <- renderUI({
 })
 
 #' ## data_to_use_input
-# ~~ data_to_use_input ---------------------------
+# ~~~~ data_to_use_input ---------------------------
 #' Loads in the data.
 
 output$data_to_use_input <- renderUI({
@@ -90,7 +90,7 @@ output$data_to_use_input <- renderUI({
 
 
 #' ## analyze_action_bttn
-# ~~ analyze_action_bttn ---------------------------
+# ~~~~ analyze_action_bttn ---------------------------
 #' Renders when requisites elements have been loaded. 
 
 
@@ -124,7 +124,7 @@ output$analyze_action_bttn <- renderUI({
 })
 
 #' ## country_specific_data_to_use_section
-# ~~ country_specific_data_to_use_section ---------------------------
+# ~~~~ country_specific_data_to_use_section ---------------------------
 #' Combine different UI elements into single output
 
 output$country_specific_data_to_use_section <- 
@@ -307,145 +307,4 @@ read_file_transformed <- function(tracing_data_raw){
   
   return(contacts_df_long_transformed)
   
-}
-
-#' ## read_file_filtered
-#' The 'read_file_filtered' function takes in data from read_file_transformed_reactive 
-#' It also takes in a date_of_review variable.
-#' It filters out contacts who had not begun followup by the selected date_of_review 
-#' Also, for contacts being followed, "future" are relabelled as such. 
-#' The output of read_file_filtered is a df that feed most graphs in the app. 
-#' 
-read_file_filtered <- function(){
-  ## takes no inputs for now
-  
-  
-  contacts_df_long_transformed <-  read_file_transformed_reactive()
-  
-  
-  all_cols <- 
-    contacts_df_long_transformed %>% 
-    names()
-  
-  cols_to_filter <- 
-    contacts_df_long_transformed %>%
-    as.data.frame() %>% ## not sure why but tibble doesn't work
-    ## filters not created for rows that change across each contact
-    select(-any_of(c("follow_up_date", "follow_up_day", "follow_up_status",
-                     ## no filters for synthetic columns either
-                     "row_id","row_number","sort_number", 
-                     ## and no filters on names. 
-                     ## Franck mentioned not printing names to app for privacy
-                     "first_name", "last_name"))) %>%
-    ## no filters for columns that are all NA
-    janitor::remove_empty(which = "cols") %>% 
-    names()
-  
-  if ((!is.null(input$filter_or_not)) && input$filter_or_not == TRUE){
-
-    
-    temp <- 
-      contacts_df_long_transformed %>% 
-      as.data.frame()
-    
-    
-    for (j in 1:length(all_cols)) {
-      
-      col <- temp[, all_cols[j]]
-      
-      if (all_cols[[j]] %in% cols_to_filter) {
-        ## factor
-        if (is.factor(col)) {
-          ## if na_input ui element exists and is TRUE, include NAs
-          if ((!is.null(input[[paste0("na_", all_cols[j])]])) &&
-              input[[paste0("na_", all_cols[j])]] == TRUE) {
-            temp <- temp[temp[, all_cols[j]] %in% input[[all_cols[j]]] |
-                           is.na(temp[all_cols[j]]),]
-            ## otherwise, exclude NAs
-          } else {
-            temp <- temp[temp[, all_cols[j]] %in% input[[all_cols[j]]],]
-          }
-          
-        } else if (is.character(col)) {
-          ## if na_input ui element exists and is TRUE, include NAs
-          if ((!is.null(input[[paste0("na_", all_cols[j])]])) &&
-              input[[paste0("na_", all_cols[j])]] == TRUE) {
-            temp <- temp[temp[, all_cols[j]] %in% input[[all_cols[j]]] |
-                           is.na(temp[all_cols[j]]),]
-            ## otherwise, exclude NAs
-          } else {
-            temp <- temp[temp[, all_cols[j]] %in% input[[all_cols[j]]],]
-          }
-          
-        } else if (is.numeric(col)) {
-          ## if na_input ui element exists and is TRUE, include NAs
-          if ((!is.null(input[[paste0("na_", all_cols[j])]])) &&
-              input[[paste0("na_", all_cols[j])]] == TRUE) {
-            temp <- temp[temp[, all_cols[j]] >= input[[all_cols[j]]][1] |
-                           is.na(temp[all_cols[j]]) ,]
-            temp <-
-              temp[temp[, all_cols[j]] <= input[[all_cols[j]]][2] |
-                     is.na(temp[all_cols[j]]),]
-            
-            ## otherwise, exclude NAs
-          } else {
-            temp <- temp[temp[, all_cols[j]] >= input[[all_cols[j]]][1],]
-            temp <-
-              temp[temp[, all_cols[j]] <= input[[all_cols[j]]][2],]
-          }
-          
-          
-        } else if (lubridate::is.Date(col)) {
-          ## if na_input ui element exists and is TRUE, include NAs
-          if ((!is.null(input[[paste0("na_", all_cols[j])]])) &&
-              input[[paste0("na_", all_cols[j])]] == TRUE) {
-            temp <- temp[temp[, all_cols[j]] >= input[[all_cols[j]]][1] |
-                           is.na(temp[all_cols[j]]) ,]
-            
-            temp <-
-              temp[temp[, all_cols[j]] <= input[[all_cols[j]]][2] |
-                     is.na(temp[all_cols[j]]),]
-            
-            ## otherwise, exclude NAs
-          } else {
-            temp <- temp[temp[, all_cols[j]] >= input[[all_cols[j]]][1],]
-            temp <-
-              temp[temp[, all_cols[j]] <= input[[all_cols[j]]][2],]
-          }
-        }
-      }
-      
-    }
-    
-    contacts_df_long_transformed <- 
-      temp %>% 
-      as_tibble() %>% 
-      ## not sure if necessary again
-      # convert dates to dates
-      mutate(across(.cols = matches("date|Date"),
-                    .fns = 
-                      ~ .x %>% 
-                      str_replace_all(" UTC", "") %>% 
-                      as.Date()))
-  }
-  
-  
-  todays_date <-  todays_date_reactive()
-  
-  ## return
-  contacts_df_long_transformed %>%
-    ## add future follow-up. 
-    mutate(follow_up_status = if_else(follow_up_date > todays_date, 
-                                      "Suivi futur",
-                                      follow_up_status)) %>% 
-    mutate(follow_up_status_simple = if_else(follow_up_date > todays_date, 
-                                             "Suivi futur",
-                                             follow_up_status_simple)) %>% 
-    # keep only those for whom follow-up had begun by the date of review
-    group_by(row_id) %>% 
-    filter(min(follow_up_date) <= todays_date) %>%
-    ungroup() %>% 
-    # add legend colors
-    # legend_df is defined in global.R 
-    left_join(legend_df, by = c("follow_up_status" = "breaks"))
 }

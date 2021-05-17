@@ -1,5 +1,5 @@
 #' ---
-#' title: "server.R"
+#' title: "02: server.R"
 #' output:
 #'  rmarkdown::html_document:
 #'    toc: yes
@@ -23,7 +23,10 @@ server <- function(input, output) {
 # ~  Source server functions ------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Load in the primary functions that will be called within server.R
-  source(here("helper_scripts/server_functions.R"), local = T)
+  source(here::here("helper_scripts/server_functions.R"), local = T)
+  
+  
+  
 
 
 #' # Load data reactives
@@ -77,7 +80,8 @@ server <- function(input, output) {
   read_file_filtered_reactive <- reactive({
     req(input$analyze_action_bttn)
 
-    read_file_filtered()
+    read_file_filtered(contacts_df_long_transformed = read_file_transformed_reactive(), 
+                       todays_date = input$select_date_of_review)
   })
   
   
@@ -229,17 +233,6 @@ server <- function(input, output) {
     )
   })
   
-#' ## todays_date_reactive
-# ~~~~ todays_date_reactive --------------------
-#' This reactive wraps the input from the select_date_of_review dateInput element,
-#' It does not need to be inside of a reactive at the moment, 
-#' but we have left it there anyways, as this would make it easy to trigger it 
-#' later with ObservEevent, if needed.
-
-  todays_date_reactive <- reactive({
-    input$select_date_of_review
-  })
-  
   
 #' # Generate downloadable report
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -303,6 +296,16 @@ output$report <- download_report_function()
 #' column in the dataset. The code is quite hairy, but we have tried to comment it extensively.
 # ~~~~ ouput$filters----
 
+cols_to_exclude_from_filters <- 
+  ## filters not created for rows that change across each contact
+  c("follow_up_date", "follow_up_day", 
+    "follow_up_status", "follow_up_status_simple",
+    ## no filters for synthetic columns either
+    "row_id","row_number","sort_number", 
+    ## and no filters on names. 
+    ## Franck mentioned not printing names to app for privacy
+    "first_name", "last_name")
+
   output$filters <- renderUI({
     req(input$analyze_action_bttn)
     req(input$select_date_of_review)
@@ -315,53 +318,59 @@ output$report <- download_report_function()
         read_file_transformed_reactive() %>%
         as.data.frame() %>% ## not sure why but tibble doesn't work
         ## filters not created for rows that change across each contact
-        select(-any_of(c("follow_up_date", "follow_up_day", "follow_up_status",
-                         ## no filters for synthetic columns either
-                         "row_id","row_number","sort_number", 
-                         ## and no filters on names. 
-                         ## Franck mentioned not printing names to app for privacy
-                         "first_name", "last_name"))) %>%
+        select(-any_of(cols_to_exclude_from_filters)) %>%
         ## no filters for columns that are all NA
         janitor::remove_empty(which = "cols")
       
       
-      labels <- selected_cols <- sort(names(my_data))
+      labels <- sort(names(my_data))
       
       
       ## unique values of each column
-      choices <- lapply(1:length(selected_cols), function(x) {
-        unique(my_data[, selected_cols[x]])
+      choices <- lapply(1:length(labels), function(x) {
+        unique(my_data[, labels[x]])
       })
+      
 
-
-      ## render an input picker for each column
+      ## render a selector for each column
       lapply(1:length(labels), function(i) {
         
         ## create output$gender, output$region and so on based on column names
         output[[labels[[i]]]] <- renderUI({
           
           ## first subset the data to that column
-          col <- my_data[, selected_cols[i]]
+          col <- my_data[, labels[i]]
           
           ## then, below, we render an input picker based on whether the column is a character, number or date
           ## and also based on whether or not the column has NA values
           
           ## CHARACTER AND FACTOR COLUMNS  ~~~~~~~~~~~~~~~~~~~
           if (is.character(col) | is.factor(col)) {
+            
+            ## calc unique length to decide whether to add search bar
+            length_choices <- length(na.omit(choices[[i]]))
+            search_or_not <- if(length_choices >= 10 ) TRUE else FALSE
+            
             ## create pickerInput. 
             ## this would be accessed as input$gender, input$region and so on
-            input_UI_element <-  pickerInput(inputId = labels[[i]],
-                                             label = labels[[i]],
-                                             choices = na.omit(choices[[i]]),
-                                             selected = na.omit(choices[[i]]),
-                                             options = list(`actions-box` = TRUE),
-                                             multiple = TRUE)
+            input_UI_element <-  
+              pickerInput(inputId = labels[[i]],
+                          label = labels[[i]],
+                          choices = na.omit(choices[[i]]),
+                          selected = na.omit(choices[[i]]),
+                          options = list(`actions-box` = TRUE, 
+                                         `virtual-scroll`	= TRUE, 
+                                         `live-search` = search_or_not,
+                                         `live-search-placeholder` = "Enter search term",
+                                         `dropup-auto` = FALSE),
+                          multiple = TRUE)
             ## if col has NA values, add checkboxinput asking whether to keep these
             if (any(is.na(col))) {
               tagList(
                 input_UI_element, 
                 checkboxInput(inputId = paste0("na_", labels[[i]]),
-                              label = paste0("Include contacts w. missing values for ",labels[[i]], "?"),
+                              label = paste0("Include contacts w. missing values for ",
+                                             labels[[i]], "?"),
                               value = TRUE))
               ## otherwise, print/return just the primary input picker
               } else { input_UI_element }
@@ -370,18 +379,20 @@ output$report <- download_report_function()
             ## NUMERIC COLUMNS  ~~~~~~~~~~~~~~~~~~~
             ## same procedure as with character columns
           } else if (is.numeric(col)) {
-            input_UI_element <- sliderInput(inputId = labels[[i]],
-                                            label = labels[[i]],
-                                            min = min(col, na.rm = TRUE),
-                                            max = max(col, na.rm = TRUE),
-                                            value = c(min(col, na.rm = TRUE), 
-                                                      max(col, na.rm = TRUE)))
+            input_UI_element <- 
+              sliderInput(inputId = labels[[i]],
+                          label = labels[[i]],
+                          min = min(col, na.rm = TRUE),
+                          max = max(col, na.rm = TRUE),
+                          value = c(min(col, na.rm = TRUE), 
+                                    max(col, na.rm = TRUE)))
             ## if col has NA values, add checkboxinput asking whether to keep these
             if (any(is.na(col))) {
               tagList(
                 input_UI_element, 
                 checkboxInput(inputId = paste0("na_", labels[[i]]),
-                              label = paste0("Include contacts w. missing values for ",labels[[i]], "?"),
+                              label = paste0("Include contacts w. missing values for ",
+                                             labels[[i]], "?"),
                               value = TRUE))
               ## otherwise, print/return just the primary input picker
             } else { input_UI_element }
@@ -389,18 +400,20 @@ output$report <- download_report_function()
             
             ## DATE COLUMNS  ~~~~~~~~~~~~~~~~~~~
           } else if (lubridate::is.Date(col)) {
-            input_UI_element <- dateRangeInput(inputId = labels[[i]],
-                                               label = labels[[i]],
-                                               min = min(col, na.rm = TRUE),
-                                               max = max(col, na.rm = TRUE),
-                                               start = min(col, na.rm = TRUE),
-                                               end = max(col, na.rm = TRUE))
+            input_UI_element <- 
+              dateRangeInput(inputId = labels[[i]],
+                             label = labels[[i]],
+                             min = min(col, na.rm = TRUE),
+                             max = max(col, na.rm = TRUE),
+                             start = min(col, na.rm = TRUE),
+                             end = max(col, na.rm = TRUE))
             ## if col has NA values, add checkboxinput asking whether to keep these
             if (any(is.na(col))) {
               tagList(
                 input_UI_element, 
                 checkboxInput(inputId = paste0("na_", labels[[i]]),
-                              label = paste0("Include contacts w. missing values for ",labels[[i]], "?"),
+                              label = paste0("Include contacts w. missing values for ",
+                                             labels[[i]], "?"),
                               value = TRUE))
               ## otherwise, print/return just the primary input picker
             } else { input_UI_element }
@@ -416,10 +429,11 @@ output$report <- download_report_function()
       ## now we output all those input pickers, 
       ## as in uiOutput("gender") and so on.
       lapply(1:length(labels), function(i) {
-        uiOutput(labels[[i]])})
+        uiOutput(labels[[i]])
+        })
     }
     
-    ## these uiOutputs are packages into a larger output, output$filters, 
+    ## these uiOutputs are packaged into a larger output, output$filters, 
     ## which will, finally, be placed in our UI, as in uiOutput("filters")
   })
 
@@ -475,7 +489,7 @@ output$report <- download_report_function()
 
       contacts_per_day_value_box(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive())
+        todays_date = input$select_date_of_review)
     })
 
 #' ## cumulative_contacts_value_box
@@ -489,7 +503,7 @@ output$report <- download_report_function()
 
       cumulative_contacts_value_box(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive())
+        todays_date = input$select_date_of_review)
       
     })
 
@@ -505,7 +519,7 @@ output$report <- download_report_function()
 
       contacts_under_surveillance_value_box(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive())
+        todays_date = input$select_date_of_review)
       
     })
 
@@ -520,7 +534,7 @@ output$report <- download_report_function()
 
       pct_contacts_followed_value_box(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive())
+        todays_date = input$select_date_of_review)
       
     })
 
@@ -539,8 +553,7 @@ output$report <- download_report_function()
       req(input$select_date_of_review)
 
       all_contacts_per_admin_1_table(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        contacts_df_long = read_file_filtered_reactive()
       )
     })
 
@@ -553,8 +566,7 @@ output$report <- download_report_function()
       req(input$select_date_of_review)
 
       all_contacts_per_admin_1_sunburst_plot(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        contacts_df_long = read_file_filtered_reactive()
       )
     })
 
@@ -566,8 +578,7 @@ output$report <- download_report_function()
       req(input$select_date_of_review)
 
       all_contacts_per_admin_1_bar_chart(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        contacts_df_long = read_file_filtered_reactive()
       )
     })
 
@@ -579,8 +590,7 @@ output$report <- download_report_function()
       req(input$select_date_of_review)
 
       all_contacts_per_admin_1_text(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        contacts_df_long = read_file_filtered_reactive()
       )
     })
 
@@ -601,7 +611,7 @@ output$report <- download_report_function()
 
       contacts_surveilled_admin_1_bar_chart(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        todays_date = input$select_date_of_review
       )
     })
 
@@ -614,7 +624,7 @@ output$report <- download_report_function()
 
       contacts_surveilled_admin_1_bar_chart_relative(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        todays_date = input$select_date_of_review
       )
     })
 
@@ -627,7 +637,7 @@ output$report <- download_report_function()
 
       contacts_surveilled_admin_1_text(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        todays_date = input$select_date_of_review
       )
     })
 
@@ -639,18 +649,36 @@ output$report <- download_report_function()
 #' Functions that output the number of contacts linked to each case
 #' At the moment (May 13, 2021), the Go.Data app version has no information for this column.
 
+  
+  
+  
 #' ## total_contacts_per_case_donut_plot
 # ~~~~ total_contacts_per_case_donut_plot ----  
   
   output$total_contacts_per_case_donut_plot <-
     renderHighchart({
       req(input$select_date_of_review)
-
+      
       total_contacts_per_case_donut_plot(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        contacts_df_long = read_file_filtered_reactive()
       )
     })
+  
+  
+  
+#' ## total_contacts_per_case_table
+# ~~~~ total_contacts_per_case_table ----  
+  
+  output$total_contacts_per_case_table <-
+    renderUI({
+      req(input$select_date_of_review)
+      
+      total_contacts_per_case_table(
+        contacts_df_long = read_file_filtered_reactive()
+      )
+    })
+  
+
 
 #' ## total_contacts_per_case_bar_chart
 # ~~~~ total_contacts_per_case_bar_chart ----  
@@ -660,8 +688,7 @@ output$report <- download_report_function()
       req(input$select_date_of_review)
 
       total_contacts_per_case_bar_chart(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        contacts_df_long = read_file_filtered_reactive()
       )
     })
 
@@ -673,8 +700,7 @@ output$report <- download_report_function()
       req(input$select_date_of_review)
 
       total_contacts_per_case_text(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        contacts_df_long = read_file_filtered_reactive()
       )
     })
   
@@ -693,8 +719,7 @@ output$report <- download_report_function()
       req(input$select_date_of_review)
 
       total_contacts_per_link_type_donut_plot(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        contacts_df_long = read_file_filtered_reactive()
       )
     })
 
@@ -706,8 +731,7 @@ output$report <- download_report_function()
       req(input$select_date_of_review)
 
       total_contacts_per_link_type_bar_chart(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        contacts_df_long = read_file_filtered_reactive()
       )
     })
 
@@ -719,8 +743,7 @@ output$report <- download_report_function()
       req(input$select_date_of_review)
 
       total_contacts_per_link_type_text(
-        contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        contacts_df_long = read_file_filtered_reactive()
       )
     })
   
@@ -746,7 +769,7 @@ output$report <- download_report_function()
       
       active_contacts_breakdown_bar_chart(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive(),
+        todays_date = input$select_date_of_review,
         legend_df = legend_df
       )
     })
@@ -760,7 +783,7 @@ output$report <- download_report_function()
       
       active_contacts_breakdown_table(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        todays_date = input$select_date_of_review
       )
     })
   
@@ -787,7 +810,7 @@ output$report <- download_report_function()
 
       active_contacts_timeline_snake_plot(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive(),
+        todays_date = input$select_date_of_review,
         legend_df = legend_df
       )
     })
@@ -824,7 +847,7 @@ output$report <- download_report_function()
 
       active_contacts_timeline_table(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        todays_date = input$select_date_of_review
       )
     })
   
@@ -844,7 +867,7 @@ output$report <- download_report_function()
 
     active_contacts_timeline_text(
       contacts_df_long = read_file_filtered_reactive(),
-      todays_date = todays_date_reactive()
+      todays_date = input$select_date_of_review
     )
   })
 
@@ -864,7 +887,7 @@ output$report <- download_report_function()
 
       contacts_lost_24_to_72_hours_table(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        todays_date = input$select_date_of_review
       )
     })
 
@@ -883,7 +906,7 @@ output$report <- download_report_function()
 
       lost_contacts_linelist_table(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        todays_date = input$select_date_of_review
       ) %>%
         .$output_table
     })
@@ -907,7 +930,7 @@ output$report <- download_report_function()
 
       lost_contacts_linelist_table(
         contacts_df_long = read_file_filtered_reactive(),
-        todays_date = todays_date_reactive()
+        todays_date = input$select_date_of_review
       ) %>%
         .$table_title
     })
@@ -921,7 +944,7 @@ output$report <- download_report_function()
 
     lost_contacts_linelist_text(
       contacts_df_long = read_file_filtered_reactive(),
-      todays_date = todays_date_reactive()
+      todays_date = input$select_date_of_review
     )
   })
 }
