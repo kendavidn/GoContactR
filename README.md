@@ -6,7 +6,7 @@ This page is under construction.
 
 To do:
 - Add general information about app structure
-- Create document 
-- Create one article per .R file (global, server, ui)
+- Diagram explaining dataflow ()
+- Video explaining renv
 
 

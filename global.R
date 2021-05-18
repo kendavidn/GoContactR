@@ -31,9 +31,9 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 PARAMS <- list()
 ## Uncomment the below to change country app version
-PARAMS$country_code <- "UGA"
+#PARAMS$country_code <- "UGA"
 #PARAMS$country_code <- "COG"
-#PARAMS$country_code <- "CIV" 
+PARAMS$country_code <- "CIV" 
 PARAMS$testing_mode <- FALSE
 PARAMS$fake_data <- TRUE
 
