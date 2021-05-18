@@ -5,19 +5,11 @@ output:
    toc: yes
    toc_depth: 2
    toc_float: yes
---- 
+---
 
-
-```{r echo = FALSE, message = FALSE, warning = FALSE}
-#The lines below are added to the script temporarily to make it knittable.
-
-source(here::here('global.R'))
-
-output <- list()
-
-input <- list()
-
-#
+```{r include=FALSE}
+## for knitting into documentation file
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
 # Read in preloaded data
