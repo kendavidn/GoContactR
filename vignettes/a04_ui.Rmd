@@ -1,17 +1,20 @@
-#'---
-#'title: "04: ui.R"
-#'output:
-#'  rmarkdown::html_document:
-#'    toc: yes
-#'    toc_depth: 2
-#'    toc_float: yes
-#' --- 
+---
+title: "04: ui.R"
+output:
+ rmarkdown::html_document:
+   toc: yes
+   toc_depth: 2
+   toc_float: yes
+--- 
 
-#+ include=FALSE
+```{r include=FALSE}
 ## for knitting into documentation file
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
 
-#' # HEADER
+# HEADER
+
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  HEADER ----
@@ -38,9 +41,11 @@ header$children[[3]]$children[[4]]$children[[1]]$children[[2]]$children[[1]] <-
   HTML('<a href="#" data-toggle="control-sidebar">
        <i class="fa fa-info" role="presentation" aria-label="info icon"></i>
          </a>')
+```
 
+# SIDEBAR
 
-#' # SIDEBAR
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ SIDEBAR ----
@@ -71,25 +76,29 @@ sidebar <-
                        icon = icon("sign-out-alt"))
               )
   )
+```
 
+# BODY
 
-
-#' # BODY
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ BODY ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
+# LOAD DATA TAB
 
-
-#' # LOAD DATA TAB
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ LOAD DATA TAB ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
+##  View merged data frame
 
-#' ##  View merged data frame
+```{r }
 # ~~~~ view_data_frame  ---------
 
 country_specific_data_to_use_section <- 
@@ -102,9 +111,11 @@ country_specific_data_to_use_section <-
                )
 
                )
+```
 
+##  View merged data frame
 
-#' ##  View merged data frame
+```{r }
 # ~~~~ view_data_frame  ---------
 
 data_completeness_and_quality <-
@@ -146,9 +157,11 @@ data_completeness_and_quality <-
                       )
                )
   )
+```
 
+##  View merged data frame
 
-#' ##  View merged data frame
+```{r }
 # ~~~~ view_data_frame  ---------
 
 
@@ -165,9 +178,11 @@ view_data_frame <-
                )
   )
   )
+```
 
+##  Combine rows for load_data_tab
 
-#' ##  Combine rows for load_data_tab
+```{r }
 # ~~~~ load_data_tab_combine_rows  --------------------
 
 
@@ -175,15 +190,19 @@ load_data_tab <- tabItem(tabName = "load_data_tab",
                          country_specific_data_to_use_section,
                          data_completeness_and_quality, 
                          view_data_frame)
+```
 
+#  MAIN TAB
 
-#' #  MAIN TAB
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ MAIN TAB ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
+##  Date and download
 
-#' ##  Date and download
+```{r }
 # ~~~~ date_and_download  --------------------
 
 
@@ -210,8 +229,11 @@ date_and_download <-
                         )
                )
            )
+```
 
-#' ##  Additional filters
+##  Additional filters
+
+```{r }
 # ~~~~ additional_filters  --------------------
 
 additional_filters <- 
@@ -236,10 +258,11 @@ additional_filters <-
                         )
                )
   )
+```
 
+##  Value boxes
 
-
-#' ##  Value boxes
+```{r }
 # ~~~~ value_boxes  --------------------
 
 
@@ -249,10 +272,11 @@ value_boxes <-
            valueBoxOutput("contacts_under_surveillance_value_box", width = 3),
            valueBoxOutput("pct_contacts_followed_value_box", width = 3)
            )
+```
 
+##  Contacts per region
 
-
-#' ##  Contacts per region
+```{r }
 # ~~~~ contacts_per_region ----
 
 
@@ -288,9 +312,11 @@ contacts_per_region <-
   ), 
   hr()
   )
+```
 
+##  Contacts surveilled over time
 
-#' ##  Contacts surveilled over time
+```{r }
 # ~~~~ contacts_surveilled_over_time ----
 
 contacts_surveilled_over_time <-
@@ -322,8 +348,11 @@ contacts_surveilled_over_time <-
   ), 
   hr()
   )
+```
 
-#' ##  Contacts per case
+##  Contacts per case
+
+```{r }
 # ~~~~ contacts_per_case ----
 
 contacts_per_case <-
@@ -390,8 +419,11 @@ age_group <-
     ), 
     hr()
   )
+```
 
-#' ##  Contacts per link type
+##  Contacts per link type
+
+```{r }
 # ~~~~ contacts_per_link_type ----
 
 contacts_per_link_type <-
@@ -423,8 +455,11 @@ contacts_per_link_type <-
   ), 
   hr()
   )
+```
 
-#' ##  Combine rows for main tab
+##  Combine rows for main tab
+
+```{r }
 # ~~~~ main_tab_combine_rows----
 
 
@@ -439,18 +474,19 @@ main_tab <- tabItem("main_tab",
                     contacts_per_case, 
                     contacts_per_link_type
                     )
+```
 
+#  ACTIVE CONTACTS TAB
 
-
-
-
-
-#' #  ACTIVE CONTACTS TAB
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ ACTIVE CONTACTS TAB ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
-#' ##  Active contacts bar and snake plot
+##  Active contacts bar and snake plot
+
+```{r }
 # ~~~~ active_contacts_bar_and_snake ----
 
 active_contacts_bar_and_snake <- 
@@ -503,9 +539,11 @@ active_contacts_bar_and_snake <-
     ), 
     hr()
   )
+```
 
+##  Lost contacts information
 
-#' ##  Lost contacts information
+```{r }
 # ~~~~ lost_contacts ----
 
 lost_contacts <- 
@@ -544,8 +582,11 @@ lost_contacts <-
     ), 
     hr()
   )
+```
 
-#' ##  Combine rows for active contacts tab
+##  Combine rows for active contacts tab
+
+```{r }
 # ~~~~ active contacts combine rows ----
 
 
@@ -555,9 +596,11 @@ active_contacts_tab <- tabItem(tabName = "active_contacts_tab",
                                active_contacts_bar_and_snake, 
                                lost_contacts
 )
+```
 
+#  HELP TAB
 
-#' #  HELP TAB
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ HELP TAB ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -580,9 +623,11 @@ help_tab <- tabItem("help_tab",
                     h1("Resources", align = "center"), 
                     hr(),
                     help_tab_row_1)
+```
 
+#  COMBINE ALL TABS INTO BODY OBJECT
 
-#' #  COMBINE ALL TABS INTO BODY OBJECT
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ COMBINE ALL TABS INTO BODY OBJECT ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -615,10 +660,11 @@ body <-
                          help_tab
                          )
   )
+```
 
+#  RIGHT SIDEBAR/CONTROLBAR
 
-
-#' #  RIGHT SIDEBAR/CONTROLBAR
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ RIGHT SIDEBAR/CONTROLBAR ----
@@ -654,10 +700,11 @@ controlbar_str <-
 
 # store in controlbar object. There should be a neater way to achieve all of this
 controlbar <- eval(str2expression(controlbar_str))
+```
 
+#  FOOTER
 
-
-#' #  FOOTER
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ FOOTER ----
@@ -667,9 +714,11 @@ controlbar <- eval(str2expression(controlbar_str))
 footer <-
   dashboardFooter(left = HTML('<span style="font-size: 9px; color: rgb(21, 139, 198);">World Health Organization Regional Office for Africa</span>'),
                   right = "")
+```
 
+#  BUILD FINAL UI OBJECT
 
-#' #  BUILD FINAL UI OBJECT
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ BUILD FINAL UI OBJECT ----
@@ -683,5 +732,5 @@ ui <-
                 controlbar = controlbar, 
                 footer = footer
   )
-
+```
 

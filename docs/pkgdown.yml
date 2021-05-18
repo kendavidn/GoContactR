@@ -2,13 +2,13 @@ pandoc: 2.11.4
 pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
-  06_video_walkthroughs: 06_video_walkthroughs.html
-  global: global.html
-  report: report.html
-  server: server.html
-  server_functions: server_functions.html
-  server_functions_for_CIV: server_functions_for_CIV.html
-  server_functions_for_UGA: server_functions_for_UGA.html
-  ui: ui.html
-last_built: 2021-05-17T23:06Z
+  a01_global: a01_global.html
+  a02_server: a02_server.html
+  a03.1_server_functions_for_CIV: a03.1_server_functions_for_CIV.html
+  a03.2_server_functions_for_UGA: a03.2_server_functions_for_UGA.html
+  a03_server_functions: a03_server_functions.html
+  a04_ui: a04_ui.html
+  a05_report: a05_report.html
+  a06_video_walkthroughs: a06_video_walkthroughs.html
+last_built: 2021-05-18T13:22Z
 

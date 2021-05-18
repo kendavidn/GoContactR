@@ -1,5 +1,5 @@
 ---
-title: "COVID-19 Contact Tracing Report"
+title: "05: report.Rmd"
 always_allow_html: true
 output:
   rmarkdown::html_document:
@@ -34,12 +34,19 @@ fontsize: 10pt
 main-color: "#3391CF"
 ---
 
-<!-- tag_to_pull_do_not_remove -->
+
+
+```{r}
+
+report_format <- 'html (page)'
+
+```
+
 
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, dpi = 300, eval = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, dpi = 300, eval = FALSE)
 
 
 number_of_chunks <- 22
@@ -430,6 +437,5 @@ lost_contacts_linelist_table(contacts_df_long,
   .$output_table
 
 ```
-
 
 

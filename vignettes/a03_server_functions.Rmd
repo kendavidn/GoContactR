@@ -1,40 +1,46 @@
-#'---
-#'title: "03: server_functions.R"
-#'output:
-#'  rmarkdown::html_document:
-#'    toc: yes
-#'    toc_depth: 2
-#'    toc_float: yes
-#' --- 
+---
+title: "03: server_functions.R"
+output:
+ rmarkdown::html_document:
+   toc: yes
+   toc_depth: 2
+   toc_float: yes
+--- 
 
-#+ include=FALSE
+```{r include=FALSE}
 ## for knitting into documentation file
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
 
-#' # Source country-specific server functions
+# Source country-specific server functions
+
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Source country-specific server functions -----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Here we source two functions related to reading in and transforming the source data,
-#' namely read_file_raw and read_file_transformed.
-#' We also source the UI elements required to load in the source data.
-#' This is the only part of the app that changes between countries.
-#' There are currently two versions of functions/reactives/UI elements that are sourced in this script.
-#' - One version creates UI elements to enter Go.Data credentials and fetches the Go.Data data
-#' - The other version creates UI elements to upload KoboCollect csvs.
+```
 
-#+ echo = FALSE, include = FALSE, eval = FALSE
+Here we source two functions related to reading in and transforming the source data,
+namely read_file_raw and read_file_transformed.
+We also source the UI elements required to load in the source data.
+This is the only part of the app that changes between countries.
+There are currently two versions of functions/reactives/UI elements that are sourced in this script.
+- One version creates UI elements to enter Go.Data credentials and fetches the Go.Data data
+- The other version creates UI elements to upload KoboCollect csvs.
+
+```{r echo = FALSE, include = FALSE, eval = FALSE}
 source(here::here(paste0("helper_scripts/server_functions_for_",
                    PARAMS$country_code, ".R")), local = T)
+```
 
+## read_file_filtered
+The 'read_file_filtered' function takes in data from read_file_transformed_reactive 
+It also takes in a date_of_review variable.
+It filters out contacts who had not begun followup by the selected date_of_review 
+Also, for contacts being followed, "future" are relabelled as such. 
+The output of read_file_filtered is a df that feed most graphs in the app. 
 
-#' ## read_file_filtered
-#' The 'read_file_filtered' function takes in data from read_file_transformed_reactive 
-#' It also takes in a date_of_review variable.
-#' It filters out contacts who had not begun followup by the selected date_of_review 
-#' Also, for contacts being followed, "future" are relabelled as such. 
-#' The output of read_file_filtered is a df that feed most graphs in the app. 
-
+```{r }
 read_file_filtered <- function(contacts_df_long_transformed, todays_date) {
   ## takes no inputs for now
   
@@ -123,16 +129,21 @@ read_file_filtered <- function(contacts_df_long_transformed, todays_date) {
   ## return
   contacts_df_long
 }
+```
 
-#' #  Data overview plots 
+#  Data overview plots 
+
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Data overview plots ------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
-#' ## data_completeness_plot
-#' Here we output a visualization of the entire long dataframe.
-#' Uses the viz_dat function
+## data_completeness_plot
+Here we output a visualization of the entire long dataframe.
+Uses the viz_dat function
 
+```{r }
 data_completeness_plot <- function(contacts_df_long_transformed){
   
   contacts_df_long_transformed %>% 
@@ -152,11 +163,12 @@ data_completeness_plot <- function(contacts_df_long_transformed){
     theme(title = element_text(face = "bold"))
   
 }
+```
 
+## data_cardinality_plot
+This is a plot using the 'inspect_cat' function of the inspectdf package 
 
-#' ## data_cardinality_plot
-#' This is a plot using the 'inspect_cat' function of the inspectdf package 
-
+```{r }
 data_cardinality_plot <- function(contacts_df_long_transformed){
   
   contacts_df_long_transformed %>% 
@@ -167,10 +179,12 @@ data_cardinality_plot <- function(contacts_df_long_transformed){
     labs(title = "Freq. of categorical vars in dataset")
   
 }
+```
 
-#' ## reactable_table
-#' Here, we output the entire long table for easy viewing, or searching
+## reactable_table
+Here, we output the entire long table for easy viewing, or searching
 
+```{r }
 reactable_table <- 
   function(contacts_df_long_transformed){
     
@@ -181,14 +195,19 @@ reactable_table <-
                 highlight = TRUE,
                 filterable = TRUE)
   }   
+```
 
+# Generate downloadable report
 
-#' # Generate downloadable report
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Generate downloadable report --------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
-#' ## download_report_function
+## download_report_function
+
+```{r }
 download_report_function <- 
   function() {
   downloadHandler(
@@ -288,27 +307,33 @@ download_report_function <-
 )
   
 }
+```
 
-#' #  OUTPUTS PERTAINING TO ALL CONTACTS
+#  OUTPUTS PERTAINING TO ALL CONTACTS
+
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ OUTPUTS PERTAINING TO ALL CONTACTS ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
+#  Value boxes
 
-#' #  Value boxes
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ Value boxes  --------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Below we define the value-box functions and return their outputs.
-#' These functions return an HTML Shiny value-box when the report_format parameter
-#' is "shiny", and a ggplot-based value-box otherwise.
-#' Like most of the remaining functions that the app uses, these take in 
-#' two primary inputs: the long contacts dataframe (one row per follow-up-day), 
-#' and the date of review.
+```
 
+Below we define the value-box functions and return their outputs.
+These functions return an HTML Shiny value-box when the report_format parameter
+is "shiny", and a ggplot-based value-box otherwise.
+Like most of the remaining functions that the app uses, these take in 
+two primary inputs: the long contacts dataframe (one row per follow-up-day), 
+and the date of review.
+## contacts_per_day_value_box
 
-#' ## contacts_per_day_value_box
-
+```{r }
 ## here we count the number of new contacts registered per day,
 ## based on follow-up start date
 contacts_per_day_value_box <- 
@@ -388,10 +413,11 @@ contacts_per_day_value_box <-
       
     
   }
+```
 
+## cumulative_contacts_value_box
 
-#' ## cumulative_contacts_value_box
-
+```{r }
 cumulative_contacts_value_box <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
   
@@ -472,10 +498,11 @@ cumulative_contacts_value_box <-
     return(output_valuebox)
     
   }
+```
 
+## contacts_under_surveillance_value_box
 
-#' ## contacts_under_surveillance_value_box
-
+```{r }
 contacts_under_surveillance_value_box <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
@@ -551,10 +578,11 @@ contacts_under_surveillance_value_box <-
     
     
   }
+```
 
+## pct_contacts_followed_value_box
 
-#' ## pct_contacts_followed_value_box
-
+```{r }
 pct_contacts_followed_value_box <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
@@ -648,20 +676,21 @@ pct_contacts_followed_value_box <-
     
     return(output_valuebox)
   }
+```
 
+#  Contacts per region
 
-
-
-#' #  Contacts per region
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ Contacts per region  --------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Below we call the contacts_per_admin_1 functions. These show the distribution 
-#' of contacts over admin level 1 and admin level 2.
+```
 
+Below we call the contacts_per_admin_1 functions. These show the distribution 
+of contacts over admin level 1 and admin level 2.
+## all_contacts_per_admin_1_table
 
-#' ## all_contacts_per_admin_1_table
-
+```{r }
 all_contacts_per_admin_1_table <- 
   function(contacts_df_long, report_format = "shiny"){
 
@@ -731,9 +760,11 @@ all_contacts_per_admin_1_table <-
     
     
   }
+```
 
-#' ## all_contacts_per_admin_1_sunburst_plot
+## all_contacts_per_admin_1_sunburst_plot
 
+```{r }
 all_contacts_per_admin_1_sunburst_plot <- 
   function(contacts_df_long, report_format = "shiny"){
   
@@ -824,10 +855,11 @@ all_contacts_per_admin_1_sunburst_plot <-
     }
     
   }
+```
 
+## all_contacts_per_admin_1_bar_chart
 
-#' ## all_contacts_per_admin_1_bar_chart
-
+```{r }
 all_contacts_per_admin_1_bar_chart <- 
   function(contacts_df_long, report_format = "shiny"){
     
@@ -916,10 +948,11 @@ all_contacts_per_admin_1_bar_chart <-
     
     
   }
+```
 
+## all_contacts_per_admin_1_text
 
-#' ## all_contacts_per_admin_1_text
-
+```{r }
 all_contacts_per_admin_1_text <- 
   function(contacts_df_long, report_format = "shiny"){
   
@@ -992,17 +1025,21 @@ all_contacts_per_admin_1_text <-
   
   
 }
+```
 
-#' #  Contacts surveilled over time
+#  Contacts surveilled over time
+
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ Contacts surveilled over time  -----------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Functions showing how many contacts were under surveillance at each time point, 
-#' segregated by region.
+```
 
+Functions showing how many contacts were under surveillance at each time point, 
+segregated by region.
+## contacts_surveilled_admin_1_bar_chart
 
-#' ## contacts_surveilled_admin_1_bar_chart
-
+```{r }
 contacts_surveilled_admin_1_bar_chart <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
@@ -1069,11 +1106,11 @@ contacts_surveilled_admin_1_bar_chart <-
     }
 
   }
+```
 
+## contacts_surveilled_admin_1_bar_chart_relative
 
-
-#' ## contacts_surveilled_admin_1_bar_chart_relative
-
+```{r }
 contacts_surveilled_admin_1_bar_chart_relative <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
@@ -1143,9 +1180,11 @@ contacts_surveilled_admin_1_bar_chart_relative <-
     }
     
   }
+```
 
-#' ## contacts_surveilled_admin_1_text
+## contacts_surveilled_admin_1_text
 
+```{r }
 contacts_surveilled_admin_1_text <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
@@ -1228,19 +1267,21 @@ contacts_surveilled_admin_1_text <-
     
     
   }
+```
 
+#  Contacts per case
 
-
-
-#' #  Contacts per case
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ Contacts per case  -----------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Functions that output the number of contacts linked to each case
-#' At the moment (May 13, 2021), the Go.Data app version has no information for this column.
+```
 
-#' ## total_contacts_per_case_donut_plot
+Functions that output the number of contacts linked to each case
+At the moment (May 13, 2021), the Go.Data app version has no information for this column.
+## total_contacts_per_case_donut_plot
 
+```{r }
 total_contacts_per_case_donut_plot <- 
   function(contacts_df_long, report_format = "shiny"){
     
@@ -1312,10 +1353,11 @@ total_contacts_per_case_donut_plot <-
     
     
   }
+```
 
+## total_contacts_per_case_table
 
-#' ## total_contacts_per_case_table
-
+```{r }
 total_contacts_per_case_table <- 
   function(contacts_df_long, report_format = "shiny"){
     
@@ -1379,10 +1421,11 @@ total_contacts_per_case_table <-
     return(output_table)
     
   }
+```
 
+## total_contacts_per_case_bar_chart
 
-#' ## total_contacts_per_case_bar_chart
-
+```{r }
 total_contacts_per_case_bar_chart <- 
   function(contacts_df_long, report_format = "shiny"){
     
@@ -1452,10 +1495,11 @@ total_contacts_per_case_bar_chart <-
     }
     
   }
+```
 
+## total_contacts_per_case_text
 
-#' ## total_contacts_per_case_text
-
+```{r }
 total_contacts_per_case_text <- 
   function(contacts_df_long, report_format = "shiny"){
 
@@ -1521,18 +1565,21 @@ total_contacts_per_case_text <-
     }
     
   }
+```
 
+#  Contacts per link type
 
-#' #  Contacts per link type
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ Contacts per link type  -----------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Functions that output the number of contacts for each type of link (e.g. family)
-#' At the moment (May 13, 2021), the Go.Data app version has no information for this column.
+```
 
+Functions that output the number of contacts for each type of link (e.g. family)
+At the moment (May 13, 2021), the Go.Data app version has no information for this column.
+## total_contacts_per_link_type_donut_plot
 
-#' ## total_contacts_per_link_type_donut_plot
-
+```{r }
 total_contacts_per_link_type_donut_plot <- 
   function(contacts_df_long, report_format = "shiny"){
     
@@ -1584,9 +1631,11 @@ total_contacts_per_link_type_donut_plot <-
     }
     
   }
+```
 
-#' ## total_contacts_per_link_type_bar_chart
+## total_contacts_per_link_type_bar_chart
 
+```{r }
 total_contacts_per_link_type_bar_chart <- 
   function(contacts_df_long, report_format = "shiny"){
 
@@ -1649,10 +1698,11 @@ total_contacts_per_link_type_bar_chart <-
     }
     
   }
+```
 
+## total_contacts_per_link_type_text
 
-#' ## total_contacts_per_link_type_text
-
+```{r }
 total_contacts_per_link_type_text <-
   function(contacts_df_long, report_format = "shiny"){
 
@@ -1722,23 +1772,28 @@ total_contacts_per_link_type_text <-
     
     
   }
+```
 
-#' #  OUTPUTS PERTAINING TO ACTIVE CONTACTS
+#  OUTPUTS PERTAINING TO ACTIVE CONTACTS
+
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ OUTPUTS PERTAINING TO ACTIVE CONTACTS ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
+#  Active contacts bar chart and snake plot
 
-
-#' #  Active contacts bar chart and snake plot
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ Active contacts bar chart and snake plot ------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Graphs and tables showing active contacts by status
+```
 
+Graphs and tables showing active contacts by status
+## active_contacts_breakdown_bar_chart
 
-#' ## active_contacts_breakdown_bar_chart
-
+```{r }
 active_contacts_breakdown_bar_chart <- 
   function(contacts_df_long, todays_date, report_format = "shiny", legend_df){
     
@@ -1822,9 +1877,11 @@ active_contacts_breakdown_bar_chart <-
       output_plotly
     }
   }
+```
 
-#' ## active_contacts_breakdown_table
+## active_contacts_breakdown_table
 
+```{r }
 active_contacts_breakdown_table <- 
   function(contacts_df_long, todays_date, download = FALSE){
     
@@ -1878,9 +1935,11 @@ active_contacts_breakdown_table <-
     
     
   }
+```
 
-#' ## active_contacts_breakdown_table_download
+## active_contacts_breakdown_table_download
 
+```{r }
 active_contacts_breakdown_table_download <- 
   function(){
     downloadHandler(
@@ -1895,9 +1954,11 @@ active_contacts_breakdown_table_download <-
     )
     
   }
+```
 
-#' ## active_contacts_timeline_snake_plot
+## active_contacts_timeline_snake_plot
 
+```{r }
 active_contacts_timeline_snake_plot <- 
   function(contacts_df_long, todays_date, report_format = "shiny", legend_df){
   
@@ -2023,9 +2084,11 @@ active_contacts_timeline_snake_plot <-
     }
     
   }
+```
 
-#' ## active_contacts_snake_plot_selected_table
+## active_contacts_snake_plot_selected_table
 
+```{r }
 active_contacts_snake_plot_selected_table <- 
   function(contacts_df_long, selected_ids,  download = FALSE) {
     
@@ -2051,10 +2114,11 @@ active_contacts_snake_plot_selected_table <-
     
     
   }
-  
+```
 
-#' ## active_contacts_snake_plot_selected_table_download
+## active_contacts_snake_plot_selected_table_download
 
+```{r }
 active_contacts_snake_plot_selected_table_download <- 
     function(){
       downloadHandler(
@@ -2072,9 +2136,11 @@ active_contacts_snake_plot_selected_table_download <-
     
     
   }
+```
 
-#' ## active_contacts_timeline_table
+## active_contacts_timeline_table
 
+```{r }
 active_contacts_timeline_table <- 
   function(contacts_df_long, todays_date, download = FALSE){
     
@@ -2107,9 +2173,11 @@ active_contacts_timeline_table <-
       }
       
   }
+```
 
-#' ## active_contacts_timeline_table_download
+## active_contacts_timeline_table_download
 
+```{r }
 active_contacts_timeline_table_download <- 
   function(contacts_df_long, todays_date){
     downloadHandler(
@@ -2124,10 +2192,11 @@ active_contacts_timeline_table_download <-
     )
     
   }
+```
 
+## active_contacts_timeline_text
 
-#' ## active_contacts_timeline_text
-
+```{r }
 active_contacts_timeline_text <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
   
@@ -2174,20 +2243,20 @@ active_contacts_timeline_text <-
   
   
 }
+```
 
-  
+#  Contacts lost to follow-up
 
-
-
-
-#' #  Contacts lost to follow-up
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ Contacts lost to follow-up  ------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Tables (and their download handlers) summarizing the number of individuals lost to follow-up
+```
 
-#' ## contacts_lost_24_to_72_hours_table
+Tables (and their download handlers) summarizing the number of individuals lost to follow-up
+## contacts_lost_24_to_72_hours_table
 
+```{r }
 contacts_lost_24_to_72_hours_table <- 
   function(contacts_df_long, todays_date, report_format = "shiny", download = FALSE){
     
@@ -2403,11 +2472,11 @@ contacts_lost_24_to_72_hours_table <-
     }
     
   }
+```
 
+## contacts_lost_24_to_72_hours_table_download
 
-#' ## contacts_lost_24_to_72_hours_table_download
-
-
+```{r }
 contacts_lost_24_to_72_hours_table_download <- 
   function(){
     downloadHandler(
@@ -2422,10 +2491,11 @@ contacts_lost_24_to_72_hours_table_download <-
     )
     
   }
+```
 
+## lost_contacts_linelist_table
 
-#' ## lost_contacts_linelist_table
-
+```{r }
 lost_contacts_linelist_table <- 
   function(contacts_df_long, todays_date, download = FALSE, report_format = "shiny"){
     
@@ -2568,10 +2638,11 @@ lost_contacts_linelist_table <-
                 ))
     
   }
+```
 
+## lost_contacts_linelist_table_download
 
-#' ## lost_contacts_linelist_table_download
-
+```{r }
 lost_contacts_linelist_table_download <- 
   function(){
     downloadHandler(
@@ -2586,10 +2657,11 @@ lost_contacts_linelist_table_download <-
     )
     
   }
+```
 
-#' ## lost_contacts_linelist_text
+## lost_contacts_linelist_text
 
-
+```{r }
 lost_contacts_linelist_text <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
@@ -2671,22 +2743,5 @@ lost_contacts_linelist_text <-
       }
     
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 

@@ -5,7 +5,7 @@
 #'    toc: yes
 #'    toc_depth: 2
 #'    toc_float: yes
-#' ---
+#' --- 
 
 #+ include=FALSE
 ## for knitting into documentation file
@@ -19,10 +19,10 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 #'Here we load in simulated data
 
 contacts_list_sample <-
-  rio::import(here::here("data/liste_contacts_sample_CIV.xlsx"))
+  rio::import(here::here("data/liste_contacts_sample_COG.xlsx"))
 
 follow_up_list_sample <-
-  rio::import(here::here("data/suivi_contacts_sample_CIV.xlsx"))
+  rio::import(here::here("data/suivi_contacts_sample_COG.xlsx"))
 
 tracing_data_sample <- list(
   contacts_list = contacts_list_sample,
@@ -111,7 +111,7 @@ output$analyze_action_bttn <- renderUI({
   if(input$data_to_use == "Use preloaded data") {
     req(input$preloaded_data_choice)
   }
-
+  
   
   tagList(HTML("<p style='font-size:4px'>  <br><br>  </p>"),
           
