@@ -1,6 +1,10 @@
+<img src="https://raw.githubusercontent.com/kendavidn/GoContactR/master/www/ui_demo_snake_plot.gif" alt="ui_demo_snake_plot" width="590"/>
+
 # R Shiny App for analyzing Contact Tracing Data
 
-This repo contains an R-shiny application built to allow contact tracing teams to generate automated reports that summarize contact follow-up data.
+This repo contains the code for GoContactR, an R-shiny application built to allow contact tracing teams to generate automated reports that summarize contact follow-up data.
+
+Find a sample live app here. 
 
 The application has been built to work with two primary data sources: data from KoboCollect-exported csv files, and data from a Go.Data instance (by direct API connection).
 
@@ -10,13 +14,13 @@ At the start of the global.R file, the developer sets the `PARAMS$country_code` 
 
 The application is split into the *global.R*, *server.R* and *ui.R* files. The *server* file sources its functions from the *helper_scripts* folder.
 
-![key_files_and_folders](https://raw.githubusercontent.com/kendavidn/GoContactR/master/www/key_files_and_folders.png)
+<img src="https://raw.githubusercontent.com/kendavidn/GoContactR/master/www/key_files_and_folders.png" alt="key_files_and_folders" width="423"/>
 
 ## Data Flow
 
 The data flow for the application is fairly straightforward. A single dataset is loaded in with the `read_file_raw` function, processed with the `read_file_transformed` function, filtered with the `read_file_filtered` function, then passed on to all the application outputs.
 
-![gocontactr_data_flow](https://raw.githubusercontent.com/kendavidn/GoContactR/www/gocontactr_data_flow.png)
+<img src="https://raw.githubusercontent.com/kendavidn/GoContactR/master/www/gocontactr_data_flow.png" alt="gocontactr_data_flow" width="476"/>
 
 ## Key outputs
 
@@ -34,19 +38,19 @@ among others
 
 #### Load data tab
 
-UI inputs and outputs to load and peruse the contacts data. ![ui_demo_load_data_tab](https://raw.githubusercontent.com/kendavidn/GoContactR/www/ui_demo_load_data_tab.png)
+UI inputs and outputs to load and peruse the contacts data. <img src="https://raw.githubusercontent.com/kendavidn/GoContactR/master/www/ui_demo_load_data_tab.png" alt="ui_demo_load_data_tab" width="541"/>
 
 #### All contacts tab
 
-Outputs related to all contacts. ![ui_demo_all_contacts_tab](https://raw.githubusercontent.com/kendavidn/GoContactR/www/ui_demo_all_contacts_tab.png)
+Outputs related to all contacts.
+
+<img src="https://raw.githubusercontent.com/kendavidn/GoContactR/master/www/ui_demo_all_contacts_tab.png" alt="ui_demo_all_contacts_tab" width="529"/>
 
 #### Active contacts tab
 
 Outputs related to contacts under surveillance on the review date.
 
-![ui_demo_active_contacts_tab](https://raw.githubusercontent.com/kendavidn/GoContactR/www/ui_demo_active_contacts_tab.png)
-
-![ui_demo_snake_plot](https://raw.githubusercontent.com/kendavidn/GoContactR/www/ui_demo_snake_plot.png)
+<img src="https://raw.githubusercontent.com/kendavidn/GoContactR/master/www/ui_demo_active_contacts_tab.png" alt="ui_demo_active_contacts_tab" width="459"/>
 
 ## Report generation
 
@@ -57,7 +61,7 @@ The application generates reports in the following formats:
 -   Powerpoint document. See [here](https://drive.google.com/file/d/1_J7zp-gPDcdMt5viJC_o3YsJRwG1GGqC/view?usp=sharing)
 -   Word document. See [here](https://drive.google.com/file/d/1_J7zp-gPDcdMt5viJC_o3YsJRwG1GGqC/view?usp=sharing)
 
-## Deploying
+## Deployment
 
 We recommend deploying your application to RStudio's shinyapps.io service, as they have built-in tools that make this process mostly pain-free.
 
@@ -66,5 +70,3 @@ Two important points when doing this:
 -   Do not push the DESCRIPTION file up to shinyapps.io. If you push the DESCRIPTION file, shinyapps will assume that your application is package, and it will only load libraries listed in the DESCRIPTION file. (We created the description file to enable documentation via `pkgdown`).
 
 -   Similarly, do not push the .Rprofile file. This will introduce problems related to the `renv` package.
-
-![gocontactr_data_flow](https://raw.githubusercontent.com/kendavidn/GoContactR/www/gocontactr_data_flow.png)
