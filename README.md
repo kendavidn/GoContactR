@@ -16,8 +16,35 @@ The *server* file sources its functions from the *helper_scripts* folder.
 
 ## Data Flow
 
-The application is fairly straightforward from a shiny reactivity standpoint. 
+The data flow for the application is fairly straightforward. 
 A single dataset is loaded in with the `read_file_raw` function, processed with the `read_file_transformed` function, filtered with the `read_file_filtered` function, then passed on to all the application outputs. 
+
+![gocontactr_data_flow](https://imgur.com/a/NiEaPSL)
+
+## Key outputs
+
+The application calculates and plots: 
+
+- New contacts over time;
+- Total cumulative contacts over time;
+- Contacts under surveillance over time;
+- % follow-up of contacts;
+- Number of contacts per index case;
+- Number of contacts per case type; and
+- Follow-up state among active contacts
+
+among others
+
+
+## Report generation
+
+The application generates reports in the following formats:
+
+- Powerpoint document. See example here: 
+- Word document. See example here: 
+- Flat HTML page; and 
+- HTML slides
+
 
 ![gocontactr_data_flow](https://raw.githubusercontent.com/kendavidn/GoContactR/www/gocontactr_data_flow.png)
 

@@ -37,8 +37,9 @@ PARAMS <- list()
 
 ## Uncomment the below to change country app version
 #PARAMS$country_code <- "UGA"
-PARAMS$country_code <- "COG"
+#PARAMS$country_code <- "COG"
 #PARAMS$country_code <- "CIV" 
+PARAMS$country_code <- "SAMPLE"
 
 
 #' When `testing_mode` is set to true, the app loads with only a small subset of the data. 
