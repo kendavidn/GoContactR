@@ -1,12 +1,24 @@
-## R Shiny App for analysing Contact Tracing Data
+# R Shiny App for analysing Contact Tracing Data
 
-This page is under construction.
+This repo contains an R-shiny application built to allow contact tracing teams to generate automated reports that summarize contact follow-up data.
 
-![alt text](http://www1.aidos.net/image.jpg)
+The application has been built to work with two primary data sources: data from KoboCollect-exported csv files, and data from a Go.Data instance (by direct API connection). 
 
-To do:
-- Add general information about app structure
-- Diagram explaining dataflow ()
-- Video explaining renv
+At the start of the global.R file, the developer sets the `PARAMS$country_code` variable; this determines whether the Go.Data or KoboCollect versions will be loaded. 
+
+![alt text](https://github.com/kendavidn/GoContactR/www/key_files_and_folders.png)
+
+## Folder structure
+
+The application is split into the *global.R*, *server.R* and *ui.R* files. 
+The *server* file sources its functions from the *helper_scripts* folder.
+
+
+## Data Flow
+
+The application is fairly straightforward from a shiny reactivity standpoint. 
+A single dataset is loaded in with the `read_file_raw` function, processed with the `read_file_transformed` function, filtered with the `read_file_filtered` function, then passed on to all the application outputs. 
+
+![alt text](https://github.com/kendavidn/GoContactR/www/gocontactr_data_flow.png)
 
 
