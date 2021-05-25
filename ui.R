@@ -55,13 +55,15 @@ sidebar <-
                                          switch(PARAMS$country_code, 
                                                 "UGA" = "Uganda",
                                                 "COG" = "Congo",
-                                                "CIV" = "Côte d'Ivoire"), 
+                                                "CIV" = "Côte d'Ivoire", 
+                                                "SAMPLE" = "Sample"), 
                                         ", COVID-19 </span>")
                                  ),
                                     image = switch(PARAMS$country_code,
                                                    "UGA" = "flag_UGA.png",
                                                    "COG" = "flag_COG.png",
-                                                   "CIV" = "flag_CIV.png"
+                                                   "CIV" = "flag_CIV.png", 
+                                                   "SAMPLE" = "flag_SAMPLE.png"
                                                    )),
   sidebarMenu(id = "tabs", # Setting id makes input$tabs give the tabName of currently-selected tab
               menuItem("Load data", tabName = "load_data_tab", icon = icon("file-upload")),

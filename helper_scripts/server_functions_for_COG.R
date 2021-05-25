@@ -1,5 +1,5 @@
 #'---
-#'title: "03.1: server_functions_for_CIV.R"
+#'title: "03.2: server_functions_for_COG.R"
 #'output:
 #'  rmarkdown::html_document:
 #'    toc: yes

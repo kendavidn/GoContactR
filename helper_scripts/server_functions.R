@@ -664,13 +664,29 @@ pct_contacts_followed_value_box <-
 
 #' ## new_contacts_today_row_title
 
-new_contacts_today_row_title <- function(todays_date){
+new_contacts_today_row_title <- function(todays_date, report_format = "shiny"){
   
   formatted_date <-format.Date(todays_date,
                                format = "%b %d, %Y")
   
-  h3(paste0("New contacts today (commencing follow-up ", formatted_date, ")"),
-     style = "display: inline;") 
+  
+  output_text <- paste0("New contacts (starting follow-up on ", formatted_date, ")")
+  
+  if (report_format %in% c("pptx", "docx", "pdf", "html (page)", "html (slides)")) {
+    output_text %>%
+      charToRaw() %>%
+      read_html() %>%
+      html_text2() %>%
+      str_trim() %>%
+      pander::pandoc.header(1)
+    # no need to return anything. pandoc.p prints automatically
+  }
+  
+  if (report_format %in% c("shiny")) {
+    return(h3(output_text,
+              style = "display: inline;") )
+  }
+  
   
 }
 
@@ -1052,11 +1068,27 @@ new_contacts_today_text <-
 
 #' ## new_contacts_historical_row_title
 
-new_contacts_historical_row_title <- function(){
+new_contacts_historical_row_title <- function(report_format){
   ## doesn't need to a function at the moment. 
   ## But we leave it there in case we want to take in an input or two
-  h3(paste0("New contacts, trend over time"),
-     style = "display: inline;") 
+  
+  
+  output_text <- "New contacts, trend over time"
+  
+  if (report_format %in% c("pptx", "docx", "pdf", "html (page)", "html (slides)")) {
+    output_text %>%
+      charToRaw() %>%
+      read_html() %>%
+      html_text2() %>%
+      str_trim() %>%
+      pander::pandoc.header(1)
+    # no need to return anything. pandoc.p prints automatically
+  }
+  
+  if (report_format %in% c("shiny")) {
+    return(h3(output_text,
+              style = "display: inline;") )
+  }
   
 }
 
@@ -1309,13 +1341,27 @@ new_contacts_historical_text <-
 
 #' ## cumul_contacts_today_row_title
 
-cumul_contacts_today_row_title <- function(todays_date){
+cumul_contacts_today_row_title <- function(todays_date, report_format = "shiny"){
 
   formatted_date <-format.Date(todays_date,
                                format = "%b %d, %Y")
   
-  h3(paste0("Total (cumulative) contacts as at ", formatted_date),
-     style = "display: inline;") 
+  output_text <- paste0("Total/cumulative contacts (as at ", formatted_date, ")")
+  
+  if (report_format %in% c("pptx", "docx", "pdf", "html (page)", "html (slides)")) {
+    output_text %>%
+      charToRaw() %>%
+      read_html() %>%
+      html_text2() %>%
+      str_trim() %>%
+      pander::pandoc.header(1)
+    # no need to return anything. pandoc.p prints automatically
+  }
+  
+  if (report_format %in% c("shiny")) {
+    return(h3(output_text,
+              style = "display: inline;") )
+  }
    
 }
 
@@ -1668,11 +1714,26 @@ cumul_contacts_today_text <-
 
 #' ## cumul_contacts_historical_row_title
 
-cumul_contacts_historical_row_title <- function(){
+cumul_contacts_historical_row_title <- function(report_format){
   ## doesn't need to a function at the moment. 
   ## But we leave it there in case we want to take in an input or two
-  h3(paste0("Total (cumulative) contacts, trend over time"),
-     style = "display: inline;") 
+
+  output_text <- "Total/cumulative contacts, trend over time"
+  
+  if (report_format %in% c("pptx", "docx", "pdf", "html (page)", "html (slides)")) {
+    output_text %>%
+      charToRaw() %>%
+      read_html() %>%
+      html_text2() %>%
+      str_trim() %>%
+      pander::pandoc.header(1)
+    # no need to return anything. pandoc.p prints automatically
+  }
+  
+  if (report_format %in% c("shiny")) {
+    return(h3(output_text,
+              style = "display: inline;") )
+  }
   
 }
 
@@ -1760,7 +1821,7 @@ cumul_contacts_historical_bar_chart_relative <-
     
     contacts_df_long_filt <- 
       contacts_df_long %>% 
-      ## filter out dates that are past the input days date
+      ## filter out dates that are past the input days date (future followups)
       filter(follow_up_date <= todays_date)
     
     
@@ -1916,13 +1977,27 @@ cumul_contacts_historical_text <-
 
 #' ## active_contacts_today_row_title
 
-active_contacts_today_row_title <- function(todays_date){
+active_contacts_today_row_title <- function(todays_date, report_format){
   
   formatted_date <-format.Date(todays_date,
                                format = "%b %d, %Y")
   
-  h3(paste0("Contacts under surveillance as at ", formatted_date),
-     style = "display: inline;") 
+  output_text <- paste0("Contacts under surveillance (as at ", formatted_date, ")")
+  
+  if (report_format %in% c("pptx", "docx", "pdf", "html (page)", "html (slides)")) {
+    output_text %>%
+      charToRaw() %>%
+      read_html() %>%
+      html_text2() %>%
+      str_trim() %>%
+      pander::pandoc.header(1)
+    # no need to return anything. pandoc.p prints automatically
+  }
+  
+  if (report_format %in% c("shiny")) {
+    return(h3(output_text,
+              style = "display: inline;") )
+  }
   
 }
 
@@ -2292,11 +2367,27 @@ active_contacts_today_text <-
 
 #' ## active_contacts_historical_row_title
 
-active_contacts_historical_row_title <- function(){
+active_contacts_historical_row_title <- function(report_format){
   ## doesn't need to a function at the moment. 
   ## But we leave it there in case we want to take in an input or two
-  h3(paste0("Contacts under surveillance, trend over time"),
-     style = "display: inline;") 
+  
+  output_text <- "Contacts under surveillance, trend over time"
+    
+  if (report_format %in% c("pptx", "docx", "pdf", "html (page)", "html (slides)")) {
+    output_text %>%
+      charToRaw() %>%
+      read_html() %>%
+      html_text2() %>%
+      str_trim() %>%
+      pander::pandoc.header(1)
+    # no need to return anything. pandoc.p prints automatically
+  }
+  
+  if (report_format %in% c("shiny")) {
+    return(h3(output_text,
+              style = "display: inline;") )
+  }
+  
   
 }
 
@@ -3119,7 +3210,7 @@ active_contacts_breakdown_bar_chart <-
     }
     
     if (report_format %in% c("html (page)", "html (slides)", "shiny")){
-      output_plotly
+      return(output_plotly)
     }
   }
 
@@ -3318,7 +3409,7 @@ active_contacts_timeline_snake_plot <-
     
     if (report_format %in% c("html (page)", "html (slides)", "shiny")){
       
-      output_plotly
+      return(output_plotly)
       
     }
     

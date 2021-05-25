@@ -51,9 +51,9 @@ PARAMS$testing_mode <- FALSE
 PARAMS$remove_help_tab <- TRUE
 
 
-#' For the Go.Data-sourced sample data, information on administrative levels is missing.
+#' For the Go.Data-sourced sample data, information on administrative levels is mostly missing.
 #' But this makes for an uninteresting dashboard. 
-#' So you can turn on this parameter to add in sample administrative levels
+#' Turn on this parameter to add in sample administrative levels
 PARAMS$fake_data <- TRUE
 
 
@@ -176,7 +176,7 @@ my_fresh_theme <-
 #' Set a color legend for each country/ app version.
 #' This feeds the colors on active contacts plots (app tab 2)
 
-if (PARAMS$country_code == "CIV" | PARAMS$country_code == "COG"){
+if (PARAMS$country_code %in% c("COG", "CIV", "SAMPLE") ){
   
 legend_df <-
   tribble(
