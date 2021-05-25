@@ -1,0 +1,35 @@
+---
+title: "test"
+author: "Richard Smith-Unna"
+date: "21 May 2015"
+output: html_document
+---
+ 
+Demo of reading an R file and dumping it raw into the HTML produced by knitr from RMarkdown, to get syntax highlighting.
+ 
+Put the code you want to display in `import.R`.
+
+Two ways to do it...
+ 
+```{r}
+library(dplyr)
+
+hello_function <- function(){
+print("hello")
+
+}
+
+# first load the code
+sourcecode <-
+ capture.output(hello_function ) %>%
+ paste(collapse = "\n")
+```
+ 
+This block loads the code from an external variable, doesn't evaluate it, and just prints it marked up as though it were a normal block.
+```{r eval=FALSE, code=sourcecode}
+```
+
+This block prints the code directly to the resulting markdown file, with the code block tags added, using `cat()` to avoid line numbers.
+```{r results='asis', echo=FALSE}
+cat(paste("```r", sourcecode, "```", sep="\n"))
+```

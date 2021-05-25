@@ -9,11 +9,14 @@
 
 #+ include=FALSE
 ## for knitting into documentation file
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+if(exists("PARAMS") && !is.null(PARAMS$building_docs) && PARAMS$building_docs == TRUE ){
+  knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+}
 
-#' # Source country-specific server functions
+
+#' # Source and load country-specific server functions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~  Source country-specific server functions -----
+# ~  Source and load country-specific server functions -----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Here we source two functions related to reading in and transforming the source data,
 #' namely read_file_raw and read_file_transformed.
@@ -25,7 +28,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 #+ echo = FALSE, include = FALSE, eval = FALSE
 source(here::here(paste0("helper_scripts/server_functions_for_",
-                   PARAMS$country_code, ".R")), local = T)
+                         PARAMS$country_code, ".R")), local = T)
 
 
 #' ## read_file_filtered
@@ -256,6 +259,7 @@ download_report_function <-
                                )
         
       } else {
+        #browser()
       # for other output formats knit directly to output file
       rmarkdown::render(
         input = file.path(temp_dir, "report.Rmd"),
@@ -307,16 +311,16 @@ download_report_function <-
 #' and the date of review.
 
 
-#' ## contacts_per_day_value_box
+#' ## new_contacts_per_day_value_box
 
 ## here we count the number of new contacts registered per day,
 ## based on follow-up start date
-contacts_per_day_value_box <- 
+new_contacts_per_day_value_box <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
       data_to_plot <- 
         contacts_df_long %>%
-        filter(!is.na(follow_up_start_date)) %>% 
+        filter(follow_up_day == 1) %>% 
         count(follow_up_start_date) %>% 
         complete(follow_up_start_date = seq.Date(from = min(.$follow_up_start_date), 
                                        to = todays_date, 
@@ -651,23 +655,238 @@ pct_contacts_followed_value_box <-
 
 
 
-
-#' #  Contacts per region
+#' # new_contacts_today
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Contacts per region  --------------------
+# ~ new_contacts_today -----------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Below we call the contacts_per_admin_1 functions. These show the distribution 
-#' of contacts over admin level 1 and admin level 2.
+#' The functions below show the number of contacts initiating follow-up 
+#' in the last day, based on the date of last contact
+
+#' ## new_contacts_today_row_title
+
+new_contacts_today_row_title <- function(todays_date){
+  
+  formatted_date <-format.Date(todays_date,
+                               format = "%b %d, %Y")
+  
+  h3(paste0("New contacts today (commencing follow-up ", formatted_date, ")"),
+     style = "display: inline;") 
+  
+}
+
+#' ## new_contacts_today_bar_chart
+
+new_contacts_today_bar_chart <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+      ## new contacts (first day of followup)
+      filter(follow_up_day == 1) %>% 
+      ## keep only those from today
+      filter(follow_up_date == todays_date)  
+    
+    
+    contact_admin_1 <-
+      contacts_df_long_filt %>%
+      group_by(row_id) %>% 
+      # slice long frame
+      slice_head() %>% 
+      ungroup() %>%
+      select(admin_1, admin_2) %>%
+      add_count(admin_1, name = "n_admin_1") %>%
+      mutate(pct_admin_1 = round(100 * n_admin_1 / nrow(.), 
+                                 digits = 2)) %>%
+      group_by(admin_1) %>%
+      mutate(admin_2 = fct_lump(other_level = "Autres", 
+                                admin_2, prop = 0.01)) %>%
+      add_count(admin_2, name = "n_admin_2") %>%
+      mutate(pct_admin_2 = round(100 * n_admin_2 / nrow(.), 
+                                 digits = 2)) %>%
+      mutate(data_label = paste0(n_admin_2, " (", pct_admin_2, "%", ")")) %>%
+      group_by(admin_1, admin_2) %>%
+      slice_head(n = 1) %>%
+      ungroup() %>%
+      arrange(-n_admin_1, -n_admin_2)
+    
+    
+    color_df <- 
+      data.frame(admin_1 = unique(contact_admin_1$admin_1)) %>% 
+      add_column(color_lvl_1 = highcharter_palette[1:nrow(.)])
+    
+    
+    if (nrow(contact_admin_1) == 0) {
+      return(highchart() %>% hc_title(text  = "No data to plot"))
+    }
+    
+    
+    subtitle <-  
+      contact_admin_1 %>% 
+      left_join(color_df) %>% 
+      select(admin_1, pct_admin_1, color_lvl_1) %>% 
+      unique.data.frame() %>% 
+      mutate(sep = case_when(row_number() == (n() - 1) ~ " and ",
+                             row_number() == n() ~ "",
+                             TRUE ~ ",")
+      ) %>% 
+      mutate(txt = stringr::str_glue("<strong><span style='background-color: {color_lvl_1};color:white'>
+                                      &nbsp;{admin_1}&nbsp;</span></strong> ({pct_admin_1}% of contacts){sep}")) %>% 
+      summarise(paste0(txt, collapse = "")) %>% 
+      pull() %>% 
+      stringr::str_c("Level 1 divisions shown: ", .)
+    
+    
+    
+    output_highchart <- 
+      contact_admin_1 %>% 
+      left_join(color_df) %>% 
+      hchart("bar", hcaes(x = admin_2 , y = n_admin_2, color = color_lvl_1),
+             size = 4,
+             name = "n",
+             dataLabels = list(enabled = TRUE,
+                               formatter = JS("function(){return(this.point.data_label)}"))) %>%
+      hc_legend(enabled = TRUE) %>% 
+      hc_plotOptions(series = list(groupPadding = 0)) %>% 
+      hc_subtitle(text = subtitle, useHTML = TRUE) %>% 
+      hc_xAxis(title = list(text = "Admin level 2")) %>% 
+      hc_yAxis(title = list(text = "Number of contacts"))
+    
+    
+    
+    if (report_format %in% c("pptx", "docx", "pdf")){
+      
+      output_highchart <-
+        output_highchart %>% 
+        hc_exporting(enabled = FALSE) %>%
+        hc_plotOptions(series = list(animation = FALSE)) %>% 
+        html_webshot()
+      # no need to return anything. html_webshot prints automatically
+    }
+    
+    if (report_format %in% c("html (page)", "html (slides)", "shiny")){
+      
+      return(output_highchart)
+      
+    }
+    
+    
+  }
 
 
-#' ## all_contacts_per_admin_1_table
+#' ## new_contacts_today_sunburst_plot
 
-all_contacts_per_admin_1_table <- 
-  function(contacts_df_long, report_format = "shiny"){
+new_contacts_today_sunburst_plot <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+      ## new contacts (first day of followup)
+      filter(follow_up_day == 1) %>% 
+      ## keep only those from today
+      filter(follow_up_date == todays_date)  
+    
+    contact_admin_1 <-
+      contacts_df_long_filt %>%
+      group_by(row_id) %>% 
+      # slice long frame
+      slice_head() %>% 
+      ungroup() %>%
+      select(admin_1, admin_2) %>%
+      add_count(admin_1, name = "n_admin_1") %>%
+      mutate(pct_admin_1 = round(100 * n_admin_1 / nrow(.), 
+                                 digits = 2)) %>%
+      mutate(admin_1 = paste0(admin_1, 
+                              " (", pct_admin_1, "%", ")")) %>%
+      group_by(admin_1) %>%
+      mutate(admin_2 = fct_lump(other_level = "Autres", 
+                                admin_2, prop = 0.01)) %>%
+      add_count(admin_2, name = "n_admin_2") %>%
+      mutate(pct_admin_2 = round(100 * n_admin_2 / nrow(.), 
+                                 digits = 2)) %>%
+      mutate(admin_2 = paste0(admin_2, " (", pct_admin_2, "%", ")")) %>%
+      group_by(admin_1, admin_2) %>%
+      slice_head(n = 1) %>%
+      ungroup() %>%
+      arrange(-n_admin_1)
+    
+    if (nrow(contact_admin_1) == 0) {
+      return(highchart() %>% hc_title(text  = "No data to plot"))
+    }
+    
+    color_df <- 
+      data.frame(admin_1 = unique(contact_admin_1$admin_1)) %>% 
+      add_column(color_lvl_1 = highcharter_palette[1:nrow(.)])
+    
+    contact_admin_1_list <- 
+      contact_admin_1 %>% 
+      data_to_hierarchical(group_vars = c(admin_1, 
+                                          admin_2), 
+                           size_var = n_admin_2, 
+                           colors= color_df$color_lvl_1)
+    
+    
+    x <- c("Type: ", "n = ")
+    y <- c("{point.name}", "{point.value}")
+    tltip <- tooltip_table(x, y)
+    
+    
+    output_highchart <- 
+      highchart() %>% 
+      hc_chart(type = "sunburst") %>% 
+      hc_add_series(data = contact_admin_1_list,
+                    allowDrillToNode = TRUE,
+                    levelIsConstant = FALSE,
+                    #textOverflow = "clip",
+                    levels = list(list(level = 1,
+                                       dataLabels = list(enabled = TRUE,
+                                                         color = "#FFFFFF",
+                                                         style = list(textOverflow = "clip"))), 
+                                  list(level = 2, 
+                                       dataLabels = list(enabled = TRUE, 
+                                                         color = "#FFFFFF",
+                                                         style = list(textOverflow = "clip"))), 
+                                  list(level = 3,
+                                       dataLabels = list(enabled = TRUE, 
+                                                         color = "#FFFFFF",
+                                                         style = list(textOverflow = "clip"))))) %>% 
+      hc_plotOptions(sunburst = list(dataLabels = list(enabled = TRUE) )) %>% 
+      hc_tooltip(useHTML = TRUE, 
+                 headerFormat = "", pointFormat = tltip) %>% 
+      hc_exporting(enabled = TRUE)
+    
+    if (report_format %in% c("pptx", "docx", "pdf")){
+      
+      output_highchart <-
+        output_highchart %>% 
+        hc_exporting(enabled = FALSE) %>%
+        hc_plotOptions(series = list(animation = FALSE)) %>% 
+        html_webshot()
+      # no need to return anything. html_webshot prints automatically
+    }
+    
+    if (report_format %in% c("html (page)", "html (slides)", "shiny")){
+      
+      return(output_highchart)
+      
+    }
+    
+  }
 
+
+#' ## new_contacts_today_table
+
+new_contacts_today_table <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+      ## new contacts (first day of followup)
+      filter(follow_up_day == 1) %>% 
+      ## keep only those from today
+      filter(follow_up_date == todays_date)  
     
     data_to_plot <- 
-      contacts_df_long %>%
+      contacts_df_long_filt %>%
       group_by(row_id) %>% 
       # slice long frame
       slice_head() %>% 
@@ -686,7 +905,7 @@ all_contacts_per_admin_1_table <-
       arrange(-admin_1_percent, -n) %>% 
       select(`Admin level 1` = admin_1, 
              `Admin level 2` = admin_2, 
-             `Total contacts` = n,
+             `New contacts today` = n,
              `%` = percent)
     
     
@@ -696,7 +915,7 @@ all_contacts_per_admin_1_table <-
       
       output_table <-  
         data_to_plot %>%
-        reactable(columns = list(`Total contacts` = colDef(cell = data_bars_gradient(data_to_plot, 
+        reactable(columns = list(`New contacts today` = colDef(cell = data_bars_gradient(data_to_plot, 
                                                                                      colors = c(peach, bright_yellow_crayola),
                                                                                      background = "transparent"),
                                                            style = list(fontFamily = "Courier", whiteSpace = "pre", fontSize = 13)), 
@@ -732,11 +951,473 @@ all_contacts_per_admin_1_table <-
     
   }
 
-#' ## all_contacts_per_admin_1_sunburst_plot
 
-all_contacts_per_admin_1_sunburst_plot <- 
-  function(contacts_df_long, report_format = "shiny"){
+
+#' ## new_contacts_today_text
+
+new_contacts_today_text <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+      ## new contacts (first day of followup)
+      filter(follow_up_day == 1) %>% 
+      ## keep only those from today
+      filter(follow_up_date == todays_date)  
+    
+
+    data_to_plot <- 
+      contacts_df_long_filt %>%
+      group_by(row_id) %>% 
+      # slice long frame
+      slice_head() %>% 
+      ungroup() %>% 
+      select(admin_1, admin_2) %>%
+      count(admin_1, admin_2) %>%
+      group_by(admin_1, admin_2) %>%
+      summarise(n = sum(n)) %>%
+      ungroup() %>% 
+      mutate(percent = round(100 * n/sum(n), 2)) %>% 
+      group_by(admin_1) %>%
+      mutate(admin_1_sum = sum(n)) %>% 
+      ungroup() %>% 
+      mutate(admin_1_percent = admin_1_sum/sum(n)) %>% 
+      ungroup() %>% 
+      select(admin_1, 
+             admin_1_sum,
+             admin_1_percent,
+             admin_2, 
+             admin_2_sum = n,
+             admin_2_percent = percent)
+    
+    if (nrow(data_to_plot) == 0) {
+      return(c(" ") )
+    }
+    
+    
+    admin_1_w_most_contacts <- 
+      data_to_plot %>% 
+      arrange(-admin_1_percent) %>% 
+      .$admin_1 %>% .[1]
+    
+    n_contacts_in_admin_1_w_most_contacts <- 
+      data_to_plot %>% 
+      arrange(-admin_1_percent) %>% 
+      .$admin_1_sum %>% .[1]
+    
+    pct_contacts_in_admin_1_w_most_contacts <- 
+      data_to_plot %>% 
+      arrange(-admin_1_percent) %>% 
+      .$admin_1_percent %>% .[1] %>% 
+      magrittr::multiply_by(100) %>% 
+      round(1) %>% 
+      paste0(., "%")
+    
+    
+    info <- c("<br>
+            <span style='color: rgb(97, 189, 109);'>ℹ:</span>
+            <font size='1'>The table and plots show the count of the new contacts (contacts commencing follow-up)
+            on the selected date of review. Follow-up begins the day after the last interaction with a confirmed or suspected case </font>")
+    
+    str1 <- glue("<br>The level 1 division with the most new contacts in the past day is <b> {admin_1_w_most_contacts}</b>, 
+                 with <b>{n_contacts_in_admin_1_w_most_contacts}</b> contacts (<b>{pct_contacts_in_admin_1_w_most_contacts}</b> of the total)" )
+    
+    output_text <- HTML(paste(info, str1, sep = '<br/>'))
+    
+    
+    if (report_format %in% c("pptx", "docx", "pdf")) {
+      output_text %>%
+        charToRaw() %>%
+        read_html() %>%
+        html_text2() %>%
+        str_trim() %>%
+        pander::pandoc.p()
+      # no need to return anything. pandoc.p prints automatically
+    }
+    
+    if (report_format %in% c("shiny", "html (page)", "html (slides)")) {
+      return(output_text)
+    }
+    
+    
+  }
+
+
+#' #  new_contacts_historical
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ new_contacts_historical-----------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Functions showing how the number of new contacts 
+#' (contacts initiating follow-up on the given day)
+
+#' ## new_contacts_historical_row_title
+
+new_contacts_historical_row_title <- function(){
+  ## doesn't need to a function at the moment. 
+  ## But we leave it there in case we want to take in an input or two
+  h3(paste0("New contacts, trend over time"),
+     style = "display: inline;") 
   
+}
+
+#' ## new_contacts_historical_bar_chart
+
+new_contacts_historical_bar_chart <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+      ## filter out dates that are past the input days date ("future follow-up" rows)
+      filter(follow_up_date <= todays_date) %>%    
+      ## new contacts (first day of followup)
+      filter(follow_up_day == 1)
+      
+    
+    data_to_plot <- 
+      contacts_df_long_filt %>%
+      select(admin_1, follow_up_date) %>%
+      group_by(follow_up_date, admin_1) %>% 
+      count(admin_1) %>% 
+      ungroup() %>% 
+      arrange(admin_1, follow_up_date) %>% 
+      bind_rows(tibble(follow_up_date =  seq.Date(from = min(.$follow_up_date), 
+                                                  to = max(.$follow_up_date), 
+                                                  by = "day"), 
+                       admin_1 = "temporary"
+      )) %>% 
+      complete(follow_up_date, admin_1, fill = list(n = 0)) %>% 
+      filter(admin_1 != "temporary") %>% 
+      ungroup() %>% 
+      # admin_1 with the most cases should be at the top
+      group_by(admin_1) %>% 
+      mutate(total = sum(n)) %>% 
+      ungroup() %>% 
+      mutate(admin_1 = fct_rev(fct_reorder(admin_1, total)))
+    
+    if (nrow(data_to_plot) == 0) {
+      return(highchart() %>% hc_title(text  = "No data to plot"))
+    }
+    
+    output_highchart <- 
+      data_to_plot %>% 
+      hchart("column", hcaes(x = follow_up_date, y = n, group = admin_1)) %>% 
+      hc_yAxis(visible = TRUE) %>% 
+      hc_plotOptions(column = list(stacking = "normal", 
+                                   pointPadding = 0, 
+                                   groupPadding = 0, 
+                                   borderWidth= 0.05,
+                                   stickyTracking = T
+      )) %>% 
+      hc_plotOptions(column = list(states = list(inactive = list(opacity = 0.7)))) %>% 
+      hc_xAxis(title = list(text = "Date")) %>% 
+      hc_yAxis(title = list(text = "No of new contacts beginning follow-up")) %>% 
+      hc_exporting(enabled = TRUE)
+    
+    
+    if (report_format %in% c("pptx", "docx", "pdf")){
+      
+      output_highchart <-
+        output_highchart %>% 
+        hc_exporting(enabled = FALSE) %>%
+        hc_plotOptions(series = list(animation = FALSE)) %>% 
+        html_webshot()
+      # no need to return anything. html_webshot prints automatically
+    }
+    
+    if (report_format %in% c("html (page)", "html (slides)", "shiny")){
+      
+      return(output_highchart)
+      
+    }
+    
+  }
+
+
+
+#' ## new_contacts_historical_bar_chart_relative
+
+new_contacts_historical_bar_chart_relative <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+            ## filter out dates that are past the input days date ("future follow-up" rows)
+      filter(follow_up_date <= todays_date) %>%    
+      ## new contacts (first day of followup)
+      filter(follow_up_day == 1)
+    
+    
+    data_to_plot <- 
+      contacts_df_long_filt %>%
+      select(admin_1, follow_up_date) %>%
+      group_by(follow_up_date, admin_1) %>% 
+      count(admin_1) %>% 
+      group_by(follow_up_date) %>% 
+      mutate(prop = n/sum(n)) %>% 
+      mutate(prop = round(prop, digits = 4)) %>% 
+      ungroup() %>% 
+      arrange(admin_1, follow_up_date) %>% 
+      bind_rows(tibble(follow_up_date =  seq.Date(from = min(.$follow_up_date), 
+                                                  to = max(.$follow_up_date), 
+                                                  by = "day"), 
+                       admin_1 = "temporary"
+      )) %>% 
+      complete(follow_up_date, admin_1, fill = list(n = 0, prop = 0)) %>% 
+      filter(admin_1 != "temporary") %>% 
+      ungroup() %>% 
+      # admin_1 with the most cases should be at the top
+      group_by(admin_1) %>% 
+      mutate(total = sum(n)) %>% 
+      ungroup() %>% 
+      mutate(admin_1 = fct_rev(fct_reorder(admin_1, total)))
+    
+    if (nrow(data_to_plot) == 0) {
+      return(highchart() %>% hc_title(text  = "No data to plot"))
+    }
+    
+    output_highchart <- 
+      data_to_plot %>% 
+      hchart("column", hcaes(x = follow_up_date, y = prop, group = admin_1)) %>% 
+      hc_yAxis(visible = TRUE) %>% 
+      hc_plotOptions(column = list(stacking = "normal", 
+                                   pointPadding = 0, 
+                                   groupPadding = 0, 
+                                   borderWidth= 0.05,
+                                   stickyTracking = T
+      )) %>% 
+      hc_plotOptions(column = list(states = list(inactive = list(opacity = 0.7)))) %>% 
+      hc_xAxis(title = list(text = "Date")) %>% 
+      hc_yAxis(title = list(text = "New contacts beginning follow-up, normalized to 1")) %>% 
+      hc_exporting(enabled = TRUE)
+    
+    
+    if (report_format %in% c("pptx", "docx", "pdf")){
+      
+      output_highchart <-
+        output_highchart %>% 
+        hc_exporting(enabled = FALSE) %>%
+        hc_plotOptions(series = list(animation = FALSE)) %>% 
+        html_webshot()
+      # no need to return anything. html_webshot prints automatically
+    }
+    
+    if (report_format %in% c("html (page)", "html (slides)", "shiny")){
+      
+      return(output_highchart)
+      
+    }
+    
+  }
+
+#' ## new_contacts_historical_text
+
+new_contacts_historical_text <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+            ## filter out dates that are past the input days date ("future follow-up" rows)
+      filter(follow_up_date <= todays_date) %>%    
+      ## new contacts (first day of followup)
+      filter(follow_up_day == 1)
+    
+    
+    data_to_plot <- 
+      contacts_df_long_filt %>%
+      select(admin_1, follow_up_date) %>%
+      group_by(follow_up_date, admin_1) %>% 
+      count(admin_1) %>% 
+      ungroup() %>% 
+      arrange(admin_1, follow_up_date) %>% 
+      bind_rows(tibble(follow_up_date =  seq.Date(from = min(.$follow_up_date), 
+                                                  to = max(.$follow_up_date), 
+                                                  by = "day"), 
+                       admin_1 = "temporary"
+      )) %>% 
+      complete(follow_up_date, admin_1, fill = list(n = 0)) %>% 
+      filter(admin_1 != "temporary") %>% 
+      ungroup() %>% 
+      # admin_1 with the most cases should be at the top
+      group_by(admin_1) %>% 
+      mutate(total = sum(n)) %>% 
+      ungroup() %>% 
+      mutate(admin_1 = fct_rev(fct_reorder(admin_1, total)))
+    
+    
+    max_n_new_contacts <- 
+      data_to_plot %>% 
+      group_by(follow_up_date) %>% 
+      mutate(total_that_day = sum(n)) %>% 
+      slice_head() %>% 
+      ungroup() %>% 
+      arrange(-total_that_day) %>% 
+      .$total_that_day %>% 
+      .[1]
+    
+    date_of_max_n_new_contacts <- 
+      data_to_plot %>% 
+      group_by(follow_up_date) %>% 
+      mutate(total_that_day = sum(n)) %>% 
+      slice_head() %>% 
+      ungroup() %>% 
+      arrange(-total_that_day) %>% 
+      .$follow_up_date %>% 
+      .[1]  %>% 
+      format.Date("%b %d, %Y")
+    
+    
+    
+    info <- c("<br>
+            <span style='color: rgb(97, 189, 109);'>ℹ:</span>
+            <font size='1'>
+            The plots show the number of new contacts on each day, that is, the number of contacts on their first day of follow-up.
+            </font>")
+    str1 <- glue("<br>The day on which the highest number of new contacts commenced follow-up was <b>{date_of_max_n_new_contacts}</b>, 
+                 with <b>{max_n_new_contacts}</b> contacts that day." )
+    
+    output_text <- HTML(paste(info, str1, sep = '<br/>'))
+    
+    if (report_format %in% c("pptx","docx", "pdf")){
+      
+      output_text <- 
+        output_text %>% 
+        charToRaw() %>% 
+        read_html() %>% 
+        html_text2() %>% 
+        str_trim() %>% 
+        pander::pandoc.p()
+      # no need to return anything. pandoc.p prints automatically
+    }
+    
+    if (report_format %in% c("shiny", "html (page)", "html (slides)")) {
+      return(output_text)
+    }
+    
+    
+  }
+
+
+
+
+#' # cumul_contacts_today
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ cumul_contacts_today  --------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Below we call the contacts_per_admin_1 functions. These show the distribution 
+#' of contacts over admin level 1 and admin level 2.
+
+
+#' ## cumul_contacts_today_row_title
+
+cumul_contacts_today_row_title <- function(todays_date){
+
+  formatted_date <-format.Date(todays_date,
+                               format = "%b %d, %Y")
+  
+  h3(paste0("Total (cumulative) contacts as at ", formatted_date),
+     style = "display: inline;") 
+   
+}
+
+  
+
+#' ## cumul_contacts_today_bar_chart
+
+cumul_contacts_today_bar_chart <- 
+  function(contacts_df_long, report_format = "shiny"){
+    
+    
+    contact_admin_1 <-
+      contacts_df_long %>%
+      group_by(row_id) %>% 
+      # slice long frame
+      slice_head() %>% 
+      ungroup() %>%
+      select(admin_1, admin_2) %>%
+      add_count(admin_1, name = "n_admin_1") %>%
+      mutate(pct_admin_1 = round(100 * n_admin_1 / nrow(.), 
+                                 digits = 2)) %>%
+      group_by(admin_1) %>%
+      mutate(admin_2 = fct_lump(other_level = "Autres", 
+                                admin_2, prop = 0.01)) %>%
+      add_count(admin_2, name = "n_admin_2") %>%
+      mutate(pct_admin_2 = round(100 * n_admin_2 / nrow(.), 
+                                 digits = 2)) %>%
+      mutate(data_label = paste0(n_admin_2, " (", pct_admin_2, "%", ")")) %>%
+      group_by(admin_1, admin_2) %>%
+      slice_head(n = 1) %>%
+      ungroup() %>%
+      arrange(-n_admin_1, -n_admin_2)
+    
+    
+    color_df <- 
+      data.frame(admin_1 = unique(contact_admin_1$admin_1)) %>% 
+      add_column(color_lvl_1 = highcharter_palette[1:nrow(.)])
+    
+    
+    if (nrow(contact_admin_1) == 0) {
+      return(highchart() %>% hc_title(text  = "No data to plot"))
+    }
+    
+    
+    subtitle <-  
+      contact_admin_1 %>% 
+      left_join(color_df) %>% 
+      select(admin_1, pct_admin_1, color_lvl_1) %>% 
+      unique.data.frame() %>% 
+      mutate(sep = case_when(row_number() == (n() - 1) ~ " and ",
+                             row_number() == n() ~ "",
+                             TRUE ~ ",")
+      ) %>% 
+      mutate(txt = stringr::str_glue("<strong><span style='background-color: {color_lvl_1};color:white'>
+                                      &nbsp;{admin_1}&nbsp;</span></strong> ({pct_admin_1}% of contacts){sep}")) %>% 
+      summarise(paste0(txt, collapse = "")) %>% 
+      pull() %>% 
+      stringr::str_c("Level 1 divisions shown: ", .)
+    
+    
+    
+    output_highchart <- 
+      contact_admin_1 %>% 
+      left_join(color_df) %>% 
+      hchart("bar", hcaes(x = admin_2 , y = n_admin_2, color = color_lvl_1),
+             size = 4,
+             name = "n",
+             dataLabels = list(enabled = TRUE,
+                               formatter = JS("function(){return(this.point.data_label)}"))) %>%
+      hc_legend(enabled = TRUE) %>% 
+      hc_plotOptions(series = list(groupPadding = 0)) %>% 
+      hc_subtitle(text = subtitle, useHTML = TRUE) %>% 
+      hc_xAxis(title = list(text = "Admin level 2")) %>% 
+      hc_yAxis(title = list(text = "Number of contacts"))
+    
+    
+    
+    if (report_format %in% c("pptx", "docx", "pdf")){
+      
+      output_highchart <-
+        output_highchart %>% 
+        hc_exporting(enabled = FALSE) %>%
+        hc_plotOptions(series = list(animation = FALSE)) %>% 
+        html_webshot()
+      # no need to return anything. html_webshot prints automatically
+    }
+    
+    if (report_format %in% c("html (page)", "html (slides)", "shiny")){
+      
+      return(output_highchart)
+      
+    }
+    
+    
+  }
+
+
+#' ## cumul_contacts_today_sunburst_plot
+
+cumul_contacts_today_sunburst_plot <- 
+  function(contacts_df_long, report_format = "shiny"){
+    
     
     contact_admin_1 <-
       contacts_df_long %>%
@@ -826,14 +1507,439 @@ all_contacts_per_admin_1_sunburst_plot <-
   }
 
 
-#' ## all_contacts_per_admin_1_bar_chart
 
-all_contacts_per_admin_1_bar_chart <- 
+#' ## cumul_contacts_today_table
+
+cumul_contacts_today_table <- 
+  function(contacts_df_long, report_format = "shiny"){
+
+    
+    data_to_plot <- 
+      contacts_df_long %>%
+      group_by(row_id) %>% 
+      # slice long frame
+      slice_head() %>% 
+      ungroup() %>% 
+      select(admin_1, admin_2) %>%
+      count(admin_1, admin_2) %>%
+      group_by(admin_1, admin_2) %>%
+      summarise(n = sum(n)) %>%
+      ungroup() %>% 
+      mutate(percent = round(100 * n/sum(n), 2)) %>% 
+      group_by(admin_1) %>%
+      mutate(admin_1_sum = sum(n)) %>% 
+      ungroup() %>% 
+      mutate(admin_1_percent = admin_1_sum/sum(n)) %>% 
+      ungroup() %>% 
+      arrange(-admin_1_percent, -n) %>% 
+      select(`Admin level 1` = admin_1, 
+             `Admin level 2` = admin_2, 
+             `Total contacts` = n,
+             `%` = percent)
+    
+    
+    
+    
+    if (report_format %in% c("shiny","html (page)", "html (slides)", "pdf")){
+      
+      output_table <-  
+        data_to_plot %>%
+        reactable(columns = list(`Total contacts` = colDef(cell = data_bars_gradient(data_to_plot, 
+                                                                                     colors = c(peach, bright_yellow_crayola),
+                                                                                     background = "transparent"),
+                                                           style = list(fontFamily = "Courier", whiteSpace = "pre", fontSize = 13)), 
+                                 `Admin level 1` = colDef(style = JS("function(rowInfo, colInfo, state) {
+                                                          var firstSorted = state.sorted[0]
+                                                          // Merge cells if unsorted or sorting by admin_1
+                                                          if (!firstSorted || firstSorted.id === 'Admin level 1') {
+                                                          var prevRow = state.pageRows[rowInfo.viewIndex - 1]
+                                                          if (prevRow && rowInfo.row['Admin level 1'] === prevRow['Admin level 1']) {
+                                                          return { visibility: 'hidden' }
+                                                          }
+                                                          }}"))),
+                  striped = TRUE,
+                  highlight = TRUE,
+                  defaultPageSize = 15)
+    }
+    
+    
+    if (report_format %in% c("pptx","docx", "pdf")){
+      
+      output_table <- 
+        data_to_plot %>% 
+        janitor::adorn_totals() %>% 
+        huxtable() %>% 
+        set_all_padding(0.5) %>%
+        merge_repeated_rows(col = "Admin level 1") %>% 
+        theme_blue()
+      
+    }
+    
+    return(output_table)
+    
+    
+  }
+
+
+#' ## cumul_contacts_today_text
+
+cumul_contacts_today_text <- 
+  function(contacts_df_long, report_format = "shiny"){
+  
+    data_to_plot <- 
+      contacts_df_long %>%
+      group_by(row_id) %>% 
+      # slice long frame
+      slice_head() %>% 
+      ungroup() %>% 
+      select(admin_1, admin_2) %>%
+      count(admin_1, admin_2) %>%
+      group_by(admin_1, admin_2) %>%
+      summarise(n = sum(n)) %>%
+      ungroup() %>% 
+      mutate(percent = round(100 * n/sum(n), 2)) %>% 
+      group_by(admin_1) %>%
+      mutate(admin_1_sum = sum(n)) %>% 
+      ungroup() %>% 
+      mutate(admin_1_percent = admin_1_sum/sum(n)) %>% 
+      ungroup() %>% 
+      select(admin_1, 
+             admin_1_sum,
+             admin_1_percent,
+             admin_2, 
+             admin_2_sum = n,
+             admin_2_percent = percent)
+    
+    admin_1_w_most_contacts <- 
+      data_to_plot %>% 
+      arrange(-admin_1_percent) %>% 
+      .$admin_1 %>% .[1]
+    
+    n_contacts_in_admin_1_w_most_contacts <- 
+      data_to_plot %>% 
+      arrange(-admin_1_percent) %>% 
+      .$admin_1_sum %>% .[1]
+    
+    pct_contacts_in_admin_1_w_most_contacts <- 
+      data_to_plot %>% 
+      arrange(-admin_1_percent) %>% 
+      .$admin_1_percent %>% .[1] %>% 
+      magrittr::multiply_by(100) %>% 
+      round(1) %>% 
+      paste0(., "%")
+    
+    
+    info <- c("<br>
+            <span style='color: rgb(97, 189, 109);'>ℹ:</span>
+            <font size='1'>The table and plots show the count of all contacts recorded in each level 1 division since database inception. </font>")
+    
+    str1 <- glue("<br>The level 1 division with the most total contacts since database inception is <b> {admin_1_w_most_contacts}</b>, 
+                 with <b>{n_contacts_in_admin_1_w_most_contacts}</b> contacts (<b>{pct_contacts_in_admin_1_w_most_contacts}</b> of the total)" )
+    
+      
+    output_text <- HTML(paste(info, str1, sep = '<br/>'))
+    
+    
+    if (report_format %in% c("pptx", "docx", "pdf")) {
+      output_text %>%
+        charToRaw() %>%
+        read_html() %>%
+        html_text2() %>%
+        str_trim() %>%
+        pander::pandoc.p()
+      # no need to return anything. pandoc.p prints automatically
+    }
+    
+    if (report_format %in% c("shiny", "html (page)", "html (slides)")) {
+      return(output_text)
+    }
+  
+  
+}
+
+
+#' #  cumul_contacts_historical
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ cumul_contacts_historical-----------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Functions showing how the number of new contacts 
+#' (contacts initiating follow-up on the given day)
+
+
+#' ## cumul_contacts_historical_row_title
+
+cumul_contacts_historical_row_title <- function(){
+  ## doesn't need to a function at the moment. 
+  ## But we leave it there in case we want to take in an input or two
+  h3(paste0("Total (cumulative) contacts, trend over time"),
+     style = "display: inline;") 
+  
+}
+
+#' ## cumul_contacts_historical_bar_chart
+
+cumul_contacts_historical_bar_chart <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+            ## filter out dates that are past the input days date ("future follow-up" rows)
+      filter(follow_up_date <= todays_date)
+    
+    
+    data_to_plot <- 
+      contacts_df_long_filt %>%
+      group_by(row_id) %>% 
+      slice_head(n = 1) %>% ## slice long frame
+      ungroup() %>% 
+      select(admin_1, follow_up_date) %>%
+      group_by(follow_up_date, admin_1) %>% 
+      count(admin_1) %>% 
+      ungroup() %>% 
+      arrange(admin_1, follow_up_date) %>% 
+      bind_rows(tibble(follow_up_date =  seq.Date(from = min(.$follow_up_date), 
+                                                  to = max(.$follow_up_date), 
+                                                  by = "day"), 
+                       admin_1 = "temporary"
+      )) %>% 
+      complete(follow_up_date, admin_1, fill = list(n = 0)) %>% 
+      filter(admin_1 != "temporary") %>% 
+      group_by(admin_1) %>% 
+      mutate(cumul = cumsum(n)) %>% 
+      ungroup() %>% 
+      # admin_1 with the most cases should be at the top
+      group_by(admin_1) %>% 
+      mutate(total = sum(cumul)) %>% 
+      ungroup() %>% 
+      mutate(admin_1 = fct_rev(fct_reorder(admin_1, total)))
+    
+    if (nrow(data_to_plot) == 0) {
+      return(highchart() %>% hc_title(text  = "No data to plot"))
+    }
+    
+    output_highchart <- 
+      data_to_plot %>% 
+      hchart("column", hcaes(x = follow_up_date, y = cumul, group = admin_1)) %>% 
+      hc_yAxis(visible = TRUE) %>% 
+      hc_plotOptions(column = list(stacking = "normal", 
+                                   pointPadding = 0, 
+                                   groupPadding = 0, 
+                                   borderWidth= 0.05,
+                                   stickyTracking = T
+      )) %>% 
+      hc_plotOptions(column = list(states = list(inactive = list(opacity = 0.7)))) %>% 
+      hc_xAxis(title = list(text = "Date")) %>% 
+      hc_yAxis(title = list(text = "No. of cumulative contacts")) %>% 
+      hc_exporting(enabled = TRUE)
+    
+    
+    if (report_format %in% c("pptx", "docx", "pdf")){
+      
+      output_highchart <-
+        output_highchart %>% 
+        hc_exporting(enabled = FALSE) %>%
+        hc_plotOptions(series = list(animation = FALSE)) %>% 
+        html_webshot()
+      # no need to return anything. html_webshot prints automatically
+    }
+    
+    if (report_format %in% c("html (page)", "html (slides)", "shiny")){
+      
+      return(output_highchart)
+      
+    }
+    
+  }
+
+
+
+#' ## cumul_contacts_historical_bar_chart_relative
+
+cumul_contacts_historical_bar_chart_relative <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+      ## filter out dates that are past the input days date
+      filter(follow_up_date <= todays_date)
+    
+    
+    data_to_plot <- 
+      contacts_df_long_filt %>%
+      group_by(row_id) %>% 
+      slice_head(n = 1) %>% ## slice long frame
+      ungroup() %>% 
+      select(admin_1, follow_up_date) %>%
+      group_by(follow_up_date, admin_1) %>% 
+      count(admin_1) %>% 
+      group_by(admin_1) %>% 
+      mutate(cumul = cumsum(n)) %>% 
+      group_by(follow_up_date) %>% 
+      mutate(prop = n/sum(n)) %>% 
+      mutate(prop = round(prop, digits = 4)) %>% 
+      ungroup() %>% 
+      arrange(admin_1, follow_up_date) %>% 
+      bind_rows(tibble(follow_up_date =  seq.Date(from = min(.$follow_up_date), 
+                                                  to = max(.$follow_up_date), 
+                                                  by = "day"), 
+                       admin_1 = "temporary"
+      )) %>% 
+      complete(follow_up_date, admin_1, fill = list(n = 0, prop = 0)) %>% 
+      filter(admin_1 != "temporary") %>% 
+      ungroup() %>% 
+      # admin_1 with the most cases should be at the top
+      group_by(admin_1) %>% 
+      mutate(total = sum(n)) %>% 
+      ungroup() %>% 
+      mutate(admin_1 = fct_rev(fct_reorder(admin_1, total)))
+    
+    if (nrow(data_to_plot) == 0) {
+      return(highchart() %>% hc_title(text  = "No data to plot"))
+    }
+    
+    output_highchart <- 
+      data_to_plot %>% 
+      hchart("column", hcaes(x = follow_up_date, y = prop, group = admin_1)) %>% 
+      hc_yAxis(visible = TRUE) %>% 
+      hc_plotOptions(column = list(stacking = "normal", 
+                                   pointPadding = 0, 
+                                   groupPadding = 0, 
+                                   borderWidth= 0.05,
+                                   stickyTracking = T
+      )) %>% 
+      hc_plotOptions(column = list(states = list(inactive = list(opacity = 0.7)))) %>% 
+      hc_xAxis(title = list(text = "Date")) %>% 
+      hc_yAxis(title = list(text = "Cumulative contacts, normalized to 1")) %>% 
+      hc_exporting(enabled = TRUE)
+    
+    
+    if (report_format %in% c("pptx", "docx", "pdf")){
+      
+      output_highchart <-
+        output_highchart %>% 
+        hc_exporting(enabled = FALSE) %>%
+        hc_plotOptions(series = list(animation = FALSE)) %>% 
+        html_webshot()
+      # no need to return anything. html_webshot prints automatically
+    }
+    
+    if (report_format %in% c("html (page)", "html (slides)", "shiny")){
+      
+      return(output_highchart)
+      
+    }
+    
+  }
+
+#' ## cumul_contacts_historical_text
+
+cumul_contacts_historical_text <- 
   function(contacts_df_long, report_format = "shiny"){
     
+    data_to_plot <- 
+      contacts_df_long %>%
+      group_by(row_id) %>% 
+      # slice long frame
+      slice_head() %>% 
+      ungroup() %>% 
+      group_by(follow_up_date) %>% 
+      count(admin_1) %>%
+      arrange(admin_1, follow_up_date) %>% 
+      group_by(admin_1) %>% 
+      mutate(cumul = cumsum(n))
+    
+    admin_1_w_most_contacts <- 
+      data_to_plot %>% 
+      arrange(-cumul) %>% 
+      .$admin_1 %>% .[1]
+    
+    n_contacts_in_admin_1_w_most_contacts <- 
+      data_to_plot %>% 
+      filter(admin_1 == admin_1_w_most_contacts) %>% 
+      arrange(desc(follow_up_date)) %>% 
+      .$cumul
+    
+    n_contacts_in_admin_1_w_most_contacts_today <- 
+      n_contacts_in_admin_1_w_most_contacts[1]
+    
+    
+    str1 <- glue("<br> Today, {admin_1_w_most_contacts} has a cumulative count of <b>{n_contacts_in_admin_1_w_most_contacts_today}</b> contacts." )
+    
+    if (length(n_contacts_in_admin_1_w_most_contacts) >=  7){
+      
+      n_contacts_in_admin_1_w_most_contacts_7d_ago <- 
+        n_contacts_in_admin_1_w_most_contacts[7]
+      
+      percent_increase <-  
+        (n_contacts_in_admin_1_w_most_contacts_today - n_contacts_in_admin_1_w_most_contacts_7d_ago) %>% 
+        divide_by(n_contacts_in_admin_1_w_most_contacts_7d_ago) %>% 
+        round(3) %>% 
+        multiply_by(100)
+      
+      str2 <- glue("<br> Seven days ago, there were <b>{n_contacts_in_admin_1_w_most_contacts_7d_ago}</b> contacts (a {percent_increase} % increase)" )
+      
+      str1 <- paste0(str1, str2) 
+    }
+    
+    info <- c("<br>
+            <span style='color: rgb(97, 189, 109);'>ℹ:</span>
+            <font size='1'>The table and plots show the count of cumulative contacts over time. </font>")
+ 
+    output_text <- HTML(paste(info, str1, sep = '<br/>'))
+    
+    
+    if (report_format %in% c("pptx", "docx", "pdf")) {
+      output_text %>%
+        charToRaw() %>%
+        read_html() %>%
+        html_text2() %>%
+        str_trim() %>%
+        pander::pandoc.p()
+      # no need to return anything. pandoc.p prints automatically
+    }
+    
+    if (report_format %in% c("shiny", "html (page)", "html (slides)")) {
+      return(output_text)
+    }
+    
+    
+  }
+
+
+#' # active_contacts_today
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ active_contacts_today  --------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Below we call the contacts_per_admin_1 functions. These show the distribution 
+#' of contacts over admin level 1 and admin level 2.
+
+
+#' ## active_contacts_today_row_title
+
+active_contacts_today_row_title <- function(todays_date){
+  
+  formatted_date <-format.Date(todays_date,
+                               format = "%b %d, %Y")
+  
+  h3(paste0("Contacts under surveillance as at ", formatted_date),
+     style = "display: inline;") 
+  
+}
+
+
+
+#' ## active_contacts_today_bar_chart
+
+active_contacts_today_bar_chart <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+   ## filter out dates that are past the input days date ("future follow-up" rows)
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+      filter(follow_up_date == todays_date)
     
     contact_admin_1 <-
-      contacts_df_long %>%
+      contacts_df_long_filt %>%
       group_by(row_id) %>% 
       # slice long frame
       slice_head() %>% 
@@ -841,13 +1947,13 @@ all_contacts_per_admin_1_bar_chart <-
       select(admin_1, admin_2) %>%
       add_count(admin_1, name = "n_admin_1") %>%
       mutate(pct_admin_1 = round(100 * n_admin_1 / nrow(.), 
-                                digits = 2)) %>%
+                                 digits = 2)) %>%
       group_by(admin_1) %>%
       mutate(admin_2 = fct_lump(other_level = "Autres", 
-                                 admin_2, prop = 0.01)) %>%
+                                admin_2, prop = 0.01)) %>%
       add_count(admin_2, name = "n_admin_2") %>%
       mutate(pct_admin_2 = round(100 * n_admin_2 / nrow(.), 
-                                  digits = 2)) %>%
+                                 digits = 2)) %>%
       mutate(data_label = paste0(n_admin_2, " (", pct_admin_2, "%", ")")) %>%
       group_by(admin_1, admin_2) %>%
       slice_head(n = 1) %>%
@@ -894,12 +2000,12 @@ all_contacts_per_admin_1_bar_chart <-
       hc_plotOptions(series = list(groupPadding = 0)) %>% 
       hc_subtitle(text = subtitle, useHTML = TRUE) %>% 
       hc_xAxis(title = list(text = "Admin level 2")) %>% 
-      hc_yAxis(title = list(text = "Number of contacts"))
+      hc_yAxis(title = list(text = "Number under surveillance"))
     
     
     
     if (report_format %in% c("pptx", "docx", "pdf")){
-
+      
       output_highchart <-
         output_highchart %>% 
         hc_exporting(enabled = FALSE) %>%
@@ -910,7 +2016,7 @@ all_contacts_per_admin_1_bar_chart <-
     
     if (report_format %in% c("html (page)", "html (slides)", "shiny")){
       
-    return(output_highchart)
+      return(output_highchart)
       
     }
     
@@ -918,11 +2024,191 @@ all_contacts_per_admin_1_bar_chart <-
   }
 
 
-#' ## all_contacts_per_admin_1_text
+#' ## active_contacts_today_sunburst_plot
 
-all_contacts_per_admin_1_text <- 
-  function(contacts_df_long, report_format = "shiny"){
-  
+active_contacts_today_sunburst_plot <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+    ## filter out dates that are past the input days date ("future follow-up" rows)
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+      filter(follow_up_date == todays_date)
+    
+    contact_admin_1 <-
+      contacts_df_long_filt %>%
+      group_by(row_id) %>% 
+      # slice long frame
+      slice_head() %>% 
+      ungroup() %>%
+      select(admin_1, admin_2) %>%
+      add_count(admin_1, name = "n_admin_1") %>%
+      mutate(pct_admin_1 = round(100 * n_admin_1 / nrow(.), 
+                                 digits = 2)) %>%
+      mutate(admin_1 = paste0(admin_1, 
+                              " (", pct_admin_1, "%", ")")) %>%
+      group_by(admin_1) %>%
+      mutate(admin_2 = fct_lump(other_level = "Autres", 
+                                admin_2, prop = 0.01)) %>%
+      add_count(admin_2, name = "n_admin_2") %>%
+      mutate(pct_admin_2 = round(100 * n_admin_2 / nrow(.), 
+                                 digits = 2)) %>%
+      mutate(admin_2 = paste0(admin_2, " (", pct_admin_2, "%", ")")) %>%
+      group_by(admin_1, admin_2) %>%
+      slice_head(n = 1) %>%
+      ungroup() %>%
+      arrange(-n_admin_1)
+    
+    if (nrow(contact_admin_1) == 0) {
+      return(highchart() %>% hc_title(text  = "No data to plot"))
+    }
+    
+    color_df <- 
+      data.frame(admin_1 = unique(contact_admin_1$admin_1)) %>% 
+      add_column(color_lvl_1 = highcharter_palette[1:nrow(.)])
+    
+    contact_admin_1_list <- 
+      contact_admin_1 %>% 
+      data_to_hierarchical(group_vars = c(admin_1, 
+                                          admin_2), 
+                           size_var = n_admin_2, 
+                           colors= color_df$color_lvl_1)
+    
+    
+    x <- c("Type: ", "n = ")
+    y <- c("{point.name}", "{point.value}")
+    tltip <- tooltip_table(x, y)
+    
+    
+    output_highchart <- 
+      highchart() %>% 
+      hc_chart(type = "sunburst") %>% 
+      hc_add_series(data = contact_admin_1_list,
+                    allowDrillToNode = TRUE,
+                    levelIsConstant = FALSE,
+                    #textOverflow = "clip",
+                    levels = list(list(level = 1,
+                                       dataLabels = list(enabled = TRUE,
+                                                         color = "#FFFFFF",
+                                                         style = list(textOverflow = "clip"))), 
+                                  list(level = 2, 
+                                       dataLabels = list(enabled = TRUE, 
+                                                         color = "#FFFFFF",
+                                                         style = list(textOverflow = "clip"))), 
+                                  list(level = 3,
+                                       dataLabels = list(enabled = TRUE, 
+                                                         color = "#FFFFFF",
+                                                         style = list(textOverflow = "clip"))))) %>% 
+      hc_plotOptions(sunburst = list(dataLabels = list(enabled = TRUE) )) %>% 
+      hc_tooltip(useHTML = TRUE, 
+                 headerFormat = "", pointFormat = tltip) %>% 
+      hc_exporting(enabled = TRUE)
+    
+    if (report_format %in% c("pptx", "docx", "pdf")){
+      
+      output_highchart <-
+        output_highchart %>% 
+        hc_exporting(enabled = FALSE) %>%
+        hc_plotOptions(series = list(animation = FALSE)) %>% 
+        html_webshot()
+      # no need to return anything. html_webshot prints automatically
+    }
+    
+    if (report_format %in% c("html (page)", "html (slides)", "shiny")){
+      
+      return(output_highchart)
+      
+    }
+    
+  }
+
+
+
+#' ## active_contacts_today_table
+
+active_contacts_today_table <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    ## filter out dates that are past the input days date ("future follow-up" rows)
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+      filter(follow_up_date == todays_date)
+
+    data_to_plot <- 
+      contacts_df_long_filt %>%
+      group_by(row_id) %>% 
+      # slice long frame
+      slice_head() %>% 
+      ungroup() %>% 
+      select(admin_1, admin_2) %>%
+      count(admin_1, admin_2) %>%
+      group_by(admin_1, admin_2) %>%
+      summarise(n = sum(n)) %>%
+      ungroup() %>% 
+      mutate(percent = round(100 * n/sum(n), 2)) %>% 
+      group_by(admin_1) %>%
+      mutate(admin_1_sum = sum(n)) %>% 
+      ungroup() %>% 
+      mutate(admin_1_percent = admin_1_sum/sum(n)) %>% 
+      ungroup() %>% 
+      arrange(-admin_1_percent, -n) %>% 
+      select(`Admin level 1` = admin_1, 
+             `Admin level 2` = admin_2, 
+             `No. under surveillance` = n,
+             `%` = percent)
+    
+    
+    
+    
+    if (report_format %in% c("shiny","html (page)", "html (slides)", "pdf")){
+      
+      output_table <-  
+        data_to_plot %>%
+        reactable(columns = list(`No. under surveillance` = colDef(cell = data_bars_gradient(data_to_plot, 
+                                                                                     colors = c(peach, bright_yellow_crayola),
+                                                                                     background = "transparent"),
+                                                           style = list(fontFamily = "Courier", whiteSpace = "pre", fontSize = 13)), 
+                                 `Admin level 1` = colDef(style = JS("function(rowInfo, colInfo, state) {
+                                                          var firstSorted = state.sorted[0]
+                                                          // Merge cells if unsorted or sorting by admin_1
+                                                          if (!firstSorted || firstSorted.id === 'Admin level 1') {
+                                                          var prevRow = state.pageRows[rowInfo.viewIndex - 1]
+                                                          if (prevRow && rowInfo.row['Admin level 1'] === prevRow['Admin level 1']) {
+                                                          return { visibility: 'hidden' }
+                                                          }
+                                                          }}"))),
+                  striped = TRUE,
+                  highlight = TRUE,
+                  defaultPageSize = 15)
+    }
+    
+    
+    if (report_format %in% c("pptx","docx", "pdf")){
+      
+      output_table <- 
+        data_to_plot %>% 
+        janitor::adorn_totals() %>% 
+        huxtable() %>% 
+        set_all_padding(0.5) %>%
+        merge_repeated_rows(col = "Admin level 1") %>% 
+        theme_blue()
+      
+    }
+    
+    return(output_table)
+    
+    
+  }
+
+
+#' ## active_contacts_today_text
+
+active_contacts_today_text <- 
+  function(contacts_df_long, todays_date, report_format = "shiny"){
+    
+    ## filter out dates that are past the input days date ("future follow-up" rows)
+    contacts_df_long_filt <- 
+      contacts_df_long %>% 
+      filter(follow_up_date <= todays_date)
+    
     data_to_plot <- 
       contacts_df_long %>%
       group_by(row_id) %>% 
@@ -966,13 +2252,14 @@ all_contacts_per_admin_1_text <-
       paste0(., "%")
     
     
-    str1 <- glue("<br>The level 1 division with the most total contacts since database inception is <b> {admin_1_w_most_contacts}</b>, 
-                 with <b>{n_contacts_in_admin_1_w_most_contacts}</b> contacts (<b>{pct_contacts_in_admin_1_w_most_contacts}</b> of the total)" )
-    
     info <- c("<br>
             <span style='color: rgb(97, 189, 109);'>ℹ:</span>
-            <font size='1'>The table and plots show the count of all contacts recorded in each level 1 division since database inception. </font>")
-      
+            <font size='1'>The table and plots show the count of contacts currently under follow-up. </font>")
+    
+    str1 <- glue("<br>The level 1 division with the most contacts under surveillance at present is <b> {admin_1_w_most_contacts}</b>, 
+                 with <b>{n_contacts_in_admin_1_w_most_contacts}</b> contacts (<b>{pct_contacts_in_admin_1_w_most_contacts}</b> of the total)" )
+    
+    
     output_text <- HTML(paste(info, str1, sep = '<br/>'))
     
     
@@ -989,30 +2276,43 @@ all_contacts_per_admin_1_text <-
     if (report_format %in% c("shiny", "html (page)", "html (slides)")) {
       return(output_text)
     }
-  
-  
-}
+    
+    
+  }
 
-#' #  Contacts surveilled over time
+
+
+#' #  active_contacts_historical
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Contacts surveilled over time  -----------
+# ~ active_contacts_historical  -----------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Functions showing how many contacts were under surveillance at each time point, 
 #' segregated by region.
 
 
-#' ## contacts_surveilled_admin_1_bar_chart
+#' ## active_contacts_historical_row_title
 
-contacts_surveilled_admin_1_bar_chart <- 
+active_contacts_historical_row_title <- function(){
+  ## doesn't need to a function at the moment. 
+  ## But we leave it there in case we want to take in an input or two
+  h3(paste0("Contacts under surveillance, trend over time"),
+     style = "display: inline;") 
+  
+}
+
+
+#' ## active_contacts_historical_bar_chart
+
+active_contacts_historical_bar_chart <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
+   ## filter out dates that are past the input days date ("future follow-up" rows)
+    contacts_df_long_filt <- 
       contacts_df_long %>% 
       filter(follow_up_date <= todays_date)
     
     data_to_plot <- 
-      contacts_df_long %>%
+      contacts_df_long_filt %>%
       select(admin_1, follow_up_date) %>%
       group_by(follow_up_date, admin_1) %>% 
       count(admin_1) %>% 
@@ -1072,18 +2372,18 @@ contacts_surveilled_admin_1_bar_chart <-
 
 
 
-#' ## contacts_surveilled_admin_1_bar_chart_relative
+#' ## active_contacts_historical_bar_chart_relative
 
-contacts_surveilled_admin_1_bar_chart_relative <- 
+active_contacts_historical_bar_chart_relative <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
+   ## filter out dates that are past the input days date ("future follow-up" rows)
+    contacts_df_long_filt <- 
       contacts_df_long %>% 
       filter(follow_up_date <= todays_date )
     
     data_to_plot <- 
-      contacts_df_long %>%
+      contacts_df_long_filt %>%
       select(admin_1, follow_up_date) %>%
       group_by(follow_up_date, admin_1) %>% 
       count(admin_1) %>% 
@@ -1144,19 +2444,19 @@ contacts_surveilled_admin_1_bar_chart_relative <-
     
   }
 
-#' ## contacts_surveilled_admin_1_text
+#' ## active_contacts_historical_text
 
-contacts_surveilled_admin_1_text <- 
+active_contacts_historical_text <- 
   function(contacts_df_long, todays_date, report_format = "shiny"){
     
-    # filter out dates that are past the input days date
-    contacts_df_long <- 
+   ## filter out dates that are past the input days date ("future follow-up" rows)
+    contacts_df_long_filt <- 
       contacts_df_long %>% 
       filter(follow_up_date <= todays_date)
     
     
     data_to_plot <- 
-      contacts_df_long %>%
+      contacts_df_long_filt %>%
       select(admin_1, follow_up_date) %>%
       group_by(follow_up_date, admin_1) %>% 
       count(admin_1) %>% 
@@ -1232,9 +2532,9 @@ contacts_surveilled_admin_1_text <-
 
 
 
-#' #  Contacts per case
+#' #  contacts_per_case
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Contacts per case  -----------
+# ~ contacts_per_case  -----------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Functions that output the number of contacts linked to each case
 #' At the moment (May 13, 2021), the Go.Data app version has no information for this column.
@@ -1335,7 +2635,7 @@ total_contacts_per_case_table <-
              `Total linked contacts` = n)
     
     number_of_cases <- nrow(data_to_plot) - 1
-    table_title <- HTML(glue("Contacts per case for the <b>{number_of_cases}</b> 
+    table_title <- HTML(glue("Contacts per case for the {number_of_cases} 
                               cases with the most contacts"))
 
     
@@ -1371,7 +2671,7 @@ total_contacts_per_case_table <-
         huxtable() %>% 
         set_all_padding(0.5) %>%
         theme_blue() %>% 
-        set_caption(table_title)
+        huxtable::set_caption(table_title)
       
       
     }
@@ -1498,7 +2798,7 @@ total_contacts_per_case_text <-
             The plots show the number of contacts linked to each case.
             </font>")
 
-    str1 <- glue("<br>The <b>mean</b> number of contacts per case is <b>{median_number_of_contacts_per_case}</b>, (<b>IQR:{iqr_number_of_contacts_per_case}</b>) 
+    str1 <- glue("<br>The <b>median</b> number of contacts per case is <b>{median_number_of_contacts_per_case}</b>, (<b>IQR:{iqr_number_of_contacts_per_case}</b>) 
                  with a <b>minimum</b> of <b>{min_number_of_contacts_per_case}</b> and a maximum of <b>{max_number_of_contacts_per_case}</b>" )
 
     output_text <- HTML(paste(info, str1, sep = '<br/>'))
@@ -1523,9 +2823,9 @@ total_contacts_per_case_text <-
   }
 
 
-#' #  Contacts per link type
+#' #  contacts_per_link_type
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Contacts per link type  -----------
+# ~ contacts_per_link_type  -----------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Functions that output the number of contacts for each type of link (e.g. family)
 #' At the moment (May 13, 2021), the Go.Data app version has no information for this column.
@@ -1730,9 +3030,9 @@ total_contacts_per_link_type_text <-
 
 
 
-#' #  Active contacts bar chart and snake plot
+#' #  active_contacts_bar_and_snake
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Active contacts bar chart and snake plot ------
+# ~ active_contacts_bar_and_snake ------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Graphs and tables showing active contacts by status
 
@@ -1955,8 +3255,8 @@ active_contacts_timeline_snake_plot <-
                    #customdata = selected_id_and_follow_up
                    )) +
          annotate("segment", x = segment_x_start, xend = segment_x_end, y = segment_y, yend = segment_y, 
-                  color = "grey", size = 0.25) +
-         geom_point() +
+                  color = "grey", size = 0.25, alpha = 0.5) +
+         geom_point(alpha = 0.6) +
          labs(x = "Follow up date", y = "Row ID") +
          scale_size_continuous(range = c(1, 2.3)) +
          scale_color_manual(breaks = legend_df$breaks, values = legend_df$colors,
@@ -2180,9 +3480,9 @@ active_contacts_timeline_text <-
 
 
 
-#' #  Contacts lost to follow-up
+#' # lost_contacts
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Contacts lost to follow-up  ------
+# ~ lost_contacts ------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Tables (and their download handlers) summarizing the number of individuals lost to follow-up
 

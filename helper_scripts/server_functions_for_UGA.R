@@ -9,13 +9,24 @@
 
 #+ include=FALSE
 ## for knitting into documentation file
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+if(exists("PARAMS") && !is.null(PARAMS$building_docs) && PARAMS$building_docs == TRUE ){
+  knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+}
 
 
 #' # UI Outputs
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  UI Outputs --------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+#' ## country_specific_UI_for_loading_data
+# ~~~~ country_specific_UI_for_loading_data ---------------------------
+
+#` Here we call the function that loads all the country-specific
+#' UI elements required in the "Choose dataset to analyse" box. 
+
+country_specific_UI_for_loading_data <- function(input, output){
 
 
 #' ## data_to_use_picker
@@ -144,6 +155,8 @@ output$country_specific_data_to_use_section <-
                    uiOutput("analyze_action_bttn"))
     )
   })
+
+}
 
 #' # Read file functions
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

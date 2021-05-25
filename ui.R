@@ -9,8 +9,9 @@
 
 #+ include=FALSE
 ## for knitting into documentation file
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
-
+if(exists("PARAMS") && !is.null(PARAMS$building_docs) && PARAMS$building_docs == TRUE ){
+  knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+}
 #' # HEADER
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -244,35 +245,119 @@ additional_filters <-
 
 
 value_boxes <-
-  fluidRow(valueBoxOutput("contacts_per_day_value_box", width = 3),
+  fluidRow(valueBoxOutput("new_contacts_per_day_value_box", width = 3),
            valueBoxOutput("cumulative_contacts_value_box", width = 3),
            valueBoxOutput("contacts_under_surveillance_value_box", width = 3),
            valueBoxOutput("pct_contacts_followed_value_box", width = 3)
            )
 
+#' ##  new_contacts_today
+# ~~~~ new_contacts_today ----
+
+new_contacts_today <-
+  tagList(
+    h1("  "), 
+    fluidRow(
+      column(width = 1, 
+             icon("calendar-day", "fa-2x", 
+                  style = "align: right ; padding: 0px 0px 15px 20px")), # nudge right
+      column(width = 11, 
+             htmlOutput("new_contacts_today_row_title"))),
+    # h3("Total contacts per admin level 1", 
+    #    style = "display: inline; line-height: 50px;"),
+    fluidRow(column(width = 12,
+                    column(width = 9,
+                           tabsetPanel(tabPanel(title = "Bar plot",
+                                                highchartOutput("new_contacts_today_bar_chart" ) %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)),
+                                       tabPanel(title = "Sunburst plot",
+                                                highchartOutput("new_contacts_today_sunburst_plot", 
+                                                                height = "350px") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)),
+                                       tabPanel(title = "Table",
+                                                reactableOutput("new_contacts_today_table") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna))
+                           )
+                    ),
+                    column(width = 3,
+                           tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
+                                                                "Description"),
+                                                style = "overflow-y:auto",
+                                                htmlOutput("new_contacts_today_text") %>% 
+                                                  withSpinner(type = 1, color = burnt_sienna))
+                           )
+                    )
+    )
+    ), 
+    hr()
+  )
 
 
-#' ##  Contacts per region
-# ~~~~ contacts_per_region ----
+
+#' ##  new_contacts_historical
+# ~~~~ new_contacts_historical ----
+
+new_contacts_historical <-
+  tagList(
+    h1("  "), 
+    fluidRow(
+      column(width = 1, 
+             icon("calendar-day", "fa-2x", 
+                  style = "align: right ; padding: 0px 0px 15px 20px")), # nudge right
+      column(width = 11, 
+             htmlOutput("new_contacts_historical_row_title"))),
+    fluidRow(column(width = 12,
+                    column(width = 9,
+                           tabsetPanel(tabPanel(title = "Absolute numbers",
+                                                highchartOutput("new_contacts_historical_bar_chart") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)),
+                                       tabPanel(title = "Relative proportions",
+                                                highchartOutput("new_contacts_historical_bar_chart_relative") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)) 
+                                       
+                           )
+                    ),
+                    column(width = 3,
+                           tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
+                                                                "Description"),
+                                                style = "overflow-y:auto",
+                                                htmlOutput("new_contacts_historical_text") %>% 
+                                                  withSpinner(type = 1, color = burnt_sienna))
+                           )
+                    )
+    )
+    ), 
+    hr()
+  )
 
 
-contacts_per_region <-
+
+#' ##  cumul_contacts_today
+# ~~~~ cumul_contacts_today ----
+
+
+cumul_contacts_today <-
   tagList(
   h1("  "), 
-  icon("map", "fa-2x"),
-  h3("Total contacts per admin level 1", 
-     style = "display: inline; line-height: 50px;"),
+  fluidRow(
+    column(width = 1, 
+           icon("globe", "fa-2x", 
+                style = "align: right ; padding: 0px 0px 15px 20px")), # nudge right
+    column(width = 11, 
+           htmlOutput("cumul_contacts_today_row_title"))),
+  # h3("Total contacts per admin level 1", 
+  #    style = "display: inline; line-height: 50px;"),
   fluidRow(column(width = 12,
                column(width = 9,
                       tabsetPanel(tabPanel(title = "Bar plot",
-                                           highchartOutput("all_contacts_per_admin_1_bar_chart" ) %>%
+                                           highchartOutput("cumul_contacts_today_bar_chart" ) %>%
                                              withSpinner(type = 6, color = burnt_sienna)),
                                   tabPanel(title = "Sunburst plot",
-                                           highchartOutput("all_contacts_per_admin_1_sunburst_plot", 
+                                           highchartOutput("cumul_contacts_today_sunburst_plot", 
                                                            height = "350px") %>%
                                              withSpinner(type = 6, color = burnt_sienna)),
                                   tabPanel(title = "Table",
-                                           reactableOutput("all_contacts_per_admin_1_table") %>%
+                                           reactableOutput("cumul_contacts_today_table") %>%
                                              withSpinner(type = 6, color = burnt_sienna))
                       )
                ),
@@ -280,7 +365,7 @@ contacts_per_region <-
                       tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
                                                            "Description"),
                                            style = "overflow-y:auto",
-                                           htmlOutput("all_contacts_per_admin_1_text") %>% 
+                                           htmlOutput("cumul_contacts_today_text") %>% 
                                              withSpinner(type = 1, color = burnt_sienna))
                       )
                       )
@@ -290,22 +375,108 @@ contacts_per_region <-
   )
 
 
-#' ##  Contacts surveilled over time
-# ~~~~ contacts_surveilled_over_time ----
+#' ##  cumul_contacts_historical
+# ~~~~ cumul_contacts_historical ----
 
-contacts_surveilled_over_time <-
+cumul_contacts_historical <-
   tagList(
     h1("  "), 
-    icon("calendar-alt", "fa-2x"),
-    h3("Contacts under surveillance per admin level 1 over time", 
-       style = "display: inline; line-height: 50px;"),
+    fluidRow(
+      column(width = 1, 
+             icon("globe", "fa-2x", 
+                  style = "align: right ; padding: 0px 0px 15px 20px")), # nudge right
+      column(width = 11, 
+             htmlOutput("cumul_contacts_historical_row_title"))),
+    fluidRow(column(width = 12,
+                    column(width = 9,
+                           tabsetPanel(tabPanel(title = "Absolute numbers",
+                                                highchartOutput("cumul_contacts_historical_bar_chart") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)),
+                                       tabPanel(title = "Relative proportions",
+                                                highchartOutput("cumul_contacts_historical_bar_chart_relative") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)) 
+                                       
+                           )
+                    ),
+                    column(width = 3,
+                           tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
+                                                                "Description"),
+                                                style = "overflow-y:auto",
+                                                htmlOutput("cumul_contacts_historical_text") %>% 
+                                                  withSpinner(type = 1, color = burnt_sienna))
+                           )
+                    )
+    )
+    ), 
+    hr()
+  )
+
+
+
+#' ##  active_contacts_today
+# ~~~~ active_contacts_today ----
+
+
+active_contacts_today <-
+  tagList(
+    h1("  "), 
+    fluidRow(
+      column(width = 1, 
+             icon("calendar-week", "fa-2x", 
+                  style = "align: right ; padding: 0px 0px 15px 20px")), # nudge right
+      column(width = 11, 
+             htmlOutput("active_contacts_today_row_title"))),
+    # h3("Total contacts per admin level 1", 
+    #    style = "display: inline; line-height: 50px;"),
+    fluidRow(column(width = 12,
+                    column(width = 9,
+                           tabsetPanel(tabPanel(title = "Bar plot",
+                                                highchartOutput("active_contacts_today_bar_chart" ) %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)),
+                                       tabPanel(title = "Sunburst plot",
+                                                highchartOutput("active_contacts_today_sunburst_plot", 
+                                                                height = "350px") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna)),
+                                       tabPanel(title = "Table",
+                                                reactableOutput("active_contacts_today_table") %>%
+                                                  withSpinner(type = 6, color = burnt_sienna))
+                           )
+                    ),
+                    column(width = 3,
+                           tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
+                                                                "Description"),
+                                                style = "overflow-y:auto",
+                                                htmlOutput("active_contacts_today_text") %>% 
+                                                  withSpinner(type = 1, color = burnt_sienna))
+                           )
+                    )
+    )
+    ), 
+    hr()
+  )
+
+
+
+
+#' ##  active_contacts_historical
+# ~~~~ active_contacts_historical ----
+
+active_contacts_historical <-
+  tagList(
+    h1("  "), 
+    fluidRow(
+      column(width = 1, 
+             icon("calendar-week", "fa-2x", 
+                  style = "align: right ; padding: 0px 0px 15px 20px")), # nudge right
+      column(width = 11, 
+             htmlOutput("active_contacts_historical_row_title"))),
     fluidRow(column(width = 12,
                column(width = 9,
                       tabsetPanel(tabPanel(title = "Absolute numbers",
-                                           highchartOutput("contacts_surveilled_admin_1_bar_chart") %>%
+                                           highchartOutput("active_contacts_historical_bar_chart") %>%
                                              withSpinner(type = 6, color = burnt_sienna)),
                                   tabPanel(title = "Relative proportions",
-                                           highchartOutput("contacts_surveilled_admin_1_bar_chart_relative") %>%
+                                           highchartOutput("active_contacts_historical_bar_chart_relative") %>%
                                              withSpinner(type = 6, color = burnt_sienna)) 
                                   
                       )
@@ -314,7 +485,7 @@ contacts_surveilled_over_time <-
                       tabsetPanel(tabPanel(title = tagList(icon("info-circle"),
                                                            "Description"),
                                            style = "overflow-y:auto",
-                                           htmlOutput("contacts_surveilled_admin_1_text") %>% 
+                                           htmlOutput("active_contacts_historical_text") %>% 
                                              withSpinner(type = 1, color = burnt_sienna))
                       )
                )
@@ -323,7 +494,7 @@ contacts_surveilled_over_time <-
   hr()
   )
 
-#' ##  Contacts per case
+#' ##  contacts_per_case
 # ~~~~ contacts_per_case ----
 
 contacts_per_case <-
@@ -434,8 +605,12 @@ main_tab <- tabItem("main_tab",
                     value_boxes,
                     h1("All contacts", align = "center"), 
                     hr(),
-                    contacts_per_region, 
-                    contacts_surveilled_over_time,
+                    new_contacts_today,
+                    new_contacts_historical,
+                    cumul_contacts_today, 
+                    cumul_contacts_historical,
+                    active_contacts_today,
+                    active_contacts_historical,
                     contacts_per_case, 
                     contacts_per_link_type
                     )
@@ -580,6 +755,15 @@ help_tab <- tabItem("help_tab",
                     h1("Resources", align = "center"), 
                     hr(),
                     help_tab_row_1)
+
+
+
+if(exists("PARAMS") && !is.null(PARAMS$remove_help_tab) && PARAMS$remove_help_tab == TRUE ){
+  help_tab <- tabItem("help_tab", 
+                      h1("Resources", align = "center"), 
+                      hr())
+}
+
 
 
 #' #  COMBINE ALL TABS INTO BODY OBJECT

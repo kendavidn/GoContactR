@@ -9,7 +9,7 @@ output:
 
 ```{r include=FALSE}
 ## for knitting into documentation file
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+# knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
 The global.R file is run once before your app starts. 
@@ -35,9 +35,9 @@ or the elements for connecting to, and downloading from the Go.Data instance.
 ```{r }
 PARAMS <- list()
 ## Uncomment the below to change country app version
-#PARAMS$country_code <- "UGA"
+PARAMS$country_code <- "UGA"
 #PARAMS$country_code <- "COG"
-PARAMS$country_code <- "CIV" 
+#PARAMS$country_code <- "CIV" 
 PARAMS$testing_mode <- FALSE
 PARAMS$fake_data <- TRUE
 ```
@@ -50,7 +50,7 @@ PARAMS$fake_data <- TRUE
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
-I would normally load packages with `pacman::p_load` 
+I would normally load packages with p_load
 but I had some trouble with this when deploying to shiny 
 
 ```{r message=FALSE, warning=FALSE, fig.width=7}
@@ -62,7 +62,7 @@ library(paletteer) ## for palettes
 # remotes::install_github("jbkunst/highcharter")
 library(highcharter)  ## most charts 
 library(plotly) ## for the snake plot. highcharter renders this plot too slowly
-library(shiny)
+#library(shiny)
 library(shinyjs)
 library(shinyWidgets)
 library(shinydashboard)

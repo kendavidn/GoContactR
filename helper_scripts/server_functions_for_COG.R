@@ -9,7 +9,9 @@
 
 #+ include=FALSE
 ## for knitting into documentation file
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+if(exists("PARAMS") && !is.null(PARAMS$building_docs) && PARAMS$building_docs == TRUE ){
+  knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+}
 
 #' # Read in preloaded data
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,6 +41,8 @@ preloaded_data_options <-
 # ~  UI Outputs --------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+country_specific_UI_for_loading_data <- function(input, output){
+  
 
 #' ## data_to_use_picker
 # ~~~~ data_to_use_picker ---------------------------
@@ -142,6 +146,7 @@ output$country_specific_data_to_use_section <-
     )
   })
 
+}
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Read file functions ----

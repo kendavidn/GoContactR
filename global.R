@@ -7,12 +7,16 @@
 #'    toc_float: yes
 #'---
 
+
 #+ include=FALSE
 ## for knitting into documentation file
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+
+if(exists("PARAMS") && !is.null(PARAMS$building_docs) && PARAMS$building_docs == TRUE ){
+  knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+}
 
 #' The global.R file is run once before your app starts. 
-#' Any R objects created here global.R file become available to the app.R file, 
+#' Any R objects created here become available to the app.R file, 
 #' the ui.R and the server.R files. 
 
 
@@ -20,21 +24,35 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Main parameters ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PARAMS <- list()
+
 #' The application has been built to work with two main data sources: 
 #' contact tracing data from KoboCollect-exported csv files,
 #' and contact tracing data from a Go.Data instance (by direct API connection)
 #' Here, at the beginning of the global.R file, 
 #' we set the PARAMS$country_code variable to the country being worked on. 
-#' This ensures that the correct data import elements are loaded in the app, 
-#' either the elements for KoboCollect csv import and processing, 
+#' This ensures that the correct data import elements are loaded in the app,
+#' that is, either the elements for KoboCollect csv import and processing, 
 #' or the elements for connecting to, and downloading from the Go.Data instance.
 
-PARAMS <- list()
 ## Uncomment the below to change country app version
 #PARAMS$country_code <- "UGA"
-#PARAMS$country_code <- "COG"
-PARAMS$country_code <- "CIV" 
+PARAMS$country_code <- "COG"
+#PARAMS$country_code <- "CIV" 
+
+
+#' When `testing_mode` is set to true, the app loads with only a small subset of the data. 
+#' This hastens loading speed and saves your time.
 PARAMS$testing_mode <- FALSE
+
+#' When `remove_help_tab` is set to false, RStudio loads the PDF from the help tab
+#' as a separate window. Somewhat annoying
+PARAMS$remove_help_tab <- TRUE
+
+
+#' For the Go.Data-sourced sample data, information on administrative levels is missing.
+#' But this makes for an uninteresting dashboard. 
+#' So you can turn on this parameter to add in sample administrative levels
 PARAMS$fake_data <- TRUE
 
 
@@ -43,10 +61,11 @@ PARAMS$fake_data <- TRUE
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Packages ----
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' I would normally load packages with `pacman::p_load` 
+#' I would normally load packages with p_load
 #' but I had some trouble with this when deploying to shiny 
 #+ message=FALSE, warning=FALSE, fig.width=7
-library(remotes)
+
+library(devtools)
 if (!webshot::is_phantomjs_installed()) webshot::install_phantomjs()
 library(webshot)  ##  for screenshots of htmlwidgets when outputting
 library(here) 
@@ -75,24 +94,22 @@ library(janitor) ## some cleaning utilities
 library(scales) ## for date and time scales
 library(gt) ## for easily customizable HTML table
 library(gtools) ## for the `mixedsort` function
-# remotes::install_github("reconhub/linelist")
-library(linelist) ## for the clean_variable_spellings function 
-# remotes::install_github("tidyverse/rvest")
-library(rvest) ## for the HTMLtotext function
+library(rvest) ## for the html_text2 function
 library(pander) ## for some tables?
 library(rio) ## easy importing
-library(huxtable) ## tables that output to docx and powerpoint
 library(flextable) ## called by huxtable in some functions
+library(huxtable) ## tables that output to docx and powerpoint
 library(rmarkdown) ## for knitting the report
-# remotes::install_github("davidgohel/officedown")
+# devtools::install_github("davidgohel/officedown")
 library(officedown) ## for PPTX docs etc.
+# devtools::install_github("rfortherestofus/pagedreport", ref = "main")
 library(pagedreport) ## for PDF reports 
 library(promises) ## not sure
 library(clock) ## not sure
 library(charlatan) ## for creating fake data
 library(httr) ## for pulling from godata API
 library(jsonlite) ## convert json files to data frames
-# remotes::install_github("amirmasoudabdol/preferably")
+# devtools::install_github("amirmasoudabdol/preferably")
 library(preferably) ## theme for documentation site
 library(tidyverse) ## tidyverse called last to avoid masking
 
@@ -197,6 +214,21 @@ legend_df <-
   mutate(breaks = fct_inorder(breaks)) %>%
   mutate(legend_index = row_number())
 }
+
+#' # Misc objects
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~ Misc objects ----
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+cols_to_exclude_from_filters <- 
+  ## filters not created for rows that change across each contact
+  c("follow_up_date", "follow_up_day", 
+    "follow_up_status", "follow_up_status_simple",
+    ## no filters for synthetic columns either
+    "row_id","row_number","sort_number", 
+    ## and no filters on names. 
+    ## Franck mentioned not printing names to app for privacy
+    "first_name", "last_name")
 
 #' # Highcharter themes
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
