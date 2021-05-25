@@ -1,51 +1,69 @@
-#'---
-#'title: "03.4: server_functions_for_UGA.R"
-#'output:
-#'  rmarkdown::html_document:
-#'    toc: yes
-#'    toc_depth: 2
-#'    toc_float: yes
-#'params:
-#'  building_docs: true
-#'---
+---
+title: "03.4: server_functions_for_UGA.R"
+output:
+ rmarkdown::html_document:
+   toc: yes
+   toc_depth: 2
+   toc_float: yes
+params:
+ building_docs: true
+---
 
-
-#+ include=FALSE
+```{r include=FALSE}
 ## for knitting into documentation file
 
 if(exists("params") && !is.null(params$building_docs) && params$building_docs == TRUE ){
   knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 }
+```
 
-#' # UI Outputs
+# UI Outputs
+
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  UI Outputs --------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
+## country_specific_UI_for_loading_data
 
-#' ## country_specific_UI_for_loading_data
+```{r }
 # ~~~~ country_specific_UI_for_loading_data ---------------------------
 
 #` Here we call the function that loads all the country-specific
-#' UI elements required in the "Choose dataset to analyse" box. 
+```
 
+UI elements required in the "Choose dataset to analyse" box. 
+
+```{r }
 country_specific_UI_for_loading_data <- function(input, output){
+```
 
+## data_to_use_picker
 
-#' ## data_to_use_picker
+```{r }
 # ~~~~ data_to_use_picker ---------------------------
-#' Options for data source
+```
 
+Options for data source
+
+```{r }
 output$data_to_use_picker <- renderUI({
   radioButtons(inputId = "data_to_use", 
                label = "Input Data", 
                choices = c("Connect to Go.Data"))
 })
+```
 
-#' ## data_to_use_input
+## data_to_use_input
+
+```{r }
 # ~~~~ data_to_use_input ---------------------------
-#' Loads in the data.
+```
 
+Loads in the data.
+
+```{r }
 output$data_to_use_input <- 
   renderUI({
     tagList(textInput("go_data_url",
@@ -66,12 +84,17 @@ output$data_to_use_input <-
             ), 
             uiOutput("access_permitted_or_not"))
   })
+```
 
+## access_token_reactive
 
-#' ## access_token_reactive
+```{r }
 # ~~~~ access_token_reactive ---------------------------
-#' Specific to Go.Data version Returns access token
+```
 
+Specific to Go.Data version Returns access token
+
+```{r }
 access_token_reactive <- reactive({
   
   req(input$data_to_use)
@@ -99,12 +122,18 @@ access_token_reactive <- reactive({
   access_token
   
 })
+```
 
-#' ## access_permitted_or_not
+## access_permitted_or_not
+
+```{r }
 # ~~~~ access_permitted_or_not ---------------------------
-#' Specific to Go.Data version.  
-#' If access_token is not successfully retrieded, returns error. 
+```
 
+Specific to Go.Data version.  
+If access_token is not successfully retrieded, returns error. 
+
+```{r }
 output$access_permitted_or_not <- renderUI({
   
   req(input$data_to_use)
@@ -122,11 +151,17 @@ output$access_permitted_or_not <- renderUI({
   
   
 })
+```
 
-#' ## analyze_action_bttn
+## analyze_action_bttn
+
+```{r }
 # ~~~~ analyze_action_bttn ---------------------------
-#' Renders when requisites elements have been loaded. 
+```
 
+Renders when requisites elements have been loaded. 
+
+```{r }
 output$analyze_action_bttn <- renderUI({
   
   req(input$data_to_use)
@@ -142,12 +177,17 @@ output$analyze_action_bttn <- renderUI({
                      style = "jelly", color = "primary")
   )
 })
+```
 
-#' ## country_specific_data_to_use_section
+## country_specific_data_to_use_section
+
+```{r }
 # ~~~~ country_specific_data_to_use_section ---------------------------
-#' Combine different UI elements into single output
+```
 
+Combine different UI elements into single output
 
+```{r }
 output$country_specific_data_to_use_section <- 
   renderUI({
     tagList(column(width = 3, 
@@ -160,20 +200,27 @@ output$country_specific_data_to_use_section <-
   })
 
 }
+```
 
-#' # Read file functions
+# Read file functions
+
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~ Read file functions --------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
+## read_file_raw
 
-#' ## read_file_raw
+```{r }
 # ~~~~ read_file_raw ---------------------------
-#' The read_file_raw function does either of two things.
-#' - For countries using Go.Data, it takes in the input credentials, logs into a Go.Data session, and returns a list with the requisite dataframes.
-#' - For countries using KoboCollect, it takes in the two uploaded csv files, (contact list and follow-up list), and returns them as a list of a dataframes.
+```
 
+The read_file_raw function does either of two things.
+- For countries using Go.Data, it takes in the input credentials, logs into a Go.Data session, and returns a list with the requisite dataframes.
+- For countries using KoboCollect, it takes in the two uploaded csv files, (contact list and follow-up list), and returns them as a list of a dataframes.
 
+```{r }
 read_file_raw <- function(){
   
     
@@ -220,15 +267,19 @@ read_file_raw <- function(){
   
   return(tracing_data_raw)
 }
+```
 
+## read_file_transformed
 
-#' ## read_file_transformed
+```{r }
 # ~~~~ read_file_transformed ---------------------------
-#' The 'read_file_transformed' function takes in data from read_file_raw_reactive, 
-#' and 'transforms' it into a single, 'long' dataframe,
-#' with one row per contact-follow-up-day
+```
 
+The 'read_file_transformed' function takes in data from read_file_raw_reactive, 
+and 'transforms' it into a single, 'long' dataframe,
+with one row per contact-follow-up-day
 
+```{r }
 read_file_transformed <- function(tracing_data_raw){
 
   
@@ -368,4 +419,5 @@ read_file_transformed <- function(tracing_data_raw){
   return(contacts_df_long_transformed)
   
 }
+```
 

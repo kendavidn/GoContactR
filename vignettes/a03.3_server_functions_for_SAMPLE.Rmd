@@ -1,29 +1,33 @@
-#'---
-#'title: "03.3: server_functions_for_SAMPLE.R"
-#'output:
-#'  rmarkdown::html_document:
-#'    toc: yes
-#'    toc_depth: 2
-#'    toc_float: yes
-#'params:
-#'  building_docs: true
-#'---
+---
+title: "03.3: server_functions_for_SAMPLE.R"
+output:
+ rmarkdown::html_document:
+   toc: yes
+   toc_depth: 2
+   toc_float: yes
+params:
+ building_docs: true
+---
 
-
-#+ include=FALSE
+```{r include=FALSE}
 ## for knitting into documentation file
 
 if(exists("params") && !is.null(params$building_docs) && params$building_docs == TRUE ){
   knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 }
+```
 
-#' # Read in preloaded data
+# Read in preloaded data
+
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Read in preloaded data ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
-#'Here we load in simulated data
+Here we load in simulated data
 
+```{r }
 contacts_list_sample <-
   rio::import(here::here("data/liste_contacts_sample_SAMPLE.xlsx"))
 
@@ -38,9 +42,11 @@ tracing_data_sample <- list(
 # called by data_input UI element on page 1 of app
 preloaded_data_options <-
   list(`Sample tracing data` = tracing_data_sample)
+```
 
+# UI Outputs
 
-#' # UI Outputs
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  UI Outputs --------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -155,14 +161,15 @@ country_specific_UI_for_loading_data <- function(input, output){
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Read file functions ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' # Read file functions
+```
 
-#' ## read_file_raw
-#' The read_file_raw function does either of two things.
-#' - For countries using Go.Data, it takes in the input credentials, logs into a Go.Data session, and returns a list with the requisite dataframes.
-#' - For countries using KoboCollect, it takes in the two uploaded csv files, (contact list and follow-up list), and returns them as a list of a dataframes.
+# Read file functions
+## read_file_raw
+The read_file_raw function does either of two things.
+- For countries using Go.Data, it takes in the input credentials, logs into a Go.Data session, and returns a list with the requisite dataframes.
+- For countries using KoboCollect, it takes in the two uploaded csv files, (contact list and follow-up list), and returns them as a list of a dataframes.
 
-
+```{r }
 read_file_raw <- function(){
   
   
@@ -211,13 +218,14 @@ read_file_raw <- function(){
   
   return(tracing_data_raw)
 }
+```
 
-#' ## read_file_transformed
-#' The 'read_file_transformed' function takes in data from read_file_raw_reactive, 
-#' and 'transforms' it into a single, 'long' dataframe,
-#' with one row per contact-follow-up-day
+## read_file_transformed
+The 'read_file_transformed' function takes in data from read_file_raw_reactive, 
+and 'transforms' it into a single, 'long' dataframe,
+with one row per contact-follow-up-day
 
-
+```{r }
 read_file_transformed <- function(tracing_data_raw){
   
   
@@ -321,3 +329,5 @@ read_file_transformed <- function(tracing_data_raw){
   return(contacts_df_long_transformed)
   
 }
+```
+

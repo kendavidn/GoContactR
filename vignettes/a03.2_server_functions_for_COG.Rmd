@@ -1,34 +1,38 @@
-#'---
-#'title: "03.3: server_functions_for_SAMPLE.R"
-#'output:
-#'  rmarkdown::html_document:
-#'    toc: yes
-#'    toc_depth: 2
-#'    toc_float: yes
-#'params:
-#'  building_docs: true
-#'---
+---
+title: "03.2: server_functions_for_COG.R"
+output:
+ rmarkdown::html_document:
+   toc: yes
+   toc_depth: 2
+   toc_float: yes
+params:
+ building_docs: true
+---
 
-
-#+ include=FALSE
+```{r include=FALSE}
 ## for knitting into documentation file
 
 if(exists("params") && !is.null(params$building_docs) && params$building_docs == TRUE ){
   knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 }
+```
 
-#' # Read in preloaded data
+# Read in preloaded data
+
+```{r }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Read in preloaded data ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
-#'Here we load in simulated data
+Here we load in simulated data
 
+```{r }
 contacts_list_sample <-
-  rio::import(here::here("data/liste_contacts_sample_SAMPLE.xlsx"))
+  rio::import(here::here("data/liste_contacts_sample_COG.xlsx"))
 
 follow_up_list_sample <-
-  rio::import(here::here("data/suivi_contacts_sample_SAMPLE.xlsx"))
+  rio::import(here::here("data/suivi_contacts_sample_COG.xlsx"))
 
 tracing_data_sample <- list(
   contacts_list = contacts_list_sample,
@@ -38,131 +42,154 @@ tracing_data_sample <- list(
 # called by data_input UI element on page 1 of app
 preloaded_data_options <-
   list(`Sample tracing data` = tracing_data_sample)
+```
 
+# UI Outputs
 
-#' # UI Outputs
+```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  UI Outputs --------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 country_specific_UI_for_loading_data <- function(input, output){
+```
+
+## data_to_use_picker
+
+```{r }
+# ~~~~ data_to_use_picker ---------------------------
+```
+
+Options for data source
+
+```{r }
+output$data_to_use_picker <- renderUI({
+  radioButtons(inputId = "data_to_use",
+               label = "Input Data",
+               choices = c("Use preloaded data",
+                           "Use uploaded data"))
+})
+```
+
+## data_to_use_input
+
+```{r }
+# ~~~~ data_to_use_input ---------------------------
+```
+
+Loads in the data.
+
+```{r }
+output$data_to_use_input <- renderUI({
   
+  req(input$data_to_use)
   
-  #' ## data_to_use_picker
-  # ~~~~ data_to_use_picker ---------------------------
-  #' Options for data source
-  
-  
-  output$data_to_use_picker <- renderUI({
-    radioButtons(inputId = "data_to_use",
-                 label = "Input Data",
-                 choices = c("Use preloaded data",
-                             "Use uploaded data"))
-  })
-  
-  #' ## data_to_use_input
-  # ~~~~ data_to_use_input ---------------------------
-  #' Loads in the data.
-  
-  output$data_to_use_input <- renderUI({
+  if (input$data_to_use == "Use preloaded data") {
     
-    req(input$data_to_use)
+    selectInput("preloaded_data_choice",
+                label = "Use preloaded data",
+                choices = c("Sample tracing data"
+                            #,
+                            #"Sample contacts list"
+                ),
+                selected = NULL,
+                multiple = FALSE)
     
-    if (input$data_to_use == "Use preloaded data") {
-      
-      selectInput("preloaded_data_choice",
-                  label = "Use preloaded data",
-                  choices = c("Sample tracing data"
-                              #,
-                              #"Sample contacts list"
-                  ),
-                  selected = NULL,
-                  multiple = FALSE)
-      
-    } else if (input$data_to_use == "Use uploaded data") {
-      
-      tagList(fileInput(inputId = "uploaded_data_contacts_list",
-                        label = "Upload the list of contacts",
-                        multiple = FALSE,
-                        accept = c("text/csv",
-                                   "text/comma-separated-values,text/plain",
-                                   ".csv",
-                                   ".xlsx",
-                                   ".xls")),
-              fileInput(inputId = "uploaded_data_follow_up_list",
-                        label = "Upload the follow-up list",
-                        multiple = FALSE,
-                        accept = c("text/csv",
-                                   "text/comma-separated-values,text/plain",
-                                   ".csv",
-                                   ".xlsx",
-                                   ".xls")))
-    }
-  })
+  } else if (input$data_to_use == "Use uploaded data") {
+    
+    tagList(fileInput(inputId = "uploaded_data_contacts_list",
+                      label = "Upload the list of contacts",
+                      multiple = FALSE,
+                      accept = c("text/csv",
+                                 "text/comma-separated-values,text/plain",
+                                 ".csv",
+                                 ".xlsx",
+                                 ".xls")),
+            fileInput(inputId = "uploaded_data_follow_up_list",
+                      label = "Upload the follow-up list",
+                      multiple = FALSE,
+                      accept = c("text/csv",
+                                 "text/comma-separated-values,text/plain",
+                                 ".csv",
+                                 ".xlsx",
+                                 ".xls")))
+  }
+})
+```
+
+## analyze_action_bttn
+
+```{r }
+# ~~~~ analyze_action_bttn ---------------------------
+```
+
+Renders when requisites elements have been loaded. 
+
+```{r }
+output$analyze_action_bttn <- renderUI({
+  
+  req(input$data_to_use)
+  
+  if(input$data_to_use == "Use uploaded data") {
+    req(input$uploaded_data_contacts_list)
+    req(input$uploaded_data_follow_up_list)
+    
+  }
+  
+  if(input$data_to_use == "Use preloaded data") {
+    req(input$preloaded_data_choice)
+  }
   
   
-  #' ## analyze_action_bttn
-  # ~~~~ analyze_action_bttn ---------------------------
-  #' Renders when requisites elements have been loaded. 
-  
-  
-  output$analyze_action_bttn <- renderUI({
-    
-    req(input$data_to_use)
-    
-    if(input$data_to_use == "Use uploaded data") {
-      req(input$uploaded_data_contacts_list)
-      req(input$uploaded_data_follow_up_list)
-      
-    }
-    
-    if(input$data_to_use == "Use preloaded data") {
-      req(input$preloaded_data_choice)
-    }
-    
-    
-    tagList(HTML("<p style='font-size:4px'>  <br><br>  </p>"),
-            
-            actionBttn(inputId = "analyze_action_bttn", label = "Analyze",
-                       style = "jelly", color = "primary"),
-            
-            HTML("<br>
+  tagList(HTML("<p style='font-size:4px'>  <br><br>  </p>"),
+          
+          actionBttn(inputId = "analyze_action_bttn", label = "Analyze",
+                     style = "jelly", color = "primary"),
+          
+          HTML("<br>
             <span style='color: rgb(97, 189, 109);'>ℹ:</span>
             <font size='1'>
             After analyses have been triggered once,
             the app must be reloaded before triggering again on a new dataset.
             </font>")
+  )
+})
+```
+
+## country_specific_data_to_use_section
+
+```{r }
+# ~~~~ country_specific_data_to_use_section ---------------------------
+```
+
+Combine different UI elements into single output
+
+```{r }
+output$country_specific_data_to_use_section <- 
+  renderUI({
+    tagList(column(width = 3, 
+                   uiOutput("data_to_use_picker")),
+            column(width = 6, 
+                   uiOutput("data_to_use_input")), 
+            column(width = 3,
+                   uiOutput("analyze_action_bttn"))
     )
   })
-  
-  #' ## country_specific_data_to_use_section
-  # ~~~~ country_specific_data_to_use_section ---------------------------
-  #' Combine different UI elements into single output
-  
-  output$country_specific_data_to_use_section <- 
-    renderUI({
-      tagList(column(width = 3, 
-                     uiOutput("data_to_use_picker")),
-              column(width = 6, 
-                     uiOutput("data_to_use_input")), 
-              column(width = 3,
-                     uiOutput("analyze_action_bttn"))
-      )
-    })
-  
+
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~  Read file functions ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' # Read file functions
+```
 
-#' ## read_file_raw
-#' The read_file_raw function does either of two things.
-#' - For countries using Go.Data, it takes in the input credentials, logs into a Go.Data session, and returns a list with the requisite dataframes.
-#' - For countries using KoboCollect, it takes in the two uploaded csv files, (contact list and follow-up list), and returns them as a list of a dataframes.
+# Read file functions
+## read_file_raw
+The read_file_raw function does either of two things.
+- For countries using Go.Data, it takes in the input credentials, logs into a Go.Data session, and returns a list with the requisite dataframes.
+- For countries using KoboCollect, it takes in the two uploaded csv files, (contact list and follow-up list), and returns them as a list of a dataframes.
 
-
+```{r }
 read_file_raw <- function(){
   
   
@@ -211,13 +238,14 @@ read_file_raw <- function(){
   
   return(tracing_data_raw)
 }
+```
 
-#' ## read_file_transformed
-#' The 'read_file_transformed' function takes in data from read_file_raw_reactive, 
-#' and 'transforms' it into a single, 'long' dataframe,
-#' with one row per contact-follow-up-day
+## read_file_transformed
+The 'read_file_transformed' function takes in data from read_file_raw_reactive, 
+and 'transforms' it into a single, 'long' dataframe,
+with one row per contact-follow-up-day
 
-
+```{r }
 read_file_transformed <- function(tracing_data_raw){
   
   
@@ -321,3 +349,5 @@ read_file_transformed <- function(tracing_data_raw){
   return(contacts_df_long_transformed)
   
 }
+```
+

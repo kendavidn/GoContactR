@@ -5,17 +5,21 @@ output:
    toc: yes
    toc_depth: 2
    toc_float: yes
---- 
+params:
+ building_docs: true
+---
 
 ```{r include=FALSE}
 ## for knitting into documentation file
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
-## NOTE: Section headers on this file are duplicated. 
-## One set of headers exist for knitting this to an Rmarkdown (for documentation)
-## The second set are hooks for RStudio's document outline feature.
+if(exists("params") && !is.null(params$building_docs) && params$building_docs == TRUE ){
+  knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+}
 ```
 
+NOTE: Section headers on this file are duplicated. 
+One set of headers exist for knitting this to an Rmarkdown (for documentation)
+The second set are hooks for RStudio's document outline feature.
 Increase upload size. See https://shiny.rstudio.com/articles/upload.html
 
 ```{r }
@@ -34,6 +38,21 @@ Load in the primary functions that will be called within server.R
 
 ```{r }
   source(here::here("helper_scripts/server_functions.R"), local = T)
+```
+
+# Country-specific load data UI
+
+```{r }
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  Country-specific load data UI ------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+Here we call the function that loads all the country-specific
+UI elements required in the "Choose dataset to analyse" box. 
+
+```{r }
+  country_specific_UI_for_loading_data(input = input, output = output)
 ```
 
 # Load data reactives
@@ -354,16 +373,6 @@ column in the dataset. The code is quite hairy, but we have tried to comment it 
 ```{r }
 # ~~~~ ouput$filters----
 
-cols_to_exclude_from_filters <- 
-  ## filters not created for rows that change across each contact
-  c("follow_up_date", "follow_up_day", 
-    "follow_up_status", "follow_up_status_simple",
-    ## no filters for synthetic columns either
-    "row_id","row_number","sort_number", 
-    ## and no filters on names. 
-    ## Franck mentioned not printing names to app for privacy
-    "first_name", "last_name")
-
   output$filters <- renderUI({
     req(input$analyze_action_bttn)
     req(input$select_date_of_review)
@@ -538,12 +547,12 @@ is "shiny", and a ggplot-based value-box otherwise.
 Like most of the remaining functions that the app uses, these take in 
 two primary inputs: the long contacts dataframe (one row per follow-up-day), 
 and the date of review.
-## contacts_per_day_value_box
+## new_contacts_per_day_value_box
 
 ```{r }
-# ~~~~ contacts_per_day_value_box ----
+# ~~~~ new_contacts_per_day_value_box ----
   
-  output$contacts_per_day_value_box <-
+  output$new_contacts_per_day_value_box <-
     renderValueBox({
       
       req(input$select_date_of_review)
@@ -552,7 +561,7 @@ and the date of review.
       ## require that there is actually data to be visualized
       shiny::validate(need(nrow(read_file_filtered_reactive()) > 0, message = FALSE))
 
-      contacts_per_day_value_box(
+      new_contacts_per_day_value_box(
         contacts_df_long = read_file_filtered_reactive(),
         todays_date = input$select_date_of_review)
     })
@@ -612,139 +621,478 @@ and the date of review.
     })
 ```
 
-#  Contacts per region
+# new_contacts_today
 
 ```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Contacts per region  --------------------
+# ~ new_contacts_today  --------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+These functions show the number of
+of contacts over admin level 1 and admin level 2.
+## new_contacts_today_row_title
+
+```{r }
+# ~~~~ new_contacts_today_row_title ----  
+
+output$new_contacts_today_row_title <- renderUI({
+  req(input$select_date_of_review)
+  
+  new_contacts_today_row_title(input$select_date_of_review)
+  
+})
+```
+
+## new_contacts_today_bar_chart
+
+```{r }
+# ~~~~ new_contacts_today_bar_chart ----  
+
+output$new_contacts_today_bar_chart <-
+  renderHighchart({
+    req(input$select_date_of_review)
+    
+    new_contacts_today_bar_chart(
+      contacts_df_long = read_file_filtered_reactive(), 
+      todays_date = input$select_date_of_review
+    )
+  })
+```
+
+## new_contacts_today_sunburst_plot
+
+```{r }
+# ~~~~ new_contacts_today_sunburst_plot ----  
+
+output$new_contacts_today_sunburst_plot <-
+  renderHighchart({
+    req(input$select_date_of_review)
+    
+    new_contacts_today_sunburst_plot(
+      contacts_df_long = read_file_filtered_reactive(), 
+      todays_date = input$select_date_of_review
+    )
+  })
+```
+
+## new_contacts_today_table
+
+```{r }
+# ~~~~ new_contacts_today_table ----  
+
+output$new_contacts_today_table <-
+  renderReactable({
+    req(input$select_date_of_review)
+    
+    new_contacts_today_table(
+      contacts_df_long = read_file_filtered_reactive(), 
+      todays_date = input$select_date_of_review
+    )
+  })
+```
+
+## new_contacts_today_text
+
+```{r }
+# ~~~~ new_contacts_today_text ----  
+
+output$new_contacts_today_text <-
+  renderUI({
+    req(input$select_date_of_review)
+    
+    new_contacts_today_text(
+      contacts_df_long = read_file_filtered_reactive(), 
+      todays_date = input$select_date_of_review
+    )
+  })
+```
+
+#  new_contacts_historical
+
+```{r }
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ new_contacts_historical  -----------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+Functions showing how the number of contacts who are on follow-up day 1
+## new_contacts_historical_row_title
+
+```{r }
+# ~~~~ new_contacts_historical_row_title ----  
+
+output$new_contacts_historical_row_title <- renderUI({
+  req(input$select_date_of_review)
+  
+  new_contacts_historical_row_title()
+  
+})
+```
+
+## new_contacts_historical_bar_chart
+
+```{r }
+# ~~~~ new_contacts_historical_bar_chart ----  
+
+output$new_contacts_historical_bar_chart <-
+  renderHighchart({
+    req(input$select_date_of_review)
+    
+    new_contacts_historical_bar_chart(
+      contacts_df_long = read_file_filtered_reactive(),
+      todays_date = input$select_date_of_review
+    )
+  })
+```
+
+## new_contacts_historical_bar_chart_relative
+
+```{r }
+# ~~~~ new_contacts_historical_bar_chart_relative ----  
+
+output$new_contacts_historical_bar_chart_relative <-
+  renderHighchart({
+    req(input$select_date_of_review)
+    
+    new_contacts_historical_bar_chart_relative(
+      contacts_df_long = read_file_filtered_reactive(),
+      todays_date = input$select_date_of_review
+    )
+  })
+```
+
+## new_contacts_historical_text
+
+```{r }
+# ~~~~ new_contacts_historical_text ----  
+
+output$new_contacts_historical_text <-
+  renderUI({
+    req(input$select_date_of_review)
+    
+    new_contacts_historical_text(
+      contacts_df_long = read_file_filtered_reactive(),
+      todays_date = input$select_date_of_review
+    )
+  })
+```
+
+# cumul_contacts_today
+
+```{r }
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ cumul_contacts_today  --------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
 Below we call the contacts_per_admin_1 functions. These show the distribution 
 of contacts over admin level 1 and admin level 2.
-## all_contacts_per_admin_1_table
+## cumul_contacts_today_row_title
 
 ```{r }
-# ~~~~ all_contacts_per_admin_1_table ----  
+# ~~~~ cumul_contacts_today_row_title ----  
   
-  output$all_contacts_per_admin_1_table <-
+  output$cumul_contacts_today_row_title <- renderUI({
+    req(input$select_date_of_review)
+
+    cumul_contacts_today_row_title(input$select_date_of_review)
+    
+  })
+```
+
+## cumul_contacts_today_table
+
+```{r }
+# ~~~~ cumul_contacts_today_table ----  
+  
+  output$cumul_contacts_today_table <-
     renderReactable({
       req(input$select_date_of_review)
 
-      all_contacts_per_admin_1_table(
+      cumul_contacts_today_table(
         contacts_df_long = read_file_filtered_reactive()
       )
     })
 ```
 
-## all_contacts_per_admin_1_sunburst_plot
+## cumul_contacts_today_sunburst_plot
 
 ```{r }
-# ~~~~ all_contacts_per_admin_1_sunburst_plot ----  
+# ~~~~ cumul_contacts_today_sunburst_plot ----  
   
-  output$all_contacts_per_admin_1_sunburst_plot <-
+  output$cumul_contacts_today_sunburst_plot <-
     renderHighchart({
       req(input$select_date_of_review)
 
-      all_contacts_per_admin_1_sunburst_plot(
+      cumul_contacts_today_sunburst_plot(
         contacts_df_long = read_file_filtered_reactive()
       )
     })
 ```
 
-## all_contacts_per_admin_1_bar_chart
+## cumul_contacts_today_bar_chart
 
 ```{r }
-# ~~~~ all_contacts_per_admin_1_bar_chart ----  
+# ~~~~ cumul_contacts_today_bar_chart ----  
   
-  output$all_contacts_per_admin_1_bar_chart <-
+  output$cumul_contacts_today_bar_chart <-
     renderHighchart({
       req(input$select_date_of_review)
 
-      all_contacts_per_admin_1_bar_chart(
+      cumul_contacts_today_bar_chart(
         contacts_df_long = read_file_filtered_reactive()
       )
     })
 ```
 
-## all_contacts_per_admin_1_text
+## cumul_contacts_today_text
 
 ```{r }
-# ~~~~ all_contacts_per_admin_1_text ----  
+# ~~~~ cumul_contacts_today_text ----  
   
-  output$all_contacts_per_admin_1_text <-
+  output$cumul_contacts_today_text <-
     renderUI({
       req(input$select_date_of_review)
 
-      all_contacts_per_admin_1_text(
+      cumul_contacts_today_text(
         contacts_df_long = read_file_filtered_reactive()
       )
     })
 ```
 
-#  Contacts surveilled over time
+#  cumul_contacts_historical
 
 ```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Contacts surveilled over time  -----------
+# ~ cumul_contacts_historical  -----------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+Functions showing the cumulative number of contacts over time.
+## cumul_contacts_historical_row_title
+
+```{r }
+# ~~~~ cumul_contacts_historical_row_title ----  
+
+output$cumul_contacts_historical_row_title <- renderUI({
+  req(input$select_date_of_review)
+  
+  cumul_contacts_historical_row_title()
+  
+})
+```
+
+## cumul_contacts_historical_bar_chart
+
+```{r }
+# ~~~~ cumul_contacts_historical_bar_chart ----  
+
+output$cumul_contacts_historical_bar_chart <-
+  renderHighchart({
+    req(input$select_date_of_review)
+    
+    cumul_contacts_historical_bar_chart(
+      contacts_df_long = read_file_filtered_reactive(),
+      todays_date = input$select_date_of_review
+    )
+  })
+```
+
+## cumul_contacts_historical_bar_chart_relative
+
+```{r }
+# ~~~~ cumul_contacts_historical_bar_chart_relative ----  
+
+output$cumul_contacts_historical_bar_chart_relative <-
+  renderHighchart({
+    req(input$select_date_of_review)
+    
+    cumul_contacts_historical_bar_chart_relative(
+      contacts_df_long = read_file_filtered_reactive(),
+      todays_date = input$select_date_of_review
+    )
+  })
+```
+
+## cumul_contacts_historical_text
+
+```{r }
+# ~~~~ cumul_contacts_historical_text ----  
+
+output$cumul_contacts_historical_text <-
+  renderUI({
+    req(input$select_date_of_review)
+    ## use the same function. 
+    cumul_contacts_historical_text(
+      contacts_df_long = read_file_filtered_reactive()
+    )
+  })
+```
+
+# active_contacts_today
+
+```{r }
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ active_contacts_today  --------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+Below we call the contacts_per_admin_1 functions. These show the distribution 
+of contacts over admin level 1 and admin level 2.
+## active_contacts_today_row_title
+
+```{r }
+# ~~~~ active_contacts_today_row_title ----  
+
+output$active_contacts_today_row_title <- renderUI({
+ req(input$select_date_of_review)
+ 
+ active_contacts_today_row_title(input$select_date_of_review)
+ 
+})
+```
+
+## active_contacts_today_table
+
+```{r }
+# ~~~~ active_contacts_today_table ----  
+
+output$active_contacts_today_table <-
+ renderReactable({
+   req(input$select_date_of_review)
+   
+   active_contacts_today_table(
+     contacts_df_long = read_file_filtered_reactive(),
+     todays_date = input$select_date_of_review
+   )
+ })
+```
+
+## active_contacts_today_sunburst_plot
+
+```{r }
+# ~~~~ active_contacts_today_sunburst_plot ----  
+
+output$active_contacts_today_sunburst_plot <-
+ renderHighchart({
+   req(input$select_date_of_review)
+   
+   active_contacts_today_sunburst_plot(
+     contacts_df_long = read_file_filtered_reactive(),
+     todays_date = input$select_date_of_review
+   )
+ })
+```
+
+## active_contacts_today_bar_chart
+
+```{r }
+# ~~~~ active_contacts_today_bar_chart ----  
+
+output$active_contacts_today_bar_chart <-
+ renderHighchart({
+   req(input$select_date_of_review)
+   
+   active_contacts_today_bar_chart(
+     contacts_df_long = read_file_filtered_reactive(),
+     todays_date = input$select_date_of_review
+   )
+ })
+```
+
+## active_contacts_today_text
+
+```{r }
+# ~~~~ active_contacts_today_text ----  
+
+output$active_contacts_today_text <-
+ renderUI({
+   req(input$select_date_of_review)
+   
+   active_contacts_today_text(
+     contacts_df_long = read_file_filtered_reactive(),
+     todays_date = input$select_date_of_review
+   )
+ })
+```
+
+#  active_contacts_historical
+
+```{r }
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~ active_contacts_historical  -----------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
 Functions showing how many contacts were under surveillance at each time point, 
 segregated by region.
-## contacts_surveilled_admin_1_bar_chart
+## active_contacts_historical_row_title
 
 ```{r }
-# ~~~~ contacts_surveilled_admin_1_bar_chart ----  
+# ~~~~ active_contacts_historical_row_title ----  
+
+output$active_contacts_historical_row_title <- renderUI({
+  req(input$select_date_of_review)
   
-  output$contacts_surveilled_admin_1_bar_chart <-
+  active_contacts_historical_row_title()
+  
+})
+```
+
+## active_contacts_historical_bar_chart
+
+```{r }
+# ~~~~ active_contacts_historical_bar_chart ----  
+  
+  output$active_contacts_historical_bar_chart <-
     renderHighchart({
       req(input$select_date_of_review)
 
-      contacts_surveilled_admin_1_bar_chart(
+      active_contacts_historical_bar_chart(
         contacts_df_long = read_file_filtered_reactive(),
         todays_date = input$select_date_of_review
       )
     })
 ```
 
-## contacts_surveilled_admin_1_bar_chart_relative
+## active_contacts_historical_bar_chart_relative
 
 ```{r }
-# ~~~~ contacts_surveilled_admin_1_bar_chart_relative ----  
+# ~~~~ active_contacts_historical_bar_chart_relative ----  
   
-  output$contacts_surveilled_admin_1_bar_chart_relative <-
+  output$active_contacts_historical_bar_chart_relative <-
     renderHighchart({
       req(input$select_date_of_review)
 
-      contacts_surveilled_admin_1_bar_chart_relative(
+      active_contacts_historical_bar_chart_relative(
         contacts_df_long = read_file_filtered_reactive(),
         todays_date = input$select_date_of_review
       )
     })
 ```
 
-## contacts_surveilled_admin_1_text
+## active_contacts_historical_text
 
 ```{r }
-# ~~~~ contacts_surveilled_admin_1_text ----  
+# ~~~~ active_contacts_historical_text ----  
   
-  output$contacts_surveilled_admin_1_text <-
+  output$active_contacts_historical_text <-
     renderUI({
       req(input$select_date_of_review)
 
-      contacts_surveilled_admin_1_text(
+      active_contacts_historical_text(
         contacts_df_long = read_file_filtered_reactive(),
         todays_date = input$select_date_of_review
       )
     })
 ```
 
-#  Contacts per case
+#  contacts_per_case
 
 ```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Contacts per case  -----------
+# ~ contacts_per_case  -----------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
@@ -810,11 +1158,11 @@ At the moment (May 13, 2021), the Go.Data app version has no information for thi
     })
 ```
 
-#  Contacts per link type
+#  contacts_per_link_type
 
 ```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Contacts per link type  -----------
+# ~ contacts_per_link_type -----------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
@@ -873,11 +1221,11 @@ At the moment (May 13, 2021), the Go.Data app version has no information for thi
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
-#  Active contacts bar chart
+#  active_contacts_bar_and_snake
 
 ```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Active contacts bar chart  ------
+# ~ active_contacts_bar_and_snake ------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
@@ -922,14 +1270,6 @@ Graphs showing active contacts by status
   
   output$active_contacts_breakdown_table_download <-
     active_contacts_breakdown_table_download()
-```
-
-#  Active contacts snake plot
-
-```{r }
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Active contacts snake plot  ------
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
 The snake plot shows the status of each active contact.
@@ -1020,11 +1360,11 @@ The user can drag to select contacts, and download the list of selected contacts
   })
 ```
 
-#  Contacts lost to follow-up
+#  lost_contacts
 
 ```{r }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~ Contacts lost to follow-up  ------
+# ~ lost_contacts ------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 

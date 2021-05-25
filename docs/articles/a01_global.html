@@ -48,53 +48,53 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">GoContactR</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.2</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 <li>
-  <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
-<li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../index.html">Home</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Articles
+    Scripts
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/a01_global.html">01: global.R</a>
+      <a href="../articles/a01_global.html">01 global.R</a>
     </li>
     <li>
-      <a href="../articles/a02_server.html">02: server.R</a>
+      <a href="../articles/a02_server.html">02 server.R</a>
     </li>
     <li>
-      <a href="../articles/a03.1_server_functions_for_CIV.html">03.1: server_functions_for_CIV.R</a>
+      <a href="../articles/a03_server_functions.html">03 server_functions.R</a>
     </li>
     <li>
-      <a href="../articles/a03.2_server_functions_for_UGA.html">03.2: server_functions_for_UGA.R</a>
+      <a href="../articles/a03.1_server_functions_for_CIV.html">03.1 server_functions_for_CIV.R</a>
     </li>
     <li>
-      <a href="../articles/a03_server_functions.html">03: server_functions.R</a>
+      <a href="../articles/a03.2_server_functions_for_COG.html">03.2 server_functions_for_COG.R</a>
     </li>
     <li>
-      <a href="../articles/a04_ui.html">04: ui.R</a>
+      <a href="../articles/a03.3_server_functions_for_SAMPLE.html">03.3 server_functions_for_SAMPLE.R</a>
     </li>
     <li>
-      <a href="../articles/a05_report.html">05: report.Rmd</a>
+      <a href="../articles/a03.4_server_functions_for_UGA.html">03.4 server_functions_for_UGA.R</a>
     </li>
     <li>
-      <a href="../articles/a06_video_walkthroughs.html">06: Video walkthroughs</a>
+      <a href="../articles/a04_ui.html">04 ui.R</a>
+    </li>
+    <li>
+      <a href="../articles/a05_report.html">05 report.Rmd</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../articles/a06_video_walkthroughs.html">Walkthroughs</a>
 </li>
 <li>
   <a href="../news/index.html">Changelog</a>
@@ -121,7 +121,7 @@
 
       
 
-      </header><script src="a01_global_files/header-attrs-2.7/header-attrs.js"></script><div class="row">
+      </header><script src="a01_global_files/header-attrs-2.8/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>01: global.R</h1>
@@ -134,30 +134,38 @@
 
     
     
-<p>The global.R file is run once before your app starts. Any R objects created here global.R file become available to the app.R file, the ui.R and the server.R files. # Main parameters</p>
+<p>The global.R file is run once before your app starts. Any R objects created here become available to the app.R file, the ui.R and the server.R files. # Main parameters</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~  Main parameters ----</span>
-<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
-<p>The application has been built to work with two main data sources: contact tracing data from KoboCollect-exported csv files, and contact tracing data from a Go.Data instance (by direct API connection) Here, at the beginning of the global.R file, we set the PARAMS$country_code variable to the country being worked on. This ensures that the correct data import elements are loaded in the app, either the elements for KoboCollect csv import and processing, or the elements for connecting to, and downloading from the Go.Data instance.</p>
+<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="va">PARAMS</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<p>The application has been built to work with two main data sources: contact tracing data from KoboCollect-exported csv files, and contact tracing data from a Go.Data instance (by direct API connection) Here, at the beginning of the global.R file, we set the PARAMS$country_code variable to the country being worked on. This ensures that the correct data import elements are loaded in the app, that is, either the elements for KoboCollect csv import and processing, or the elements for connecting to, and downloading from the Go.Data instance.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">PARAMS</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span>
-<span class="co">## Uncomment the below to change country app version</span>
-<span class="va">PARAMS</span><span class="op">$</span><span class="va">country_code</span> <span class="op">&lt;-</span> <span class="st">"UGA"</span>
+<code class="sourceCode R"><span class="co">## Uncomment the below to change country app version</span>
+<span class="co">#PARAMS$country_code &lt;- "UGA"</span>
 <span class="co">#PARAMS$country_code &lt;- "COG"</span>
 <span class="co">#PARAMS$country_code &lt;- "CIV" </span>
-<span class="va">PARAMS</span><span class="op">$</span><span class="va">testing_mode</span> <span class="op">&lt;-</span> <span class="cn">FALSE</span>
-<span class="va">PARAMS</span><span class="op">$</span><span class="va">fake_data</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></code></pre></div>
+<span class="va">PARAMS</span><span class="op">$</span><span class="va">country_code</span> <span class="op">&lt;-</span> <span class="st">"SAMPLE"</span></code></pre></div>
+<p>When <code>testing_mode</code> is set to true, the app loads with only a small subset of the data. This hastens loading speed and saves your time.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">PARAMS</span><span class="op">$</span><span class="va">testing_mode</span> <span class="op">&lt;-</span> <span class="cn">FALSE</span></code></pre></div>
+<p>When <code>remove_help_tab</code> is set to false, RStudio loads the PDF from the help tab as a separate window. Somewhat annoying</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">PARAMS</span><span class="op">$</span><span class="va">remove_help_tab</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></code></pre></div>
+<p>For the Go.Data-sourced sample data, information on administrative levels is mostly missing. But this makes for an uninteresting dashboard. Turn on this parameter to add in sample administrative levels</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">PARAMS</span><span class="op">$</span><span class="va">fake_data</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></code></pre></div>
 <div id="packages" class="section level1">
 <h1 class="hasAnchor">
 <a href="#packages" class="anchor"></a>Packages</h1>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~  Packages ----</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
 <p>I would normally load packages with p_load but I had some trouble with this when deploying to shiny</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://remotes.r-lib.org">remotes</a></span><span class="op">)</span>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://devtools.r-lib.org/">devtools</a></span><span class="op">)</span>
 <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu">webshot</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/webshot/man/is_phantomjs_installed.html">is_phantomjs_installed</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="fu">webshot</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/webshot/man/install_phantomjs.html">install_phantomjs</a></span><span class="op">(</span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/wch/webshot/">webshot</a></span><span class="op">)</span>  <span class="co">##  for screenshots of htmlwidgets when outputting</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://here.r-lib.org/">here</a></span><span class="op">)</span> 
@@ -165,7 +173,7 @@
 <span class="co"># remotes::install_github("jbkunst/highcharter")</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://jkunst.com/highcharter">highcharter</a></span><span class="op">)</span>  <span class="co">## most charts </span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://plotly-r.com">plotly</a></span><span class="op">)</span> <span class="co">## for the snake plot. highcharter renders this plot too slowly</span>
-<span class="co">#library(shiny)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://shiny.rstudio.com/">shiny</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://deanattali.com/shinyjs/">shinyjs</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/dreamRs/shinyWidgets">shinyWidgets</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://rstudio.github.io/shinydashboard/">shinydashboard</a></span><span class="op">)</span>
@@ -186,36 +194,34 @@
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://scales.r-lib.org">scales</a></span><span class="op">)</span> <span class="co">## for date and time scales</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/gt">gt</a></span><span class="op">)</span> <span class="co">## for easily customizable HTML table</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-gregmisc/gtools">gtools</a></span><span class="op">)</span> <span class="co">## for the `mixedsort` function</span>
-<span class="co"># remotes::install_github("reconhub/linelist")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/reconhub/linelist">linelist</a></span><span class="op">)</span> <span class="co">## for the clean_variable_spellings function </span>
-<span class="co"># remotes::install_github("tidyverse/rvest")</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rvest.tidyverse.org/">rvest</a></span><span class="op">)</span> <span class="co">## for the HTMLtotext function</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rvest.tidyverse.org/">rvest</a></span><span class="op">)</span> <span class="co">## for the html_text2 function</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://rapporter.github.io/pander">pander</a></span><span class="op">)</span> <span class="co">## for some tables?</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/leeper/rio">rio</a></span><span class="op">)</span> <span class="co">## easy importing</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://hughjonesd.github.io/huxtable/">huxtable</a></span><span class="op">)</span> <span class="co">## tables that output to docx and powerpoint</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ardata-fr.github.io/flextable-book/">flextable</a></span><span class="op">)</span> <span class="co">## called by huxtable in some functions</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://hughjonesd.github.io/huxtable/">huxtable</a></span><span class="op">)</span> <span class="co">## tables that output to docx and powerpoint</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/rmarkdown">rmarkdown</a></span><span class="op">)</span> <span class="co">## for knitting the report</span>
-<span class="co"># remotes::install_github("davidgohel/officedown")</span>
+<span class="co"># devtools::install_github("davidgohel/officedown")</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ardata-fr.github.io/officeverse/">officedown</a></span><span class="op">)</span> <span class="co">## for PPTX docs etc.</span>
+<span class="co"># devtools::install_github("rfortherestofus/pagedreport", ref = "main")</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rfortherestofus/pagedreport">pagedreport</a></span><span class="op">)</span> <span class="co">## for PDF reports </span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rstudio.github.io/promises/">promises</a></span><span class="op">)</span> <span class="co">## not sure</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://clock.r-lib.org">clock</a></span><span class="op">)</span> <span class="co">## not sure</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://docs.ropensci.org/charlatan">charlatan</a></span><span class="op">)</span> <span class="co">## for creating fake data</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://httr.r-lib.org/">httr</a></span><span class="op">)</span> <span class="co">## for pulling from godata API</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://arxiv.org/abs/1403.2805">jsonlite</a></span><span class="op">)</span> <span class="co">## convert json files to data frames</span>
-<span class="co"># remotes::install_github("amirmasoudabdol/preferably")</span>
+<span class="co"># devtools::install_github("amirmasoudabdol/preferably")</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://preferably.amirmasoudabdol.name">preferably</a></span><span class="op">)</span> <span class="co">## theme for documentation site</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span> <span class="co">## tidyverse called last to avoid masking</span></code></pre></div>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span> <span class="co">## tidyverse called last to avoid masking</span></code></pre></div>
 </div>
 <div id="misc-options" class="section level1">
 <h1 class="hasAnchor">
 <a href="#misc-options" class="anchor"></a>Misc options</h1>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~  Misc options ----</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
 <p>A few miscellaneous settings</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/options.html">options</a></span><span class="op">(</span>scipen <span class="op">=</span> <span class="fl">999</span><span class="op">)</span> <span class="co"># turn off scientific notation</span>
 <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="co"># fix seed</span>
 <span class="fu"><a href="https://rdrr.io/r/base/options.html">options</a></span><span class="op">(</span>tibble.print_max <span class="op">=</span> <span class="fl">35</span>, tibble.print_min <span class="op">=</span> <span class="fl">35</span><span class="op">)</span> <span class="co"># personal preference</span></code></pre></div>
@@ -223,23 +229,23 @@
 <div id="misc-functions" class="section level1">
 <h1 class="hasAnchor">
 <a href="#misc-functions" class="anchor"></a>Misc functions</h1>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~~ Misc functions ----</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
 <p>Random functions used throughout the application</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="st">"helper_scripts/misc_functions.R"</span><span class="op">)</span>, local <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="set-colors-and-themes" class="section level1">
 <h1 class="hasAnchor">
 <a href="#set-colors-and-themes" class="anchor"></a>Set colors and themes</h1>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~~ Set colors and themes ----</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span></code></pre></div>
 <p>Save some hex codes as named colors for use in app</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">space_cadet</span> <span class="op">&lt;-</span> <span class="st">"#1C2541"</span>
 <span class="va">white</span> <span class="op">&lt;-</span> <span class="st">"#FFFFFF"</span>
 <span class="va">alice_blue</span> <span class="op">&lt;-</span> <span class="st">"#D9F0FE"</span>
@@ -250,7 +256,7 @@
 <span class="va">bright_yellow_crayola</span> <span class="op">&lt;-</span> <span class="st">"#FFB238"</span>
 <span class="va">spinner_color</span> <span class="op">&lt;-</span> <span class="va">burnt_sienna</span> <span class="op">&lt;-</span> <span class="st">"#EE6C4D"</span></code></pre></div>
 <p>Here we set the params for the <code>fresh</code> theme. The <code>fresh</code> package permits easy customization of shinydashboard colors.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">my_fresh_theme</span> <span class="op">&lt;-</span>
   <span class="fu">fresh</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/fresh/man/create_theme.html">create_theme</a></span><span class="op">(</span>
     <span class="fu">fresh</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/fresh/man/adminlte_color.html">adminlte_color</a></span><span class="op">(</span>
@@ -268,8 +274,8 @@
     <span class="op">)</span>
   <span class="op">)</span></code></pre></div>
 <p>Set a color legend for each country/ app version. This feeds the colors on active contacts plots (app tab 2)</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw">if</span> <span class="op">(</span><span class="va">PARAMS</span><span class="op">$</span><span class="va">country_code</span> <span class="op">==</span> <span class="st">"CIV"</span> <span class="op">|</span> <span class="va">PARAMS</span><span class="op">$</span><span class="va">country_code</span> <span class="op">==</span> <span class="st">"COG"</span><span class="op">)</span><span class="op">{</span>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw">if</span> <span class="op">(</span><span class="va">PARAMS</span><span class="op">$</span><span class="va">country_code</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"COG"</span>, <span class="st">"CIV"</span>, <span class="st">"SAMPLE"</span><span class="op">)</span> <span class="op">)</span><span class="op">{</span>
   
 <span class="va">legend_df</span> <span class="op">&lt;-</span>
   <span class="fu">tribble</span><span class="op">(</span>
@@ -309,10 +315,28 @@
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>legend_index <span class="op">=</span> <span class="fu">row_number</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span></code></pre></div>
 </div>
+<div id="misc-objects" class="section level1">
+<h1 class="hasAnchor">
+<a href="#misc-objects" class="anchor"></a>Misc objects</h1>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="co"># ~~ Misc objects ----</span>
+<span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+
+<span class="va">cols_to_exclude_from_filters</span> <span class="op">&lt;-</span> 
+  <span class="co">## filters not created for rows that change across each contact</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"follow_up_date"</span>, <span class="st">"follow_up_day"</span>, 
+    <span class="st">"follow_up_status"</span>, <span class="st">"follow_up_status_simple"</span>,
+    <span class="co">## no filters for synthetic columns either</span>
+    <span class="st">"row_id"</span>,<span class="st">"row_number"</span>,<span class="st">"sort_number"</span>, 
+    <span class="co">## and no filters on names. </span>
+    <span class="co">## Franck mentioned not printing names to app for privacy</span>
+    <span class="st">"first_name"</span>, <span class="st">"last_name"</span><span class="op">)</span></code></pre></div>
+</div>
 <div id="highcharter-themes" class="section level1">
 <h1 class="hasAnchor">
 <a href="#highcharter-themes" class="anchor"></a>Highcharter themes</h1>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~~ Highcharter themes ----</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
@@ -338,7 +362,7 @@
 <div id="menu-items-for-highcharter" class="section level2">
 <h2 class="hasAnchor">
 <a href="#menu-items-for-highcharter" class="anchor"></a>Menu items for highcharter</h2>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~ Menu items for highcharter ----</span>
 
 <span class="va">myMenuItems</span> <span class="op">&lt;-</span>
@@ -358,7 +382,7 @@
 <div id="combine-into-final-theme" class="section level2">
 <h2 class="hasAnchor">
 <a href="#combine-into-final-theme" class="anchor"></a>Combine into final theme</h2>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~ Combine into final theme ----</span>
 <span class="va">newtheme</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="http://jkunst.com/highcharter/reference/hc_theme_merge.html">hc_theme_merge</a></span><span class="op">(</span>
@@ -384,10 +408,10 @@
 <div id="theme-for-sparklines-in-value-boxes" class="section level2">
 <h2 class="hasAnchor">
 <a href="#theme-for-sparklines-in-value-boxes" class="anchor"></a>Theme for sparklines in value boxes</h2>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~ Theme for sparklines in value boxes ----</span></code></pre></div>
 <p>This theme is very minimalist. Equivalent to theme_void in ggplot. Still hoverable though.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">hc_theme_sparkline_vb</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="op">{</span>
   <span class="va">theme</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
     chart <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
@@ -457,7 +481,7 @@
 <div id="plotly-theme" class="section level2">
 <h2 class="hasAnchor">
 <a href="#plotly-theme" class="anchor"></a>Plotly theme</h2>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~  Plotly theme ----</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
@@ -476,7 +500,7 @@
 <div id="ggplot2-theme" class="section level2">
 <h2 class="hasAnchor">
 <a href="#ggplot2-theme" class="anchor"></a>ggplot2 theme</h2>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~~ ggplot2 theme ----</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
@@ -501,7 +525,7 @@
 <div id="reactable-theme" class="section level2">
 <h2 class="hasAnchor">
 <a href="#reactable-theme" class="anchor"></a>Reactable theme</h2>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
 <span class="co"># ~  Reactable theme ----</span>
 <span class="co"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>

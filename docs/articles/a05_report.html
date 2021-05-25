@@ -48,53 +48,53 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">GoContactR</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.2</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 <li>
-  <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
-<li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../index.html">Home</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Articles
+    Scripts
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/a01_global.html">01: global.R</a>
+      <a href="../articles/a01_global.html">01 global.R</a>
     </li>
     <li>
-      <a href="../articles/a02_server.html">02: server.R</a>
+      <a href="../articles/a02_server.html">02 server.R</a>
     </li>
     <li>
-      <a href="../articles/a03.1_server_functions_for_CIV.html">03.1: server_functions_for_CIV.R</a>
+      <a href="../articles/a03_server_functions.html">03 server_functions.R</a>
     </li>
     <li>
-      <a href="../articles/a03.2_server_functions_for_UGA.html">03.2: server_functions_for_UGA.R</a>
+      <a href="../articles/a03.1_server_functions_for_CIV.html">03.1 server_functions_for_CIV.R</a>
     </li>
     <li>
-      <a href="../articles/a03_server_functions.html">03: server_functions.R</a>
+      <a href="../articles/a03.2_server_functions_for_COG.html">03.2 server_functions_for_COG.R</a>
     </li>
     <li>
-      <a href="../articles/a04_ui.html">04: ui.R</a>
+      <a href="../articles/a03.3_server_functions_for_SAMPLE.html">03.3 server_functions_for_SAMPLE.R</a>
     </li>
     <li>
-      <a href="../articles/a05_report.html">05: report.Rmd</a>
+      <a href="../articles/a03.4_server_functions_for_UGA.html">03.4 server_functions_for_UGA.R</a>
     </li>
     <li>
-      <a href="../articles/a06_video_walkthroughs.html">06: Video walkthroughs</a>
+      <a href="../articles/a04_ui.html">04 ui.R</a>
+    </li>
+    <li>
+      <a href="../articles/a05_report.html">05 report.Rmd</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../articles/a06_video_walkthroughs.html">Walkthroughs</a>
 </li>
 <li>
   <a href="../news/index.html">Changelog</a>
@@ -121,7 +121,7 @@
 
       
 
-      </header><script src="a05_report_files/header-attrs-2.7/header-attrs.js"></script><div class="row">
+      </header><script src="a05_report_files/header-attrs-2.8/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>05: report.Rmd</h1>
@@ -136,49 +136,34 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">report_format</span> <span class="op">&lt;-</span> <span class="st">'html (page)'</span></code></pre></div>
-<div class="sourceCode" id="cb2"><pre class="sourceCode css"><code class="sourceCode css"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>h1 {</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  text - align:<span class="dv">center</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>body {</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  background - <span class="kw">color</span>:<span class="cn">#f0f2fa</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">.tab</span> - content{</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  margin - <span class="kw">bottom</span>:<span class="dv">70</span><span class="dt">px</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## if we are knitting outside of shiny, we cannot rely on reactives.</span>
 <span class="co">## Thus, we run the functions manually</span>
 <span class="co">## At the end, we will output the cleaned dataframe for visualization</span>
 
 <span class="kw">if</span> <span class="op">(</span><span class="va">params</span><span class="op">$</span><span class="va">rendered_by_shiny</span> <span class="op">==</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">{</span>
   
-
-  <span class="va">output</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span>
+  <span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="st">"global.R"</span><span class="op">)</span><span class="op">)</span>
+  
+  <span class="co">## artificial input since we're not in shiny context</span>
   <span class="va">input</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span>
   
-  <span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="st">"global.R"</span><span class="op">)</span><span class="op">)</span>
   <span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="st">"helper_scripts/server_functions.R"</span><span class="op">)</span><span class="op">)</span> 
 
-
-  
   <span class="va">input</span><span class="op">$</span><span class="va">data_to_use</span> <span class="op">&lt;-</span> <span class="st">"Use preloaded data"</span>
   <span class="va">preloaded_data_options</span> <span class="op">&lt;-</span>  <span class="va">preloaded_data_options</span> <span class="co">## defined in global file</span>
   <span class="va">input</span><span class="op">$</span><span class="va">preloaded_data_choice</span> <span class="op">&lt;-</span> <span class="st">"Sample tracing data"</span>
   <span class="va">cols_to_exclude_from_filters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"placeholder_non_column"</span><span class="op">)</span>
-  <span class="va">input</span><span class="op">$</span><span class="va">uploaded_data_contacts_list</span><span class="op">$</span><span class="va">datapath</span> <span class="op">&lt;-</span>
-    <span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="st">"data/Formulaire_Identification_contact_CIV_-_latest_version_-_labels_-_2021-02-20-13-17-18.xlsx"</span><span class="op">)</span>
-  <span class="va">input</span><span class="op">$</span><span class="va">uploaded_data_follow_up_list</span><span class="op">$</span><span class="va">datapath</span> <span class="op">&lt;-</span>
-    <span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="st">"data/Formulaire_Suivi_contacts_CIV_-_latest_version_-_labels_-_2021-02-20-14-25-48.xlsx"</span><span class="op">)</span>
-  <span class="va">report_format</span> <span class="op">&lt;-</span> <span class="st">"html (page)"</span>
-
-  <span class="kw">if</span> <span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">data_to_use</span> <span class="op">==</span> <span class="st">"Use preloaded data"</span><span class="op">)</span>   <span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="st">"2021-04-13"</span><span class="op">)</span>
-  <span class="kw">if</span> <span class="op">(</span><span class="va">input</span><span class="op">$</span><span class="va">data_to_use</span> <span class="op">==</span> <span class="st">"Use uploaded data"</span><span class="op">)</span>   <span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="st">"2021-02-20"</span><span class="op">)</span>
-  
-  <span class="va">todays_date</span> <span class="op">&lt;-</span> <span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span>
+  <span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html">as.Date</a></span><span class="op">(</span><span class="st">"2021-04-13"</span><span class="op">)</span>
   
       
+  <span class="va">report_format</span> <span class="op">&lt;-</span> <span class="st">"html (page)"</span>
+  <span class="va">todays_date</span> <span class="op">&lt;-</span> <span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span>
 
+  <span class="va">url</span> <span class="op">&lt;-</span> <span class="st">"https://godata-r13.who.int/"</span>
+  <span class="va">username</span> <span class="op">&lt;-</span> <span class="st">"godata_api@who.int"</span>
+  <span class="va">password</span> <span class="op">&lt;-</span> <span class="st">"godata_api@who"</span>
+  <span class="va">outbreak_id</span> <span class="op">&lt;-</span> <span class="st">"3b5554d7-2c19-41d0-b9af-475ad25a382b"</span>
 
   <span class="co"># ~~~~ read_file_raw ----</span>
   
@@ -197,18 +182,23 @@
     <span class="fu">read_file_filtered</span><span class="op">(</span><span class="va">contacts_df_long_transformed</span>,
                        <span class="va">input</span><span class="op">$</span><span class="va">select_date_of_review</span><span class="op">)</span>
 
-<span class="op">}</span>
-  
-<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+  <span class="va">PARAMS</span><span class="op">$</span><span class="va">documentation</span> <span class="op">&lt;-</span>  <span class="cn">TRUE</span>
+
+<span class="op">}</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## if knitting within shiny</span>
 <span class="kw">if</span> <span class="op">(</span><span class="va">params</span><span class="op">$</span><span class="va">rendered_by_shiny</span> <span class="op">==</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">{</span>
+  
+<span class="co"># ~~~~ Source functions  ----</span>
+
   <span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="st">"global.R"</span><span class="op">)</span><span class="op">)</span>
   <span class="kw"><a href="https://rdrr.io/r/base/source.html">source</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="st">"helper_scripts/server_functions.R"</span><span class="op">)</span><span class="op">)</span> 
 
-<span class="va">contacts_df_long</span> <span class="op">&lt;-</span> <span class="va">params</span><span class="op">$</span><span class="va">contacts_df_long</span>
-<span class="va">todays_date</span> <span class="op">&lt;-</span> <span class="va">params</span><span class="op">$</span><span class="va">todays_date</span>
-<span class="va">report_format</span> <span class="op">&lt;-</span> <span class="va">params</span><span class="op">$</span><span class="va">report_format</span>
+
+  <span class="co">## parameters</span>
+  <span class="va">contacts_df_long</span> <span class="op">&lt;-</span> <span class="va">params</span><span class="op">$</span><span class="va">contacts_df_long</span>
+  <span class="va">todays_date</span> <span class="op">&lt;-</span> <span class="va">params</span><span class="op">$</span><span class="va">todays_date</span>
+  <span class="va">report_format</span> <span class="op">&lt;-</span> <span class="va">params</span><span class="op">$</span><span class="va">report_format</span>
 <span class="op">}</span>
 
 
@@ -216,18 +206,17 @@
 <div id="value-box-summaries" class="section level1">
 <h1 class="hasAnchor">
 <a href="#value-box-summaries" class="anchor"></a>VALUE BOX SUMMARIES</h1>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">contacts_per_day_value_box</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">new_contacts_per_day_value_box</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                            <span class="va">todays_date</span>,
                            <span class="va">report_format</span><span class="op">)</span>
-
 
 <span class="fu">cumulative_contacts_value_box</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                               <span class="va">todays_date</span>,
                               <span class="va">report_format</span><span class="op">)</span>
 
 <span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">contacts_under_surveillance_value_box</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                                       <span class="va">todays_date</span>,
                                       <span class="va">report_format</span><span class="op">)</span>
@@ -238,96 +227,232 @@
 
 
 <span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
-</div>
-<div id="outputs-pertaining-to-all-contacts" class="section level1 unlisted unnumbered">
-<h1 class="hasAnchor">
-<a href="#outputs-pertaining-to-all-contacts" class="anchor"></a>OUTPUTS PERTAINING TO ALL CONTACTS</h1>
-</div>
-<div id="admin-level-1-breakdown" class="section level1">
-<h1 class="hasAnchor">
-<a href="#admin-level-1-breakdown" class="anchor"></a>Admin level 1 breakdown</h1>
+<!------------------>
+<!-- NEW CONTACTS -->
+<!------------------>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">new_contacts_today_row_title</span><span class="op">(</span><span class="va">todays_date</span>, <span class="va">report_format</span><span class="op">)</span></code></pre></div>
 <div id="section" class="section level2 unlisted unnumbered">
 <h2 class="unlisted unnumbered"></h2>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">all_contacts_per_admin_1_text</span><span class="op">(</span><span class="va">contacts_df_long</span>,
-                               <span class="va">report_format</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu">new_contacts_today_text</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                        <span class="va">todays_date</span>,
+                        <span class="va">report_format</span><span class="op">)</span>
 
 <span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<div id="admin-level-1-breakdown-bar-chart" class="section level3">
+<div id="new-contacts-bar-chart" class="section level3">
 <h3 class="hasAnchor">
-<a href="#admin-level-1-breakdown-bar-chart" class="anchor"></a>Admin level 1 breakdown bar chart</h3>
+<a href="#new-contacts-bar-chart" class="anchor"></a>New contacts bar chart</h3>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">all_contacts_per_admin_1_bar_chart</span><span class="op">(</span><span class="va">contacts_df_long</span>,
-                                   <span class="va">report_format</span><span class="op">)</span>
-
+<code class="sourceCode R"><span class="fu">new_contacts_today_bar_chart</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                        <span class="va">todays_date</span>,
+                        <span class="va">report_format</span><span class="op">)</span>
 <span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
 </div>
-<div id="admin-level-1-breakdown-sunburst-plot" class="section level3">
+<div id="new-contacts-sunburst-plot" class="section level3">
 <h3 class="hasAnchor">
-<a href="#admin-level-1-breakdown-sunburst-plot" class="anchor"></a>Admin level 1 breakdown sunburst plot</h3>
+<a href="#new-contacts-sunburst-plot" class="anchor"></a>New contacts sunburst plot</h3>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">all_contacts_per_admin_1_sunburst_plot</span><span class="op">(</span><span class="va">contacts_df_long</span>,
-                                      <span class="va">report_format</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu">new_contacts_today_sunburst_plot</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                        <span class="va">todays_date</span>,
+                        <span class="va">report_format</span><span class="op">)</span>
 
 <span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
 </div>
-<div id="admin-level-1-breakdown-table" class="section level3">
+<div id="new-contacts-table" class="section level3">
 <h3 class="hasAnchor">
-<a href="#admin-level-1-breakdown-table" class="anchor"></a>Admin level 1 breakdown table</h3>
+<a href="#new-contacts-table" class="anchor"></a>New contacts table</h3>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">all_contacts_per_admin_1_table</span><span class="op">(</span><span class="va">contacts_df_long</span>,
-                              <span class="va">report_format</span><span class="op">)</span>
+<code class="sourceCode R"><span class="fu">new_contacts_today_table</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                        <span class="va">todays_date</span>,
+                        <span class="va">report_format</span><span class="op">)</span>
 
 <span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<!-- # ~~~ main_tab_row_2 ---- -->
+<!-- new contacts historical -->
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">new_contacts_historical_row_title</span><span class="op">(</span><span class="va">report_format</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
-</div>
-<div id="admin-level-1-trends" class="section level1">
-<h1 class="hasAnchor">
-<a href="#admin-level-1-trends" class="anchor"></a>Admin level 1 trends</h1>
 <div id="section-1" class="section level2 unlisted unnumbered">
 <h2 class="unlisted unnumbered"></h2>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">contacts_surveilled_admin_1_text</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">new_contacts_historical_text</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                                  <span class="va">todays_date</span>,
                                  <span class="va">report_format</span><span class="op">)</span>
 <span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<div id="admin-level-1-trends-absolute-counts" class="section level3">
+<div id="absolute-numbers" class="section level3">
 <h3 class="hasAnchor">
-<a href="#admin-level-1-trends-absolute-counts" class="anchor"></a>Admin level 1 trends, absolute counts</h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">contacts_surveilled_admin_1_bar_chart</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+<a href="#absolute-numbers" class="anchor"></a>Absolute numbers</h3>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">new_contacts_historical_bar_chart</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                                       <span class="va">todays_date</span>,
                                       <span class="va">report_format</span><span class="op">)</span>
 <span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
 </div>
-<div id="admin-level-1-trends-relative-proportions" class="section level3">
+<div id="relative-proportions" class="section level3">
 <h3 class="hasAnchor">
-<a href="#admin-level-1-trends-relative-proportions" class="anchor"></a>Admin level 1 trends, relative proportions</h3>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">contacts_surveilled_admin_1_bar_chart_relative</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+<a href="#relative-proportions" class="anchor"></a>Relative proportions</h3>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">new_contacts_historical_bar_chart_relative</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                                                <span class="va">todays_date</span>,
                                                <span class="va">report_format</span><span class="op">)</span>
 <span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
-<!-- # ~~~ main_tab_row_3 ---- -->
+<!------------------------>
+<!-- CUMULATIVE CONTACTS -->
+<!------------------------>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">cumul_contacts_today_row_title</span><span class="op">(</span><span class="va">todays_date</span>, <span class="va">report_format</span><span class="op">)</span></code></pre></div>
+</div>
+</div>
+<div id="section-2" class="section level2 unlisted unnumbered">
+<h2 class="unlisted unnumbered"></h2>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">cumul_contacts_today_text</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                        <span class="va">report_format</span><span class="op">)</span>
+
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div id="cumulative-contacts-bar-chart" class="section level3">
+<h3 class="hasAnchor">
+<a href="#cumulative-contacts-bar-chart" class="anchor"></a>Cumulative contacts bar chart</h3>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">cumul_contacts_today_bar_chart</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                        <span class="va">report_format</span><span class="op">)</span>
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="cumulative-contacts-sunburst-plot" class="section level3">
+<h3 class="hasAnchor">
+<a href="#cumulative-contacts-sunburst-plot" class="anchor"></a>Cumulative contacts sunburst plot</h3>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">cumul_contacts_today_sunburst_plot</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                        <span class="va">report_format</span><span class="op">)</span>
+
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="cumulative-contacts-table" class="section level3">
+<h3 class="hasAnchor">
+<a href="#cumulative-contacts-table" class="anchor"></a>Cumulative contacts table</h3>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">cumul_contacts_today_table</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                        <span class="va">report_format</span><span class="op">)</span>
+
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<!-- cumul contacts historical -->
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">cumul_contacts_historical_row_title</span><span class="op">(</span><span class="va">report_format</span><span class="op">)</span></code></pre></div>
+</div>
+</div>
+<div id="section-3" class="section level2 unlisted unnumbered">
+<h2 class="unlisted unnumbered"></h2>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">cumul_contacts_historical_text</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                                 <span class="va">report_format</span><span class="op">)</span>
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div id="absolute-numbers-1" class="section level3">
+<h3 class="hasAnchor">
+<a href="#absolute-numbers-1" class="anchor"></a>Absolute numbers</h3>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">cumul_contacts_historical_bar_chart</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                                      <span class="va">todays_date</span>,
+                                      <span class="va">report_format</span><span class="op">)</span>
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="relative-proportions-1" class="section level3">
+<h3 class="hasAnchor">
+<a href="#relative-proportions-1" class="anchor"></a>Relative proportions</h3>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">cumul_contacts_historical_bar_chart_relative</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                                               <span class="va">todays_date</span>,
+                                               <span class="va">report_format</span><span class="op">)</span>
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<!------------------>
+<!-- ACTIVE CONTACTS -->
+<!------------------>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">active_contacts_today_row_title</span><span class="op">(</span><span class="va">todays_date</span>, <span class="va">report_format</span><span class="op">)</span></code></pre></div>
+</div>
+</div>
+<div id="section-4" class="section level2 unlisted unnumbered">
+<h2 class="unlisted unnumbered"></h2>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">active_contacts_today_text</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                        <span class="va">todays_date</span>,
+                        <span class="va">report_format</span><span class="op">)</span>
+
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div id="contacts-under-surveillance-bar-chart" class="section level3">
+<h3 class="hasAnchor">
+<a href="#contacts-under-surveillance-bar-chart" class="anchor"></a>Contacts under surveillance bar chart</h3>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">active_contacts_today_bar_chart</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                        <span class="va">todays_date</span>,
+                        <span class="va">report_format</span><span class="op">)</span>
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="contacts-under-surveillance-sunburst-plot" class="section level3">
+<h3 class="hasAnchor">
+<a href="#contacts-under-surveillance-sunburst-plot" class="anchor"></a>Contacts under surveillance sunburst plot</h3>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">active_contacts_today_sunburst_plot</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                        <span class="va">todays_date</span>,
+                        <span class="va">report_format</span><span class="op">)</span>
+
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="contacts-under-surveillance-table" class="section level3">
+<h3 class="hasAnchor">
+<a href="#contacts-under-surveillance-table" class="anchor"></a>Contacts under surveillance table</h3>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">active_contacts_today_table</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                        <span class="va">todays_date</span>,
+                        <span class="va">report_format</span><span class="op">)</span>
+
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<!-- active contacts historical -->
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">active_contacts_historical_row_title</span><span class="op">(</span><span class="va">report_format</span><span class="op">)</span></code></pre></div>
+</div>
+</div>
+<div id="section-5" class="section level2 unlisted unnumbered">
+<h2 class="unlisted unnumbered"></h2>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">active_contacts_historical_text</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                                 <span class="va">todays_date</span>,
+                                 <span class="va">report_format</span><span class="op">)</span>
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+<div id="absolute-numbers-2" class="section level3">
+<h3 class="hasAnchor">
+<a href="#absolute-numbers-2" class="anchor"></a>Absolute numbers</h3>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">active_contacts_historical_bar_chart</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                                      <span class="va">todays_date</span>,
+                                      <span class="va">report_format</span><span class="op">)</span>
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="relative-proportions-2" class="section level3">
+<h3 class="hasAnchor">
+<a href="#relative-proportions-2" class="anchor"></a>Relative proportions</h3>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">new_contacts_historical_bar_chart_relative</span><span class="op">(</span><span class="va">contacts_df_long</span>,
+                                               <span class="va">todays_date</span>,
+                                               <span class="va">report_format</span><span class="op">)</span>
+<span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
 </div>
 </div>
 </div>
 <div id="contacts-per-case" class="section level1">
 <h1 class="hasAnchor">
 <a href="#contacts-per-case" class="anchor"></a>Contacts per case</h1>
-<div id="section-2" class="section level2 unlisted unnumbered">
+<div id="section-6" class="section level2 unlisted unnumbered">
 <h2 class="unlisted unnumbered"></h2>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">total_contacts_per_case_text</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                              <span class="va">report_format</span><span class="op">)</span>
 
 <span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <div id="contacts-per-case-table" class="section level3">
 <h3 class="hasAnchor">
-<a href="#contacts-per-case-table" class="anchor"></a>Contacts per case table</h3>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<a href="#contacts-per-case-table" class="anchor"></a>Contacts per case, table</h3>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">total_contacts_per_case_table</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                              <span class="va">report_format</span><span class="op">)</span>
 
@@ -335,8 +460,8 @@
 </div>
 <div id="contacts-per-case-donut-plot" class="section level3">
 <h3 class="hasAnchor">
-<a href="#contacts-per-case-donut-plot" class="anchor"></a>Contacts per case donut plot</h3>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<a href="#contacts-per-case-donut-plot" class="anchor"></a>Contacts per case, donut plot</h3>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">total_contacts_per_case_donut_plot</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                              <span class="va">report_format</span><span class="op">)</span>
 
@@ -344,8 +469,8 @@
 </div>
 <div id="contacts-per-case-bar-chart" class="section level3">
 <h3 class="hasAnchor">
-<a href="#contacts-per-case-bar-chart" class="anchor"></a>Contacts per case bar chart</h3>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<a href="#contacts-per-case-bar-chart" class="anchor"></a>Contacts per case, bar chart</h3>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">total_contacts_per_case_bar_chart</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                              <span class="va">report_format</span><span class="op">)</span>
 
@@ -356,17 +481,17 @@
 <div id="case-contact-relationships" class="section level1">
 <h1 class="hasAnchor">
 <a href="#case-contact-relationships" class="anchor"></a>Case-contact relationships</h1>
-<div id="section-3" class="section level2 unlisted unnumbered">
+<div id="section-7" class="section level2 unlisted unnumbered">
 <h2 class="unlisted unnumbered"></h2>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">total_contacts_per_link_type_text</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                                         <span class="va">report_format</span><span class="op">)</span>
 
 <span class="fu">update_rmd_progress</span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <div id="case-contact-relationships-donut-plot" class="section level3">
 <h3 class="hasAnchor">
-<a href="#case-contact-relationships-donut-plot" class="anchor"></a>Case-contact relationships donut plot</h3>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<a href="#case-contact-relationships-donut-plot" class="anchor"></a>Case-contact relationships, donut plot</h3>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">total_contacts_per_link_type_donut_plot</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                              <span class="va">report_format</span><span class="op">)</span>
 
@@ -374,8 +499,8 @@
 </div>
 <div id="case-contact-relationships-bar-chart" class="section level3">
 <h3 class="hasAnchor">
-<a href="#case-contact-relationships-bar-chart" class="anchor"></a>Case-contact relationships bar chart</h3>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<a href="#case-contact-relationships-bar-chart" class="anchor"></a>Case-contact relationships, bar chart</h3>
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">total_contacts_per_link_type_bar_chart</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                              <span class="va">report_format</span><span class="op">)</span>
 
@@ -383,23 +508,19 @@
 </div>
 </div>
 </div>
-<div id="outputs-pertaining-to-active-contacts" class="section level1 unlisted unnumbered">
-<h1 class="hasAnchor">
-<a href="#outputs-pertaining-to-active-contacts" class="anchor"></a>OUTPUTS PERTAINING TO ACTIVE CONTACTS</h1>
-</div>
 <div id="follow-up-timelines" class="section level1">
 <h1 class="hasAnchor">
 <a href="#follow-up-timelines" class="anchor"></a>Follow-up timelines</h1>
-<div id="section-4" class="section level2 unlisted unnumbered">
+<div id="section-8" class="section level2 unlisted unnumbered">
 <h2 class="unlisted unnumbered"></h2>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">active_contacts_timeline_text</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                              <span class="va">todays_date</span>,
                              <span class="va">report_format</span><span class="op">)</span></code></pre></div>
 <div id="follow-up-summary-bar-chart" class="section level3">
 <h3 class="hasAnchor">
 <a href="#follow-up-summary-bar-chart" class="anchor"></a>Follow-up summary bar chart</h3>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">active_contacts_breakdown_bar_chart</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                            <span class="va">todays_date</span>,
                            <span class="va">report_format</span>,
@@ -410,7 +531,7 @@
 <div id="follow-up-timeline-snake-plot" class="section level3">
 <h3 class="hasAnchor">
 <a href="#follow-up-timeline-snake-plot" class="anchor"></a>Follow-up timeline snake plot</h3>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">active_contacts_timeline_snake_plot</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                            <span class="va">todays_date</span>,
                            <span class="va">report_format</span>,
@@ -423,9 +544,9 @@
 <div id="contacts-not-seen-recently" class="section level1">
 <h1 class="hasAnchor">
 <a href="#contacts-not-seen-recently" class="anchor"></a>Contacts not seen recently</h1>
-<div id="section-5" class="section level2 unlisted unnumbered">
+<div id="section-9" class="section level2 unlisted unnumbered">
 <h2 class="unlisted unnumbered"></h2>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">lost_contacts_linelist_text</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                              <span class="va">todays_date</span>,
                              <span class="va">report_format</span><span class="op">)</span>
@@ -433,7 +554,7 @@
 <div id="loss-to-follow-up-past-3-days" class="section level3">
 <h3 class="hasAnchor">
 <a href="#loss-to-follow-up-past-3-days" class="anchor"></a>Loss to follow-up, past 3 days</h3>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">contacts_lost_24_to_72_hours_table</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                              <span class="va">todays_date</span>,
                              <span class="va">report_format</span><span class="op">)</span></code></pre></div>
@@ -441,7 +562,7 @@
 <div id="list-of-contacts-not-seen" class="section level3">
 <h3 class="hasAnchor">
 <a href="#list-of-contacts-not-seen" class="anchor"></a>List of contacts not seen</h3>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">lost_contacts_linelist_table</span><span class="op">(</span><span class="va">contacts_df_long</span>,
                              <span class="va">todays_date</span>,
                              report_format <span class="op">=</span> <span class="va">report_format</span><span class="op">)</span> <span class="op">%&gt;%</span>

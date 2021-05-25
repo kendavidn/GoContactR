@@ -5,11 +5,15 @@
 #'    toc: yes
 #'    toc_depth: 2
 #'    toc_float: yes
-#' ---
+#'params:
+#'  building_docs: true
+#'---
+
 
 #+ include=FALSE
 ## for knitting into documentation file
-if(exists("PARAMS") && !is.null(PARAMS$building_docs) && PARAMS$building_docs == TRUE ){
+
+if(exists("params") && !is.null(params$building_docs) && params$building_docs == TRUE ){
   knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 }
 
