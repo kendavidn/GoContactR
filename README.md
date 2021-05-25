@@ -14,10 +14,10 @@ At the start of the global.R file, the developer sets the `PARAMS$country_code` 
 
 The application generates reports in the following formats:
 
--   HTML slides. See [here](http://htmlpreview.github.io/?https://github.com/kendavidn/GoContactR/tree/master/markdown/sample_outputs/gocontactr_report_html_slides.html) (or [here](https://drive.google.com/file/d/18NIlb2wtKVXnGwascB9F0DKHT26-Lz8x/view?usp=sharing))
--   Flat HTML page. See [here](http://htmlpreview.github.io/?https://github.com/kendavidn/GoContactR/tree/master/markdown/sample_outputs/gocontactr_report_html_page.html) (or [here](https://drive.google.com/file/d/1hAMGwwo5VGDhJDB04JLfj6Oo_tZ-6n3K/view?usp=sharing))
+-   HTML slides. See [here](https://drive.google.com/file/d/18NIlb2wtKVXnGwascB9F0DKHT26-Lz8x/view?usp=sharing) (Download and open in browser)
+-   Flat HTML page. See [here](https://drive.google.com/file/d/1hAMGwwo5VGDhJDB04JLfj6Oo_tZ-6n3K/view?usp=sharing) (Download and open in browser)
 -   Powerpoint document. See [here](https://drive.google.com/file/d/1_J7zp-gPDcdMt5viJC_o3YsJRwG1GGqC/view?usp=sharing)
--   Word document. See [here](https://drive.google.com/file/d/1_J7zp-gPDcdMt5viJC_o3YsJRwG1GGqC/view?usp=sharing)
+-   Word document. See [here](https://drive.google.com/file/d/1GL3IS3AeD7S536z-D6rvNXc2rpM3RzgG/view?usp=sharing)
 
 ## Deployment
 

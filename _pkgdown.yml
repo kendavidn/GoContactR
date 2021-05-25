@@ -27,6 +27,12 @@ navbar:
          href: articles/a04_ui.html
       -  text: 05 report.Rmd
          href: articles/a05_report.html
+    - text: Report outputs
+      menu:
+      -  text: HTML page
+         href: articles/gocontactr_report_html_page.html
+      -  text: HTML slides
+         href: articles/gocontactr_report_html_slides.html
     - text: Walkthroughs
       href: articles/a06_video_walkthroughs.html
     - text: Changelog
