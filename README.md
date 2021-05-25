@@ -19,7 +19,8 @@ The *server* file sources its functions from the *helper_scripts* folder.
 The data flow for the application is fairly straightforward. 
 A single dataset is loaded in with the `read_file_raw` function, processed with the `read_file_transformed` function, filtered with the `read_file_filtered` function, then passed on to all the application outputs. 
 
-![gocontactr_data_flow](https://imgur.com/a/NiEaPSL)
+
+<img src="https://imgur.com/a/NiEaPSL"/>
 
 ## Key outputs
 
