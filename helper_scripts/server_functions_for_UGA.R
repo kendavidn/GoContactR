@@ -17,57 +17,6 @@ if(exists("params") && !is.null(params$building_docs) && params$building_docs ==
   knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 }
 
-#' # UI Outputs
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~  UI Outputs --------------------
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-#' ## country_specific_UI_for_loading_data
-# ~~~~ country_specific_UI_for_loading_data ---------------------------
-
-#` Here we call the function that loads all the country-specific
-#' UI elements required in the "Choose dataset to analyse" box. 
-
-country_specific_UI_for_loading_data <- function(input, output){
-
-
-#' ## data_to_use_picker
-# ~~~~ data_to_use_picker ---------------------------
-#' Options for data source
-
-output$data_to_use_picker <- renderUI({
-  radioButtons(inputId = "data_to_use", 
-               label = "Input Data", 
-               choices = c("Connect to Go.Data"))
-})
-
-#' ## data_to_use_input
-# ~~~~ data_to_use_input ---------------------------
-#' Loads in the data.
-
-output$data_to_use_input <- 
-  renderUI({
-    tagList(textInput("go_data_url",
-                      "URL for your instance:",
-                      value = "https://godata-r13.who.int/"), 
-            textInput("go_data_username", 
-                      "Username:",
-                      value = "godata_api@who.int"),
-            passwordInput("go_data_password", 
-                          "Password:"), 
-            textInput("go_data_outbreak_id", 
-                      "Outbreak ID:", 
-                      value = "3b5554d7-2c19-41d0-b9af-475ad25a382b"),
-            actionBttn("go_data_request_access_button",
-                       "Request access", 
-                       style = "jelly", 
-                       color = "primary"
-            ), 
-            uiOutput("access_permitted_or_not"))
-  })
-
-
 #' ## access_token_reactive
 # ~~~~ access_token_reactive ---------------------------
 #' Specific to Go.Data version Returns access token
@@ -99,6 +48,59 @@ access_token_reactive <- reactive({
   access_token
   
 })
+
+#' # UI Outputs
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~  UI Outputs --------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+#' ## country_specific_UI_for_loading_data
+# ~~~~ country_specific_UI_for_loading_data ---------------------------
+
+#` Here we call the function that loads all the country-specific
+#' UI elements required in the "Choose dataset to analyse" box. 
+
+country_specific_UI_for_loading_data <- function(input, output){
+
+
+#' ## data_to_use_picker
+# ~~~~ data_to_use_picker ---------------------------
+#' Options for data source
+
+output$data_to_use_picker <- renderUI({
+  radioButtons(inputId = "data_to_use", 
+               label = "Input Data", 
+               choices = c("Connect to Go.Data"))
+})
+
+
+
+#' ## data_to_use_input
+# ~~~~ data_to_use_input ---------------------------
+#' Loads in the data.
+
+output$data_to_use_input <- 
+  renderUI({
+    tagList(textInput("go_data_url",
+                      "URL for your instance:",
+                      value = "https://godata-r13.who.int/"), 
+            textInput("go_data_username", 
+                      "Username:",
+                      value = "godata_api@who.int"),
+            passwordInput("go_data_password", 
+                          "Password:"), 
+            textInput("go_data_outbreak_id", 
+                      "Outbreak ID:", 
+                      value = "3b5554d7-2c19-41d0-b9af-475ad25a382b"),
+            actionBttn("go_data_request_access_button",
+                       "Request access", 
+                       style = "jelly", 
+                       color = "primary"
+            ), 
+            uiOutput("access_permitted_or_not"))
+  })
+
 
 #' ## access_permitted_or_not
 # ~~~~ access_permitted_or_not ---------------------------

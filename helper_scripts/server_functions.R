@@ -1072,7 +1072,7 @@ new_contacts_today_text <-
 
 #' ## new_contacts_historical_row_title
 
-new_contacts_historical_row_title <- function(report_format){
+new_contacts_historical_row_title <- function(report_format = "shiny"){
   ## doesn't need to a function at the moment. 
   ## But we leave it there in case we want to take in an input or two
   
@@ -1718,7 +1718,7 @@ cumul_contacts_today_text <-
 
 #' ## cumul_contacts_historical_row_title
 
-cumul_contacts_historical_row_title <- function(report_format){
+cumul_contacts_historical_row_title <- function(report_format = "shiny"){
   ## doesn't need to a function at the moment. 
   ## But we leave it there in case we want to take in an input or two
 
@@ -1981,7 +1981,7 @@ cumul_contacts_historical_text <-
 
 #' ## active_contacts_today_row_title
 
-active_contacts_today_row_title <- function(todays_date, report_format){
+active_contacts_today_row_title <- function(todays_date, report_format = "shiny"){
   
   formatted_date <-format.Date(todays_date,
                                format = "%b %d, %Y")
@@ -2371,7 +2371,7 @@ active_contacts_today_text <-
 
 #' ## active_contacts_historical_row_title
 
-active_contacts_historical_row_title <- function(report_format){
+active_contacts_historical_row_title <- function(report_format = "shiny"){
   ## doesn't need to a function at the moment. 
   ## But we leave it there in case we want to take in an input or two
   

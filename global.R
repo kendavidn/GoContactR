@@ -38,10 +38,10 @@ PARAMS <- list()
 #' or the elements for connecting to, and downloading from the Go.Data instance.
 
 ## Uncomment the below to change country app version
-#PARAMS$country_code <- "UGA"
-#PARAMS$country_code <- "COG"
 #PARAMS$country_code <- "CIV" 
-PARAMS$country_code <- "SAMPLE"
+#PARAMS$country_code <- "COG"
+PARAMS$country_code <- "UGA"
+#PARAMS$country_code <- "SAMPLE"
 
 
 #' When `testing_mode` is set to true, the app loads with only a small subset of the data. 
@@ -51,7 +51,6 @@ PARAMS$testing_mode <- FALSE
 #' When `remove_help_tab` is set to false, RStudio loads the PDF from the help tab
 #' as a separate window. Somewhat annoying
 PARAMS$remove_help_tab <- TRUE
-
 
 #' For the Go.Data-sourced sample data, information on administrative levels is mostly missing.
 #' But this makes for an uninteresting dashboard. 

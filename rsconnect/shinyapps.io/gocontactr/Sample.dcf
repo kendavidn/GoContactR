@@ -1,0 +1,13 @@
+name: Sample
+title: Sample
+username:
+account: gocontactr
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4183812
+bundleId: 4641177
+url: https://gocontactr.shinyapps.io/sample/
+when: 1622018338.10883
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .Rprofile|DESCRIPTION|docs|vignettes
