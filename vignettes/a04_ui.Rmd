@@ -79,7 +79,16 @@ sidebar <-
               menuItem("All contacts", tabName = "main_tab", icon = icon("globe")),
               menuItem("Active contacts", tabName = "active_contacts_tab", icon = icon("calendar-week")), 
               menuItem("Help", tabName = "help_tab", icon = icon("info-circle")), 
-              menuItem("Click to logout", href = "https://gocontactr.shinyapps.io/cotedivoire/__logout__/",newtab = FALSE,
+              menuItem("Click to logout", 
+                       href = paste0("https://gocontactr.shinyapps.io/", 
+                                     switch(PARAMS$country_code,
+                                            "CIV" = "cotedivoire",
+                                            "COG" = "congo",
+                                            "SAMPLE" = "sample",
+                                            "UGA" = "uganda"
+                                            ),
+                                     "/__logout__/"),
+                       newtab = FALSE,
                        icon = icon("sign-out-alt"))
               )
   )

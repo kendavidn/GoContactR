@@ -112,6 +112,9 @@
   <a href="../articles/a06_video_walkthroughs.html">Walkthroughs</a>
 </li>
 <li>
+  <a href="https://gocontactr.shinyapps.io/sample">View Sample App</a>
+</li>
+<li>
   <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
@@ -158,9 +161,9 @@
 <p>The application has been built to work with two main data sources: contact tracing data from KoboCollect-exported csv files, and contact tracing data from a Go.Data instance (by direct API connection) Here, at the beginning of the global.R file, we set the PARAMS$country_code variable to the country being worked on. This ensures that the correct data import elements are loaded in the app, that is, either the elements for KoboCollect csv import and processing, or the elements for connecting to, and downloading from the Go.Data instance.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## Uncomment the below to change country app version</span>
-<span class="co">#PARAMS$country_code &lt;- "UGA"</span>
-<span class="co">#PARAMS$country_code &lt;- "COG"</span>
 <span class="co">#PARAMS$country_code &lt;- "CIV" </span>
+<span class="co">#PARAMS$country_code &lt;- "COG"</span>
+<span class="co">#PARAMS$country_code &lt;- "UGA"</span>
 <span class="va">PARAMS</span><span class="op">$</span><span class="va">country_code</span> <span class="op">&lt;-</span> <span class="st">"SAMPLE"</span></code></pre></div>
 <p>When <code>testing_mode</code> is set to true, the app loads with only a small subset of the data. This hastens loading speed and saves your time.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">

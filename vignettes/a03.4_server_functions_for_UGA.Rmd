@@ -17,6 +17,44 @@ if(exists("params") && !is.null(params$building_docs) && params$building_docs ==
 }
 ```
 
+## access_token_reactive
+
+```{r }
+# ~~~~ access_token_reactive ---------------------------
+```
+
+Specific to Go.Data version Returns access token
+
+```{r }
+access_token_reactive <- reactive({
+  
+  req(input$data_to_use)
+  req(input$go_data_url)
+  req(input$go_data_username)
+  req(input$go_data_password)
+  req(input$go_data_outbreak_id)
+  req(input$go_data_request_access_button)
+  
+  url <- input$go_data_url
+  username <- input$go_data_username
+  password <- input$go_data_password
+  outbreak_id <- input$go_data_outbreak_id
+  
+  access_token <- 
+    paste0(url,"api/oauth/token?access_token=123") %>% 
+    POST(body = list(username = username,
+                     password = password),
+         encode = "json") %>% 
+    content(as = "text") %>%
+    fromJSON(flatten = TRUE) %>%
+    .$access_token
+  
+  ## return
+  access_token
+  
+})
+```
+
 # UI Outputs
 
 ```{r }
@@ -84,44 +122,6 @@ output$data_to_use_input <-
             ), 
             uiOutput("access_permitted_or_not"))
   })
-```
-
-## access_token_reactive
-
-```{r }
-# ~~~~ access_token_reactive ---------------------------
-```
-
-Specific to Go.Data version Returns access token
-
-```{r }
-access_token_reactive <- reactive({
-  
-  req(input$data_to_use)
-  req(input$go_data_url)
-  req(input$go_data_username)
-  req(input$go_data_password)
-  req(input$go_data_outbreak_id)
-  req(input$go_data_request_access_button)
-  
-  url <- input$go_data_url
-  username <- input$go_data_username
-  password <- input$go_data_password
-  outbreak_id <- input$go_data_outbreak_id
-  
-  access_token <- 
-    paste0(url,"api/oauth/token?access_token=123") %>% 
-    POST(body = list(username = username,
-                     password = password),
-         encode = "json") %>% 
-    content(as = "text") %>%
-    fromJSON(flatten = TRUE) %>%
-    .$access_token
-  
-  ## return
-  access_token
-  
-})
 ```
 
 ## access_permitted_or_not

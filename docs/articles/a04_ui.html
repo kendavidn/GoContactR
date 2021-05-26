@@ -112,6 +112,9 @@
   <a href="../articles/a06_video_walkthroughs.html">Walkthroughs</a>
 </li>
 <li>
+  <a href="https://gocontactr.shinyapps.io/sample">View Sample App</a>
+</li>
+<li>
   <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
@@ -212,7 +215,16 @@
               <span class="fu"><a href="https://rdrr.io/pkg/shinydashboard/man/sidebarMenu.html">menuItem</a></span><span class="op">(</span><span class="st">"All contacts"</span>, tabName <span class="op">=</span> <span class="st">"main_tab"</span>, icon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/icon.html">icon</a></span><span class="op">(</span><span class="st">"globe"</span><span class="op">)</span><span class="op">)</span>,
               <span class="fu"><a href="https://rdrr.io/pkg/shinydashboard/man/sidebarMenu.html">menuItem</a></span><span class="op">(</span><span class="st">"Active contacts"</span>, tabName <span class="op">=</span> <span class="st">"active_contacts_tab"</span>, icon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/icon.html">icon</a></span><span class="op">(</span><span class="st">"calendar-week"</span><span class="op">)</span><span class="op">)</span>, 
               <span class="fu"><a href="https://rdrr.io/pkg/shinydashboard/man/sidebarMenu.html">menuItem</a></span><span class="op">(</span><span class="st">"Help"</span>, tabName <span class="op">=</span> <span class="st">"help_tab"</span>, icon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/icon.html">icon</a></span><span class="op">(</span><span class="st">"info-circle"</span><span class="op">)</span><span class="op">)</span>, 
-              <span class="fu"><a href="https://rdrr.io/pkg/shinydashboard/man/sidebarMenu.html">menuItem</a></span><span class="op">(</span><span class="st">"Click to logout"</span>, href <span class="op">=</span> <span class="st">"https://gocontactr.shinyapps.io/cotedivoire/__logout__/"</span>,newtab <span class="op">=</span> <span class="cn">FALSE</span>,
+              <span class="fu"><a href="https://rdrr.io/pkg/shinydashboard/man/sidebarMenu.html">menuItem</a></span><span class="op">(</span><span class="st">"Click to logout"</span>, 
+                       href <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"https://gocontactr.shinyapps.io/"</span>, 
+                                     <span class="kw"><a href="https://rdrr.io/r/base/switch.html">switch</a></span><span class="op">(</span><span class="va">PARAMS</span><span class="op">$</span><span class="va">country_code</span>,
+                                            <span class="st">"CIV"</span> <span class="op">=</span> <span class="st">"cotedivoire"</span>,
+                                            <span class="st">"COG"</span> <span class="op">=</span> <span class="st">"congo"</span>,
+                                            <span class="st">"SAMPLE"</span> <span class="op">=</span> <span class="st">"sample"</span>,
+                                            <span class="st">"UGA"</span> <span class="op">=</span> <span class="st">"uganda"</span>
+                                            <span class="op">)</span>,
+                                     <span class="st">"/__logout__/"</span><span class="op">)</span>,
+                       newtab <span class="op">=</span> <span class="cn">FALSE</span>,
                        icon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/icon.html">icon</a></span><span class="op">(</span><span class="st">"sign-out-alt"</span><span class="op">)</span><span class="op">)</span>
               <span class="op">)</span>
   <span class="op">)</span></code></pre></div>

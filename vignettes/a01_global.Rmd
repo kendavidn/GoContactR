@@ -40,9 +40,9 @@ or the elements for connecting to, and downloading from the Go.Data instance.
 
 ```{r }
 ## Uncomment the below to change country app version
-#PARAMS$country_code <- "UGA"
-#PARAMS$country_code <- "COG"
 #PARAMS$country_code <- "CIV" 
+#PARAMS$country_code <- "COG"
+#PARAMS$country_code <- "UGA"
 PARAMS$country_code <- "SAMPLE"
 ```
 

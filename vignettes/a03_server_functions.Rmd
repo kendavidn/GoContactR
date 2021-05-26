@@ -1109,7 +1109,7 @@ Functions showing how the number of new contacts
 ## new_contacts_historical_row_title
 
 ```{r }
-new_contacts_historical_row_title <- function(report_format){
+new_contacts_historical_row_title <- function(report_format = "shiny"){
   ## doesn't need to a function at the moment. 
   ## But we leave it there in case we want to take in an input or two
   
@@ -1765,7 +1765,7 @@ Functions showing how the number of new contacts
 ## cumul_contacts_historical_row_title
 
 ```{r }
-cumul_contacts_historical_row_title <- function(report_format){
+cumul_contacts_historical_row_title <- function(report_format = "shiny"){
   ## doesn't need to a function at the moment. 
   ## But we leave it there in case we want to take in an input or two
 
@@ -2035,7 +2035,7 @@ of contacts over admin level 1 and admin level 2.
 ## active_contacts_today_row_title
 
 ```{r }
-active_contacts_today_row_title <- function(todays_date, report_format){
+active_contacts_today_row_title <- function(todays_date, report_format = "shiny"){
   
   formatted_date <-format.Date(todays_date,
                                format = "%b %d, %Y")
@@ -2429,7 +2429,7 @@ segregated by region.
 ## active_contacts_historical_row_title
 
 ```{r }
-active_contacts_historical_row_title <- function(report_format){
+active_contacts_historical_row_title <- function(report_format = "shiny"){
   ## doesn't need to a function at the moment. 
   ## But we leave it there in case we want to take in an input or two
   

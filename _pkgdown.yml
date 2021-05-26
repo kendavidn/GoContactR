@@ -35,6 +35,8 @@ navbar:
          href: articles/gocontactr_report_html_slides.html
     - text: Walkthroughs
       href: articles/a06_video_walkthroughs.html
+    - text: View Sample App
+      href: https://gocontactr.shinyapps.io/sample
     - text: Changelog
       href: news/index.html
       

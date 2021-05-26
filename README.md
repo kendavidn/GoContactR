@@ -4,7 +4,7 @@
 
 This repo contains the code for GoContactR, an R-shiny application built to allow contact tracing teams to generate automated reports that summarize contact follow-up data.
 
-Find a sample live app here.
+Find a sample live app [HERE](https://gocontactr.shinyapps.io/sample/).
 
 The application has been built to work with two primary data sources: data from KoboCollect-exported csv files, and data from a Go.Data instance (by direct API connection).
 
