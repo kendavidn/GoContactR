@@ -6,6 +6,8 @@ This repo contains the code for GoContactR, an R-shiny application built to allo
 
 Find a sample live app [HERE](https://gocontactr.shinyapps.io/sample/).
 
+Find the documentation site [HERE](https://kendavidn.github.io/GoContactR/index.html).
+
 The application has been built to work with two primary data sources: data from KoboCollect-exported csv files, and data from a Go.Data instance (by direct API connection).
 
 At the start of the global.R file, the developer sets the `PARAMS$country_code` variable; this determines whether the Go.Data or KoboCollect versions will be loaded.
